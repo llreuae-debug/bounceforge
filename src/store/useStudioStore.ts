@@ -13,6 +13,7 @@ import { DEFAULT_TARGET_DURATION } from '../engine/duration';
 import { QualityMode, QualityTier } from '../platform/quality';
 import { DeviceCapabilities } from '../platform/capabilities';
 import { getHapticsEnabled, setHapticsEnabled as setHapticsStorage } from '../platform/haptics';
+import { AiService, DEFAULT_AI_SETTINGS } from '../ai/aiService';
 
 export interface ToastState {
   id: number;
@@ -127,6 +128,10 @@ interface StudioState {
   setSelfTestOpen: (open: boolean) => void;
   isWhatsNewOpen: boolean;
   setWhatsNewOpen: (open: boolean) => void;
+  isWhatNextOpen: boolean;
+  setWhatNextOpen: (open: boolean) => void;
+  isTrendsAdminOpen: boolean;
+  setTrendsAdminOpen: (open: boolean) => void;
 
   // Toast & Undo
   toast: ToastState | null;
@@ -224,6 +229,8 @@ export const useStudioStore = create<StudioState>((set, get) => {
     isShortcutsOpen: false,
     isSelfTestOpen: false,
     isWhatsNewOpen: false,
+    isWhatNextOpen: false,
+    isTrendsAdminOpen: false,
 
 
     setRoute: (route, pushState = true) => {
@@ -300,6 +307,8 @@ export const useStudioStore = create<StudioState>((set, get) => {
     setShortcutsOpen: (open) => set({ isShortcutsOpen: open }),
     setSelfTestOpen: (open) => set({ isSelfTestOpen: open }),
     setWhatsNewOpen: (open) => set({ isWhatsNewOpen: open }),
+    setWhatNextOpen: (open) => set({ isWhatNextOpen: open }),
+    setTrendsAdminOpen: (open) => set({ isTrendsAdminOpen: open }),
 
 
     setQualityMode: (mode) => set({ qualityMode: mode }),
@@ -382,6 +391,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
         });
       } else if (section === 'overlays') {
         snapshot.overlays = { ...state.overlays };
+        AiService.getInstance().updateSettings(DEFAULT_AI_SETTINGS);
         set({
           undoSnapshot: snapshot,
           overlays: { ...defaults.overlays },

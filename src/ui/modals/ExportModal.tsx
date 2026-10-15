@@ -26,6 +26,9 @@ import { triggerHaptic } from '../../platform/haptics';
 import { generateSocialCopy, getBatchVariation, createBatchZip, SocialCopy } from '../../export/creatorTools';
 import { BUILTIN_THEMES } from '../../render/themes';
 import { BUILTIN_MELODIES } from '../../audio/melodies';
+import { AiService } from '../../ai/aiService';
+import { generateSeoPack, SeoPack, formatSeoPackAsText } from '../../ai/seoEngine';
+import { SeoPackViewer } from '../components/SeoPackViewer';
 
 export const ExportModal: React.FC = () => {
   const {
@@ -43,6 +46,8 @@ export const ExportModal: React.FC = () => {
     targetDuration,
     capabilities,
     showToast,
+    setWhatNextOpen,
+    setTrendsAdminOpen,
   } = useStudioStore();
 
   const [resolution, setResolution] = useState<'1080' | '1440' | '4k' | '4k_landscape'>('1080');
@@ -60,6 +65,7 @@ export const ExportModal: React.FC = () => {
   const [coverBlob, setCoverBlob] = useState<Blob | null>(null);
   const [canShareFile, setCanShareFile] = useState<boolean>(false);
   const [batteryInfo, setBatteryInfo] = useState<BatteryInfo | null>(null);
+  const [currentSeoPack, setCurrentSeoPack] = useState<SeoPack | null>(null);
 
   // Batch Export state
   const [isBatchExporting, setIsBatchExporting] = useState(false);
@@ -214,6 +220,18 @@ export const ExportModal: React.FC = () => {
         setDownloadUrl(URL.createObjectURL(result.blob));
         setExportBlob(result.blob);
       }
+
+      // Generate SEO Pack
+      AiService.getInstance().generateSeo({
+        modeName: currentModeId,
+        modeId: currentModeId,
+        category: 'fresh_drops',
+        hookText: overlays.titleText || 'can it escape??',
+        duration,
+        seed,
+        resolution: resolution === '4k' ? '4k' : '1080p',
+      }).then(setCurrentSeoPack);
+
       triggerHaptic(20);
     } catch (err: any) {
       if (err.message !== 'Export cancelled') {
@@ -239,7 +257,14 @@ export const ExportModal: React.FC = () => {
     const batchDuration = duration;
 
     const usedSeeds = new Set<number>();
-    const finishedItems: Array<{ filename: string; blob: Blob; coverBlob?: Blob; coverFilename?: string }> = [];
+    const finishedItems: Array<{
+      filename: string;
+      blob: Blob;
+      coverBlob?: Blob;
+      coverFilename?: string;
+      seoText?: string;
+      seoFilename?: string;
+    }> = [];
 
     const totalToMake = batchCount;
 
@@ -279,11 +304,26 @@ export const ExportModal: React.FC = () => {
           (p) => setProgress(p)
         );
 
+        // Generate unique SEO pack for this batch video
+        const itemSeo = await AiService.getInstance().generateSeo({
+          modeName: currentModeId,
+          modeId: currentModeId,
+          category: 'fresh_drops',
+          hookText: variation.hookText,
+          duration: batchDuration,
+          seed: variation.seed,
+          resolution: '1080p',
+          variationIndex: i,
+        });
+        const seoTxt = formatSeoPackAsText(itemSeo, currentModeId);
+
         finishedItems.push({
           filename: `batch_${i + 1}_${res.filename}`,
           blob: res.blob,
           coverBlob: res.thumbnailBlob,
           coverFilename: `batch_${i + 1}_cover.png`,
+          seoText: seoTxt,
+          seoFilename: `batch_${i + 1}_seo.txt`,
         });
       } catch (err: any) {
         console.warn('Batch item failed:', err);
@@ -570,60 +610,24 @@ export const ExportModal: React.FC = () => {
                 </div>
               )}
 
-              {/* Creator Helper: Offline Captions & Hashtags */}
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> Posting Copy Helper
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-400">1-click copy for reels/tiktok</span>
-                </div>
-
-                {/* Shorts Title */}
-                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2">
-                  <div className="overflow-hidden">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Shorts Title</span>
-                    <p className="text-xs text-white truncate font-medium">{socialCopy.shortsTitle}</p>
-                  </div>
-                  <button
-                    onClick={() => handleCopy('title', socialCopy.shortsTitle)}
-                    className="btn-3d-glass px-2.5 py-1 rounded-lg text-xs text-cyan-300 flex items-center gap-1 shrink-0"
-                  >
-                    {copiedField === 'title' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    <span>{copiedField === 'title' ? 'copied' : 'copy'}</span>
-                  </button>
-                </div>
-
-                {/* Caption */}
-                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2">
-                  <div className="overflow-hidden">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Caption</span>
-                    <p className="text-xs text-white truncate font-medium">{socialCopy.caption}</p>
-                  </div>
-                  <button
-                    onClick={() => handleCopy('caption', socialCopy.caption)}
-                    className="btn-3d-glass px-2.5 py-1 rounded-lg text-xs text-cyan-300 flex items-center gap-1 shrink-0"
-                  >
-                    {copiedField === 'caption' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    <span>{copiedField === 'caption' ? 'copied' : 'copy'}</span>
-                  </button>
-                </div>
-
-                {/* Hashtags */}
-                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2">
-                  <div className="overflow-hidden">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Hashtags</span>
-                    <p className="text-xs text-cyan-300 truncate font-mono">{socialCopy.hashtags}</p>
-                  </div>
-                  <button
-                    onClick={() => handleCopy('hashtags', socialCopy.hashtags)}
-                    className="btn-3d-glass px-2.5 py-1 rounded-lg text-xs text-cyan-300 flex items-center gap-1 shrink-0"
-                  >
-                    {copiedField === 'hashtags' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    <span>{copiedField === 'hashtags' ? 'copied' : 'copy'}</span>
-                  </button>
-                </div>
-              </div>
+              {/* Full Platform SEO Pack (TikTok, Reels, Shorts) */}
+              <SeoPackViewer
+                seoPack={
+                  currentSeoPack ||
+                  generateSeoPack({
+                    modeName: currentModeId,
+                    modeId: currentModeId,
+                    category: 'fresh_drops',
+                    hookText: overlays.titleText || 'can it escape??',
+                    duration,
+                    seed,
+                    resolution: resolution === '4k' ? '4k' : '1080p',
+                  })
+                }
+                modeName={currentModeId}
+                onOpenTrendsAdmin={() => setTrendsAdminOpen(true)}
+                onApplyHookTweak={(tweak) => setOverlays({ titleText: tweak })}
+              />
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-2">
@@ -636,6 +640,20 @@ export const ExportModal: React.FC = () => {
                     <Download className="w-4 h-4" /> Download Video (MP4)
                   </a>
                 )}
+
+                {/* AI What Next Recommendation Trigger */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    cleanupUrls();
+                    setExportOpen(false);
+                    setWhatNextOpen(true);
+                  }}
+                  className="btn-3d-cyan w-full py-2.5 rounded-xl text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-cyan-500/20"
+                >
+                  <Sparkles className="w-4 h-4 text-black" />
+                  <span>what next? ai recommendations</span>
+                </button>
 
                 {thumbnailUrl && (
                   <a

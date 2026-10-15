@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { THEMES } from '../../render/themes';
 import { BUILTIN_MELODIES } from '../../audio/melodies';
@@ -8,7 +8,14 @@ import { AsmrEngine, AsmrTextureType } from '../../audio/asmrEngine';
 import { getDefaults, isModeAtDefault } from '../../modes/defaults';
 import { checkGpu4KCapability } from '../../export/videoExporter';
 import { getRandomHook, HOOK_CATEGORIES } from '../../engine/hooksLibrary';
-
+import { AiHookSuggester } from '../components/AiHookSuggester';
+import { AiLabelSuggester } from '../components/AiLabelSuggester';
+import { SeoPackViewer } from '../components/SeoPackViewer';
+import { ALL_MODES } from '../../modes/registry';
+import { AiService, DEFAULT_AI_SETTINGS, AiUserSettings } from '../../ai/aiService';
+import { TrendsManager } from '../../ai/trendsManager';
+import { SupportedLanguage, HookStyle } from '../../ai/offlineEngine';
+import { generateSeoPack } from '../../ai/seoEngine';
 
 import {
   Sliders,
@@ -29,6 +36,12 @@ import {
   Vibrate,
   CheckCircle2,
   XCircle,
+  TrendingUp,
+  Clock,
+  Compass,
+  Trash2,
+  ExternalLink,
+  Bot,
 } from 'lucide-react';
 import { detectCapabilities, generateDiagnosticReport, DeviceCapabilities } from '../../platform/capabilities';
 import { triggerHaptic } from '../../platform/haptics';
@@ -127,13 +140,55 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
     capabilities,
     setCapabilities,
     showToast,
+    setWhatNextOpen,
+    setTrendsAdminOpen,
   } = useStudioStore();
 
-  const [activeTab, setActiveTab] = useState<'physics' | 'visuals' | 'audio' | 'overlays' | 'diagnostics'>('physics');
+  const [activeTab, setActiveTab] = useState<'physics' | 'visuals' | 'audio' | 'overlays' | 'ai' | 'diagnostics'>('physics');
   const [soundSubTab, setSoundSubTab] = useState<'music' | 'asmr' | 'beat' | 'mix'>('music');
   const [showFactoryModal, setShowFactoryModal] = useState(false);
   const [alsoDeleteSaved, setAlsoDeleteSaved] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  // Growth Tools & AI state
+  const currentMode = useMemo(() => ALL_MODES.find((m) => m.id === currentModeId) || ALL_MODES[0], [currentModeId]);
+  const [aiSettings, setAiSettings] = useState<AiUserSettings>(AiService.getInstance().getSettings());
+  const [savedHooks, setSavedHooks] = useState<string[]>(AiService.getInstance().getMyHooks());
+  const [trendsMeta, setTrendsMeta] = useState<{ updated: string; isOutdated: boolean }>({ updated: '', isOutdated: false });
+
+  // Compute live draft SEO pack for current studio configuration
+  const draftSeoPack = useMemo(() => {
+    return generateSeoPack({
+      modeName: currentMode.name,
+      modeId: currentMode.id,
+      category: currentMode.category,
+      hookText: overlays.titleText || 'can it escape??',
+      seed: seed,
+    });
+  }, [currentMode, overlays.titleText, seed]);
+
+  React.useEffect(() => {
+    TrendsManager.getInstance().getTrends().then((res) => {
+      setTrendsMeta({ updated: res.data.updated, isOutdated: res.isOutdated });
+    });
+  }, [activeTab]);
+
+  const handleUpdateAiSettings = (updates: Partial<AiUserSettings>) => {
+    AiService.getInstance().updateSettings(updates);
+    setAiSettings(AiService.getInstance().getSettings());
+  };
+
+  const handleResetAiSettings = () => {
+    AiService.getInstance().updateSettings(DEFAULT_AI_SETTINGS);
+    setAiSettings(DEFAULT_AI_SETTINGS);
+    showToast('AI defaults restored');
+  };
+
+  const handleRemoveHook = (hook: string) => {
+    AiService.getInstance().removeHook(hook);
+    setSavedHooks(AiService.getInstance().getMyHooks());
+    showToast('hook removed from library');
+  };
 
   // Auto-detect capabilities if not already loaded
   React.useEffect(() => {
@@ -300,6 +355,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
         </button>
 
         <button
+          onClick={() => setActiveTab('ai')}
+          className={`tab-3d py-1.5 px-0.5 rounded-xl text-[10.5px] font-extrabold tracking-tight flex items-center justify-center gap-1 min-w-0 ${
+            activeTab === 'ai'
+              ? 'tab-3d-active bg-pink-500/20 text-pink-300 border-pink-400/50 border-b-pink-400 shadow-[0_2px_0_0_#831843,0_4px_12px_rgba(244,114,182,0.25)]'
+              : 'tab-3d-inactive'
+          }`}
+          title="AI Growth Tools, SEO Packs & Strategy"
+        >
+          <Sparkles className="w-3 h-3 shrink-0 text-pink-400" />
+          <span className="whitespace-nowrap">ai &amp; seo</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('diagnostics')}
           className={`tab-3d py-1.5 px-0.5 rounded-xl text-[10.5px] font-extrabold tracking-tight flex items-center justify-center gap-1 min-w-0 ${
             activeTab === 'diagnostics'
@@ -446,7 +514,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
               </ControlWrapper>
             )}
 
-            {/* Any remaining numerical settings for advanced modes */}
+            {/* Any remaining settings for advanced modes */}
             {Object.entries(modeSettings).map(([key, val]) => {
               if (['ringCount', 'gapSizeDeg', 'speed', 'maxBalls', 'gravity', 'bounciness'].includes(key)) return null;
               if (typeof val === 'number') {
@@ -468,6 +536,37 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                       onChange={(e) => updateModeSetting(key, Number(e.target.value))}
                       className="w-full accent-cyan-400"
                     />
+                  </ControlWrapper>
+                );
+              }
+              if (typeof val === 'string') {
+                const defVal = defaults.modeSettings[key] ?? val;
+                return (
+                  <ControlWrapper
+                    key={key}
+                    label={key === 'names' ? 'Contestant Names' : key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                    valueDisplay={val}
+                    isModified={val !== defVal}
+                    onReset={() => resetSingleSetting(key, defVal, 'mode')}
+                  >
+                    <div className="space-y-1.5">
+                      <input
+                        type="text"
+                        value={val}
+                        onChange={(e) => updateModeSetting(key, e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-cyan-400 font-mono"
+                      />
+                      {(key === 'names' || key.toLowerCase().includes('contestant') || currentMode.category === 'battle' || currentMode.id.includes('battle')) && (
+                        <AiLabelSuggester
+                          type="contestant_names"
+                          currentValue={val}
+                          onApply={(newNames) => updateModeSetting(key, newNames)}
+                          modeName={currentMode.name}
+                          category={currentMode.category}
+                          labelTitle="ai suggest contestant names"
+                        />
+                      )}
+                    </div>
                   </ControlWrapper>
                 );
               }
@@ -958,7 +1057,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                 />
               </div>
               {overlays.showTitle && (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -978,6 +1077,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                       🎲 roll hook
                     </button>
                   </div>
+
+                  {/* AI Hook Suggester (6 cards, safe area fit, styles, languages) */}
+                  <AiHookSuggester
+                    currentText={overlays.titleText}
+                    onApplyHook={(hook) => setOverlays({ titleText: hook })}
+                    modeName={currentMode.name}
+                    category={currentMode.category}
+                  />
 
                   {/* Hook Category Chips */}
                   <div className="flex flex-wrap gap-1">
@@ -1052,7 +1159,17 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
 
             {/* End Card CTA */}
             <div className="pt-2 border-t border-white/10 space-y-2">
-              <span className="text-xs text-slate-200 font-bold block">Winner End Card CTA Line</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-200 font-bold block">Winner End Card CTA Line</span>
+                <AiLabelSuggester
+                  type="end_card_cta"
+                  currentValue={overlays.endCardCta || ''}
+                  onApply={(cta) => setOverlays({ endCardCta: cta })}
+                  modeName={currentMode.name}
+                  category={currentMode.category}
+                  labelTitle="ai suggest cta"
+                />
+              </div>
               <input
                 type="text"
                 value={overlays.endCardCta || 'follow for part 2 • comment ur color'}
@@ -1061,7 +1178,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-cyan-300 outline-none focus:border-cyan-400 font-mono"
               />
             </div>
-
 
             {/* Live Counter */}
             <div className="pt-2 border-t border-white/10 space-y-2">
@@ -1075,17 +1191,40 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                 />
               </div>
               {overlays.showCounter && (
-                <select
-                  value={overlays.counterType}
-                  onChange={(e) => setOverlays({ counterType: e.target.value as any })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-slate-200 outline-none"
-                >
-                  <option value="rings">Rings Left Counter</option>
-                  <option value="balls">Ball Count</option>
-                  <option value="bounces">Total Bounces</option>
-                  <option value="timer">MM:SS.ms Timer</option>
-                  <option value="percent">Percentage %</option>
-                </select>
+                <div className="space-y-2">
+                  <select
+                    value={overlays.counterType}
+                    onChange={(e) => setOverlays({ counterType: e.target.value as any })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-slate-200 outline-none"
+                  >
+                    <option value="rings">Rings Left Counter</option>
+                    <option value="balls">Ball Count</option>
+                    <option value="bounces">Total Bounces</option>
+                    <option value="timer">MM:SS.ms Timer</option>
+                    <option value="percent">Percentage %</option>
+                  </select>
+
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-slate-400 font-medium">Custom Counter Label</span>
+                      <AiLabelSuggester
+                        type="counter"
+                        currentValue={overlays.counterCustomLabel || ''}
+                        onApply={(lbl) => setOverlays({ counterCustomLabel: lbl })}
+                        modeName={currentMode.name}
+                        category={currentMode.category}
+                        labelTitle="ai suggest label"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={overlays.counterCustomLabel || ''}
+                      onChange={(e) => setOverlays({ counterCustomLabel: e.target.value })}
+                      placeholder="e.g. rings left, balls trapped, alive"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1 text-xs text-cyan-300 outline-none focus:border-cyan-400 font-mono"
+                    />
+                  </div>
+                </div>
               )}
             </div>
 
@@ -1148,6 +1287,260 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                   />
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* 6.5 AI GROWTH TOOLS & SEO PACK */}
+        {activeTab === 'ai' && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-1 border-b border-white/10">
+              <div>
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-pink-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-pink-400 stroke-[2.2]" />
+                  <span>ai growth tools &amp; seo</span>
+                </h3>
+                <p className="text-[10px] text-slate-400">Viral short-form SEO, smart hooks &amp; content strategy</p>
+              </div>
+              <button
+                onClick={handleResetAiSettings}
+                aria-label="reset ai settings to default"
+                className="btn-3d-glass p-1 px-2.5 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-1.5 text-[11px] font-bold"
+                title="reset AI preferences to default"
+              >
+                <RotateCcw className="w-3 h-3 stroke-[2.2]" />
+                <span className="text-[10px]">reset</span>
+              </button>
+            </div>
+
+            {/* AI Engine Switch */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-slate-200 block">AI Suggestions Engine</span>
+                  <span className="text-[10px] text-slate-400">Google Gemini Flash serverless API (/api/ai)</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={aiSettings.enabled}
+                  onChange={(e) => handleUpdateAiSettings({ enabled: e.target.checked })}
+                  className="accent-pink-400 w-4 h-4 cursor-pointer"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 leading-relaxed">
+                {aiSettings.enabled
+                  ? '✨ Cloud AI active with automatic offline fallback (300+ templates) on network failure or rate limit.'
+                  : '⚡ Offline Mode active. 100% of hooks and SEO suggestions run deterministically in browser memory.'}
+              </p>
+            </div>
+
+            {/* AI Generation Preferences */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-3.5">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                Default Hook &amp; SEO Preferences
+              </h4>
+
+              {/* Language */}
+              <div>
+                <label className="text-[10.5px] font-semibold text-slate-400 block mb-1">Default Language</label>
+                <select
+                  value={aiSettings.language}
+                  onChange={(e) => handleUpdateAiSettings({ language: e.target.value as SupportedLanguage })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-pink-400"
+                >
+                  <option value="en">English</option>
+                  <option value="ur_roman">Urdu (Roman) - Roman Urdu</option>
+                  <option value="ur_script">Urdu (اردو) - Nastaliq/Arabic Script</option>
+                  <option value="hi">Hindi (हिन्दी) - Devanagari</option>
+                  <option value="ar">Arabic (العربية)</option>
+                  <option value="es">Spanish (Español)</option>
+                  <option value="pt">Portuguese (Português)</option>
+                  <option value="id">Indonesian (Bahasa)</option>
+                  <option value="tr">Turkish (Türkçe)</option>
+                </select>
+              </div>
+
+              {/* Hook Style Chips */}
+              <div>
+                <label className="text-[10.5px] font-semibold text-slate-400 block mb-1.5">Default Styles</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {(['curiosity', 'challenge', 'prediction', 'countdown', 'asmr', 'funny', 'suspense'] as HookStyle[]).map((st) => {
+                    const active = aiSettings.styles.includes(st);
+                    return (
+                      <button
+                        key={st}
+                        onClick={() => {
+                          const next = active
+                            ? aiSettings.styles.filter((s) => s !== st)
+                            : [...aiSettings.styles, st];
+                          if (next.length > 0) handleUpdateAiSettings({ styles: next });
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono transition-all lowercase ${
+                          active
+                            ? 'bg-pink-500/20 text-pink-300 border border-pink-400/40 shadow-[0_0_8px_rgba(244,114,182,0.2)]'
+                            : 'bg-white/5 text-slate-400 hover:text-slate-200 border border-white/5'
+                        }`}
+                      >
+                        {st}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Emoji & Casing */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="text-[10.5px] font-semibold text-slate-400 block mb-1">Emoji in Hooks</label>
+                  <button
+                    onClick={() => handleUpdateAiSettings({ emoji: !aiSettings.emoji })}
+                    className={`w-full py-1.5 px-3 rounded-xl border text-xs font-mono flex items-center justify-center gap-1.5 transition-all ${
+                      aiSettings.emoji
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-400/40'
+                        : 'bg-white/5 text-slate-400 border-white/10'
+                    }`}
+                  >
+                    <span>{aiSettings.emoji ? '🔥 emoji on' : '🚫 emoji off'}</span>
+                  </button>
+                </div>
+
+                <div>
+                  <label className="text-[10.5px] font-semibold text-slate-400 block mb-1">Text Casing</label>
+                  <select
+                    value={aiSettings.casing}
+                    onChange={(e) => handleUpdateAiSettings({ casing: e.target.value as any })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white outline-none focus:border-pink-400 font-mono"
+                  >
+                    <option value="as_written">as written</option>
+                    <option value="lowercase">all lowercase</option>
+                    <option value="uppercase">ALL CAPS</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Draft SEO Pack */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                    Active Draft SEO Pack
+                  </h4>
+                  <span className="text-[10px] text-slate-400">Platform-optimized titles, hashtags &amp; descriptions</span>
+                </div>
+                <span className="px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-[10px] font-mono">
+                  live sync
+                </span>
+              </div>
+              <SeoPackViewer
+                seoPack={draftSeoPack}
+                modeName={currentMode.name}
+                onOpenTrendsAdmin={() => setTrendsAdminOpen(true)}
+                onApplyHookTweak={(tweak) => setOverlays({ titleText: tweak })}
+              />
+            </div>
+
+            {/* Saved Hooks ("My Hooks") */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                    My Saved Hooks ({savedHooks.length})
+                  </h4>
+                  <span className="text-[10px] text-slate-400">Favorited hooks saved across sessions</span>
+                </div>
+              </div>
+
+              {savedHooks.length === 0 ? (
+                <div className="p-4 rounded-xl bg-white/[0.01] border border-dashed border-white/10 text-center">
+                  <p className="text-[11px] text-slate-400">no saved hooks yet.</p>
+                  <p className="text-[10px] text-slate-400 mt-1">tap the heart icon on any hook suggestion to save it here.</p>
+                </div>
+              ) : (
+                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                  {savedHooks.map((h, i) => (
+                    <div
+                      key={i}
+                      className="p-2 rounded-xl bg-white/5 border border-white/5 hover:border-pink-400/30 flex items-center justify-between gap-2 group transition-all"
+                    >
+                      <span className="text-xs text-slate-200 font-medium truncate flex-1">{h}</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => {
+                            setOverlays({ titleText: h });
+                            showToast(`hook applied: "${h}"`);
+                          }}
+                          className="px-2 py-1 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 text-[10px] font-bold transition-colors"
+                        >
+                          apply
+                        </button>
+                        <button
+                          onClick={() => handleRemoveHook(h)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
+                          title="remove hook"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Trends & Social Signals */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                    <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Niche Trends Signal</span>
+                  </h4>
+                  <span className="text-[10px] text-slate-400">Keywords, hashtags &amp; audio signals for ASMR/Physics</span>
+                </div>
+                <button
+                  onClick={() => setTrendsAdminOpen(true)}
+                  className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-cyan-300 text-[10px] font-bold flex items-center gap-1"
+                >
+                  <span>admin edit</span>
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400 flex items-center gap-1 text-[11px]">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>trends updated {trendsMeta.updated || 'recently'}</span>
+                </span>
+                {trendsMeta.isOutdated ? (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-mono">
+                    ⚠️ trends may be outdated (&gt;14d)
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono">
+                    fresh signals
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* What Next? AI Advisor Launcher */}
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 border border-pink-500/20 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Compass className="w-4 h-4 text-pink-400" />
+                  <span>AI "What Next?" Strategy Advisor</span>
+                </span>
+                <button
+                  onClick={() => setWhatNextOpen(true)}
+                  className="btn-3d-pink px-3 py-1.5 rounded-xl text-black font-black text-xs uppercase tracking-wider"
+                >
+                  open advisor
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-400 leading-relaxed">
+                Personalized 7-day posting plans, Part 2 sequels, A/B test setups, and remix variations based on your export history.
+              </p>
             </div>
           </div>
         )}

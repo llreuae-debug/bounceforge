@@ -11,6 +11,7 @@ export interface OverlaySettings {
   counterType: 'rings' | 'balls' | 'bounces' | 'timer' | 'percent';
   counterFontSize: number;
   counterColor: string;
+  counterCustomLabel?: string;
 
   showProgressBar: boolean;
   targetDuration: number; // in seconds (e.g. 60)
@@ -45,6 +46,7 @@ export const DEFAULT_OVERLAYS: OverlaySettings = {
   counterType: 'rings',
   counterFontSize: 36,
   counterColor: '#00f0ff',
+  counterCustomLabel: '',
 
   showProgressBar: true,
   targetDuration: 60,
@@ -211,28 +213,29 @@ export function drawOverlays(
     ctx.shadowBlur = Math.round(8 * scale);
 
     let counterText = '';
+    const customLabel = settings.counterCustomLabel?.trim();
     if (stats.customCounters?.counterLabel) {
-      counterText = `${stats.customCounters.counterLabel}: ${stats.customCounters.counterValue}`;
+      counterText = `${customLabel || stats.customCounters.counterLabel}: ${stats.customCounters.counterValue}`;
     } else {
       switch (settings.counterType) {
         case 'rings':
-          counterText = `RINGS LEFT: ${stats.ringsLeft}`;
+          counterText = `${customLabel ? customLabel.toUpperCase() : 'RINGS LEFT'}: ${stats.ringsLeft}`;
           break;
         case 'balls':
-          counterText = `BALLS: ${stats.ballsCount}`;
+          counterText = `${customLabel ? customLabel.toUpperCase() : 'BALLS'}: ${stats.ballsCount}`;
           break;
         case 'bounces':
-          counterText = `BOUNCES: ${stats.bounces}`;
+          counterText = `${customLabel ? customLabel.toUpperCase() : 'BOUNCES'}: ${stats.bounces}`;
           break;
         case 'timer': {
           const mins = Math.floor(stats.elapsedTime / 60);
           const secs = (stats.elapsedTime % 60).toFixed(2);
-          counterText = `${mins.toString().padStart(2, '0')}:${secs.padStart(5, '0')}`;
+          counterText = `${customLabel ? customLabel.toUpperCase() + ' ' : ''}${mins.toString().padStart(2, '0')}:${secs.padStart(5, '0')}`;
           break;
         }
         case 'percent': {
           const pct = Math.floor((stats.elapsedTime / settings.targetDuration) * 100);
-          counterText = `${pct}%`;
+          counterText = `${customLabel ? customLabel.toUpperCase() + ' ' : ''}${pct}%`;
           break;
         }
       }

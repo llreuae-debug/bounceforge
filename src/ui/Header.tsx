@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 
 import { WhatsNewModal } from './modals/WhatsNewModal';
+import { WhatNextModal } from './modals/WhatNextModal';
+import { TrendsAdminModal } from './modals/TrendsAdminModal';
 
 export const Header: React.FC = () => {
   const {
@@ -40,6 +42,10 @@ export const Header: React.FC = () => {
     surpriseMe,
     isWhatsNewOpen,
     setWhatsNewOpen,
+    isWhatNextOpen,
+    setWhatNextOpen,
+    isTrendsAdminOpen,
+    setTrendsAdminOpen,
   } = useStudioStore();
 
 
@@ -227,6 +233,15 @@ export const Header: React.FC = () => {
             </button>
 
             <button
+              onClick={() => setWhatNextOpen(true)}
+              className="btn-3d-cyan flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black text-black transition-all uppercase tracking-wider shadow-md shadow-cyan-500/20"
+              title="AI What Next Studio Navigator"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-black" />
+              <span className="hidden md:inline">what next?</span>
+            </button>
+
+            <button
               onClick={() => setWhatsNewOpen(true)}
               className="btn-3d-pink flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black text-white transition-all uppercase tracking-wider shadow-md shadow-pink-500/30"
               title="What's New in BounceForge Viral Update"
@@ -276,8 +291,10 @@ export const Header: React.FC = () => {
         </button>
       </div>
 
-      {/* What's New Sheet */}
+      {/* Modals */}
       <WhatsNewModal isOpen={isWhatsNewOpen} onClose={() => setWhatsNewOpen(false)} />
+      <WhatNextModal isOpen={isWhatNextOpen} onClose={() => setWhatNextOpen(false)} />
+      <TrendsAdminModal isOpen={isTrendsAdminOpen} onClose={() => setTrendsAdminOpen(false)} />
 
 
       {/* Mobile Drawer Menu */}

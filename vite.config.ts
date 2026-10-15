@@ -6,11 +6,61 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+function devApiPlugin() {
+  return {
+    name: 'dev-api-middleware',
+    configureServer(server: any) {
+      server.middlewares.use(async (req: any, res: any, next: any) => {
+        if (req.url === '/api/ai' || req.url?.startsWith('/api/ai')) {
+          let body = '';
+          req.on('data', (chunk: any) => { body += chunk; });
+          req.on('end', async () => {
+            try {
+              req.body = body ? JSON.parse(body) : {};
+            } catch {
+              req.body = {};
+            }
+            const aiHandler = (await import('./api/ai.ts')).default;
+            res.status = (code: number) => { res.statusCode = code; return res; };
+            res.json = (data: any) => {
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify(data));
+            };
+            return aiHandler(req, res);
+          });
+          return;
+        }
+        if (req.url === '/api/trends' || req.url?.startsWith('/api/trends')) {
+          let body = '';
+          req.on('data', (chunk: any) => { body += chunk; });
+          req.on('end', async () => {
+            try {
+              req.body = body ? JSON.parse(body) : {};
+            } catch {
+              req.body = {};
+            }
+            const trendsHandler = (await import('./api/trends.ts')).default;
+            res.status = (code: number) => { res.statusCode = code; return res; };
+            res.json = (data: any) => {
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify(data));
+            };
+            return trendsHandler(req, res);
+          });
+          return;
+        }
+        next();
+      });
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    devApiPlugin(),
   ],
   resolve: {
     alias: {

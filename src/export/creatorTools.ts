@@ -89,11 +89,15 @@ export function getBatchVariation(
   };
 }
 
-/**
- * Packs multiple exported videos and dramatic cover PNGs into a single ZIP archive
- */
 export async function createBatchZip(
-  items: Array<{ filename: string; blob: Blob; coverBlob?: Blob; coverFilename?: string }>
+  items: Array<{
+    filename: string;
+    blob: Blob;
+    coverBlob?: Blob;
+    coverFilename?: string;
+    seoText?: string;
+    seoFilename?: string;
+  }>
 ): Promise<Blob> {
   const zip = new JSZip();
 
@@ -101,6 +105,9 @@ export async function createBatchZip(
     zip.file(item.filename, item.blob);
     if (item.coverBlob && item.coverFilename) {
       zip.file(item.coverFilename, item.coverBlob);
+    }
+    if (item.seoText && item.seoFilename) {
+      zip.file(item.seoFilename, item.seoText);
     }
   });
 
