@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width="480" height="120">
+  <!-- Flat Symbol at left -->
+  <g transform="translate(4, 0)">
+    
+    <g class="symbol-concept-c">
+      <!-- Left Flat Ring (Cyber Cyan) -->
+      <circle cx="46" cy="60" r="28"
+              fill="none"
+              stroke="#00F0FF"
+              stroke-width="10" />
+
+      <!-- Right Flat Ring (Ultra Violet) -->
+      <circle cx="74" cy="60" r="28"
+              fill="none"
+              stroke="#A855FF"
+              stroke-width="10" />
+
+      <!-- Solid Hot-Pink Ball at Central Crossing Point -->
+      <circle cx="60" cy="60" r="11" fill="#FF2E93" />
+
+      <!-- Tiny lime escape energy sparks on top-right -->
+      <circle cx="88" cy="36" r="3" fill="#CCFF00" />
+      <circle cx="32" cy="84" r="2.5" fill="#CCFF00" />
+    </g>
+  </g>
+  <!-- Flat Wordmark (no 3D) -->
+  
+    <!-- Flat Wordmark: "bounceforge" in Helvetica Neue Black 900, lowercase, tracking -0.05em -->
+    <text x="132" y="74"
+          font-family="'Helvetica Neue', Helvetica, -apple-system, sans-serif"
+          font-size="52"
+          font-weight="900"
+          letter-spacing="-0.05em"
+          fill="#F5F5F0">bounceforge</text>
+</svg>

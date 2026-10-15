@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BOUNCEFORGE — Official Flat 2D Brand Identity &amp; Style Guide</title>
+  <link rel="icon" type="image/png" href="./icons/favicon.png">
+  <style>
+    :root {
+      --bg: #050507;
+      --card-bg: #0d0d14;
+      --card-border: #1a1a28;
+      --lime: #CCFF00;
+      --pink: #FF2E93;
+      --cyan: #00F0FF;
+      --violet: #A855FF;
+      --white: #F5F5F0;
+      --gray: #8E8E93;
+      --font-stack: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--white);
+      font-family: var(--font-stack);
+      line-height: 1.5;
+      padding-bottom: 120px;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    header {
+      padding: 60px 40px 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(204, 255, 0, 0.12);
+      border: 1px solid var(--lime);
+      color: var(--lime);
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      width: fit-content;
+    }
+
+    h1 {
+      font-size: 56px;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      line-height: 1.05;
+    }
+
+    h1 span {
+      color: var(--lime);
+    }
+
+    .subtitle {
+      font-size: 20px;
+      color: var(--gray);
+      max-width: 800px;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 80px;
+    }
+
+    section {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 16px;
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h2::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 24px;
+      background: var(--lime);
+      border-radius: 4px;
+    }
+
+    .section-desc {
+      color: var(--gray);
+      font-size: 15px;
+    }
+
+    /* Grid Layouts */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 24px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .card.recommended {
+      border-color: var(--lime);
+      box-shadow: 0 0 40px rgba(204, 255, 0, 0.08);
+    }
+
+    .card.recommended::after {
+      content: "RECOMMENDED DEFAULT";
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--lime);
+      color: #000;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      letter-spacing: 0.08em;
+    }
+
+    .preview-box {
+      height: 200px;
+      background: #050507;
+      border: 1px solid #161622;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .preview-box.white-bg {
+      background: #F5F5F0;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .download-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: #171724;
+      color: var(--white);
+      text-decoration: none;
+      border: 1px solid #28283c;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .download-pill:hover {
+      background: var(--lime);
+      color: #000;
+      border-color: var(--lime);
+    }
+
+    /* Color Palette */
+    .color-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .color-swatch {
+      height: 140px;
+      width: 100%;
+    }
+
+    .color-meta {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .color-name {
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .color-hex {
+      font-family: monospace;
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    .color-role {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* Specs & Rules */
+    .spec-box {
+      border: 1px dashed #333;
+      padding: 40px;
+      border-radius: 16px;
+      background: #07070b;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spec-indicator {
+      position: absolute;
+      color: var(--pink);
+      font-size: 11px;
+      font-family: monospace;
+      font-weight: 700;
+    }
+
+    .rule-card {
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .rule-card.do {
+      background: rgba(204, 255, 0, 0.05);
+      border: 1px solid rgba(204, 255, 0, 0.3);
+    }
+
+    .rule-card.dont {
+      background: rgba(255, 46, 147, 0.05);
+      border: 1px solid rgba(255, 46, 147, 0.3);
+    }
+
+    .rule-badge {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+      width: fit-content;
+    }
+
+    .rule-card.do .rule-badge {
+      background: var(--lime);
+      color: #000;
+    }
+
+    .rule-card.dont .rule-badge {
+      background: var(--pink);
+      color: #fff;
+    }
+
+    .video-preview-wrapper {
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge-pill">⚡ OFFICIAL FLAT 2D BRAND GUIDELINES 2026</div>
+    <h1>bounceforge</h1>
+    <p class="subtitle">
+      Pure flat 2D brand identity, vector assets, loopable motion package, and typography system for TikTok, Shorts, Reels, and viral physics video creation.
+    </p>
+  </header>
+
+  <main>
+    <!-- SECTION 1: THE THREE FLAT LOGO CONCEPTS -->
+    <section>
+      <div class="section-header">
+        <h2>1. Three Creative Concepts (Flat 2D Vector)</h2>
+        <span class="section-desc">Solid fills • Clean strokes • No 3D bevels or isometric shapes</span>
+      </div>
+
+      <div class="grid-3">
+        <!-- CONCEPT A -->
+        <div class="card recommended">
+          <h3>CONCEPT A — "THE ESCAPE"</h3>
+          <p style="font-size:14px; color:var(--gray)">
+            Thick acid-lime ring with a 40° top-right escape gap. Solid hot-pink ball bursting outward with 3 flat supersonic motion streaks.
+          </p>
+          <div class="preview-box">
+            <img src="./svg/symbol.svg" alt="Concept A Symbol" style="width:140px; height:140px;">
+          </div>
+          <div class="action-row">
+            <a href="./svg/symbol.svg" download class="download-pill">SVG Symbol</a>
+            <a href="./svg/logo-horizontal.svg" download class="download-pill">Horizontal SVG</a>
+            <a href="./png/logo-horizontal-2048.png" download class="download-pill">PNG 2K</a>
+          </div>
+        </div>
+
+        <!-- CONCEPT B -->
+        <div class="card">
+          <h3>CONCEPT B — "THE BOUNCE ARC"</h3>
+          <p style="font-size:14px; color:var(--gray)">
+            Pink ball at the peak of a dotted arc forming a stylized lowercase "b". Arc dots shrink from left to right, with a flat lime oval squash shadow on the baseline.
+          </p>
+          <div class="preview-box">
+            <img src="./svg/symbol-concept-b.svg" alt="Concept B Symbol" style="width:140px; height:140px;">
+          </div>
+          <div class="action-row">
+            <a href="./svg/symbol-concept-b.svg" download class="download-pill">SVG Symbol</a>
+            <a href="./svg/logo-horizontal-concept-b.svg" download class="download-pill">Horizontal SVG</a>
+            <a href="./png/logo-horizontal-b-2048.png" download class="download-pill">PNG 2K</a>
+          </div>
+        </div>
+
+        <!-- CONCEPT C -->
+        <div class="card">
+          <h3>CONCEPT C — "THE DOUBLE RING"</h3>
+          <p style="font-size:14px; color:var(--gray)">
+            Two overlapping flat rings (cyber cyan #00F0FF and ultra violet #A855FF) forming an infinity-like loop, with a hot-pink ball at the crossing point. Represents endless bouncing.
+          </p>
+          <div class="preview-box">
+            <img src="./svg/symbol-concept-c.svg" alt="Concept C Symbol" style="width:140px; height:140px;">
+          </div>
+          <div class="action-row">
+            <a href="./svg/symbol-concept-c.svg" download class="download-pill">SVG Symbol</a>
+            <a href="./svg/logo-horizontal-concept-c.svg" download class="download-pill">Horizontal SVG</a>
+            <a href="./png/logo-horizontal-c-2048.png" download class="download-pill">PNG 2K</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: LOCKUPS & MONOCHROME -->
+    <section>
+      <div class="section-header">
+        <h2>2. Standard Lockups &amp; Monochrome Variants</h2>
+        <span class="section-desc">Concept A Core Variations (Wordmark: Helvetica Neue Black 900)</span>
+      </div>
+
+      <div class="grid-2">
+        <!-- Horizontal -->
+        <div class="card">
+          <h3>Horizontal Lockup (Primary)</h3>
+          <p style="font-size:14px; color:var(--gray)">For navigation headers, video lower thirds, and website hero.</p>
+          <div class="preview-box">
+            <img src="./svg/logo-horizontal.svg" alt="BounceForge Horizontal Logo" style="max-height:80px;">
+          </div>
+          <div class="action-row">
+            <a href="./svg/logo-horizontal.svg" download class="download-pill">SVG</a>
+            <a href="./png/logo-horizontal-1024.png" download class="download-pill">PNG 1024</a>
+            <a href="./png/logo-horizontal-4096.png" download class="download-pill">PNG 4K</a>
+          </div>
+        </div>
+
+        <!-- Stacked -->
+        <div class="card">
+          <h3>Stacked Lockup</h3>
+          <p style="font-size:14px; color:var(--gray)">For splash screens, mobile intros, and vertical 9:16 titles.</p>
+          <div class="preview-box">
+            <img src="./svg/logo-stacked.svg" alt="BounceForge Stacked Logo" style="max-height:140px;">
+          </div>
+          <div class="action-row">
+            <a href="./svg/logo-stacked.svg" download class="download-pill">SVG</a>
+            <a href="./png/logo-stacked-1024.png" download class="download-pill">PNG 1024</a>
+            <a href="./png/logo-stacked-4096.png" download class="download-pill">PNG 4K</a>
+          </div>
+        </div>
+
+        <!-- Mono White -->
+        <div class="card">
+          <h3>Monochrome White (Watermark Standard)</h3>
+          <p style="font-size:14px; color:var(--gray)">Use directly overlaid on colorful video simulations and export watermarks at 60% opacity with soft drop shadow.</p>
+          <div class="preview-box" style="background:#090912;">
+            <img src="./svg/logo-mono-white.svg" alt="Mono White Logo" style="max-height:80px;">
+          </div>
+          <div class="action-row">
+            <a href="./svg/logo-mono-white.svg" download class="download-pill">SVG</a>
+            <a href="./png/logo-mono-white-2048.png" download class="download-pill">PNG 2K</a>
+          </div>
+        </div>
+
+        <!-- Mono Black -->
+        <div class="card">
+          <h3>Monochrome Black</h3>
+          <p style="font-size:14px; color:var(--gray)">For light backgrounds, documents, invoices, and physical print production.</p>
+          <div class="preview-box white-bg">
+            <img src="./svg/logo-mono-black.svg" alt="Mono Black Logo" style="max-height:80px;">
+          </div>
+          <div class="action-row">
+            <a href="./svg/logo-mono-black.svg" download class="download-pill">SVG</a>
+            <a href="./png/logo-mono-black-2048.png" download class="download-pill">PNG 2K</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: COLOR SYSTEM -->
+    <section>
+      <div class="section-header">
+        <h2>3. Color Palette</h2>
+        <span class="section-desc">Fluorescent Gen-Z high-contrast flat neon</span>
+      </div>
+
+      <div class="grid-4">
+        <!-- Acid Lime -->
+        <div class="color-card">
+          <div class="color-swatch" style="background:#CCFF00;"></div>
+          <div class="color-meta">
+            <div class="color-name">Acid Lime</div>
+            <div class="color-hex">#CCFF00</div>
+            <div class="color-role">Primary brand color, outer ring, accents</div>
+          </div>
+        </div>
+
+        <!-- Hot Pink -->
+        <div class="color-card">
+          <div class="color-swatch" style="background:#FF2E93;"></div>
+          <div class="color-meta">
+            <div class="color-name">Hot Pink</div>
+            <div class="color-hex">#FF2E93</div>
+            <div class="color-role">Hero bouncing ball, escape burst, motion trails</div>
+          </div>
+        </div>
+
+        <!-- Cyber Cyan -->
+        <div class="color-card">
+          <div class="color-swatch" style="background:#00F0FF;"></div>
+          <div class="color-meta">
+            <div class="color-name">Cyber Cyan</div>
+            <div class="color-hex">#00F0FF</div>
+            <div class="color-role">Secondary energy, Concept C loop ring</div>
+          </div>
+        </div>
+
+        <!-- Ultra Violet -->
+        <div class="color-card">
+          <div class="color-swatch" style="background:#A855FF;"></div>
+          <div class="color-meta">
+            <div class="color-name">Ultra Violet</div>
+            <div class="color-hex">#A855FF</div>
+            <div class="color-role">Depth accents, Concept C loop ring</div>
+          </div>
+        </div>
+
+        <!-- Black Void -->
+        <div class="color-card">
+          <div class="color-swatch" style="background:#050507; border:1px solid #222;"></div>
+          <div class="color-meta">
+            <div class="color-name">Near Black</div>
+            <div class="color-hex">#050507</div>
+            <div class="color-role">Brand background canvas &amp; app environment</div>
+          </div>
+        </div>
+
+        <!-- Clean White -->
+        <div class="color-card">
+          <div class="color-swatch" style="background:#F5F5F0;"></div>
+          <div class="color-meta">
+            <div class="color-name">Studio White</div>
+            <div class="color-hex">#F5F5F0</div>
+            <div class="color-role">Wordmark typography (Helvetica Neue Black 900)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: CLEAR SPACE & MINIMUM SIZES -->
+    <section>
+      <div class="section-header">
+        <h2>4. Clear Space &amp; Sizing Specs</h2>
+        <span class="section-desc">Precision optical rules</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Clear Space = Ball Height (X)</h3>
+          <p style="font-size:14px; color:var(--gray)">
+            Maintain an exclusion zone equal to the diameter of the hot-pink ball around all sides of the mark.
+          </p>
+          <div class="spec-box">
+            <img src="./svg/logo-horizontal.svg" alt="Clear Space" style="max-height:80px;">
+            <div class="spec-indicator" style="top:10px; left:20px;">Top: 1X (Ball Height)</div>
+            <div class="spec-indicator" style="bottom:10px; right:20px;">Bottom: 1X (Ball Height)</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Minimum Reproduction Sizes</h3>
+          <p style="font-size:14px; color:var(--gray)">
+            Engineered to maintain legibility from microscopic favicon resolutions up to 4K displays.
+          </p>
+          <div style="display:flex; flex-direction:column; gap:20px; padding:20px 0;">
+            <div style="display:flex; align-items:center; gap:24px;">
+              <img src="./icons/app-icon-16.png" style="width:16px; height:16px;">
+              <div>
+                <strong style="color:var(--lime)">Symbol Minimum: 16 × 16 px</strong>
+                <p style="font-size:13px; color:var(--gray)">Crisp favicon &amp; browser tab icon</p>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:24px;">
+              <img src="./png/logo-horizontal-512.png" style="width:120px; height:auto;">
+              <div>
+                <strong style="color:var(--lime)">Horizontal Minimum: 96 px width</strong>
+                <p style="font-size:13px; color:var(--gray)">Mobile top navbars &amp; metadata headers</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: DO'S AND DON'TS -->
+    <section>
+      <div class="section-header">
+        <h2>5. Do's &amp; Don'ts</h2>
+        <span class="section-desc">Brand integrity rules</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="rule-card do">
+          <div class="rule-badge">DO</div>
+          <p><strong>Maintain flat 2D geometry:</strong> Use solid fills and crisp vector strokes only.</p>
+          <p><strong>Use Helvetica Neue Black (900):</strong> All lowercase ("bounceforge"), tracking -0.05em.</p>
+          <p><strong>Watermark rule:</strong> Position Mono White horizontal lockup at bottom center (14% from bottom, 34% width, 60% opacity) with soft drop shadow.</p>
+          <p><strong>Maintain high contrast:</strong> Render against #050507 near-black or video backdrops.</p>
+        </div>
+
+        <div class="rule-card dont">
+          <div class="rule-badge">DON'T</div>
+          <p><strong>NEVER append "3D" to the brand:</strong> No 3D badges, pills, suffixes, or taglines.</p>
+          <p><strong>NEVER use 3D rendering for logos:</strong> No three.js, extruded text, bevels, or realistic lighting.</p>
+          <p><strong>NEVER stretch or distort:</strong> Always constrain the proportions of the vector symbol and lockup.</p>
+          <p><strong>NEVER substitute fonts:</strong> Strictly use Helvetica / Helvetica Neue Black 900.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: MOTION & VIDEO PACK -->
+    <section>
+      <div class="section-header">
+        <h2>6. Flat Animated Logo Intro (Concept A)</h2>
+        <span class="section-desc">2.0s loopable SVG / Canvas animation exports</span>
+      </div>
+
+      <div class="grid-3">
+        <!-- 9:16 Video -->
+        <div class="card">
+          <h3>9:16 Vertical Intro (TikTok/Shorts)</h3>
+          <p style="font-size:14px; color:var(--gray)">1080×1920 &amp; 2160×3840 4K 60fps vertical format</p>
+          <div class="video-preview-wrapper" style="height:320px;">
+            <video src="./motion/logo-intro-9x16.mp4" autoplay loop muted playsinline></video>
+          </div>
+          <div class="action-row">
+            <a href="./motion/logo-intro-9x16.mp4" download class="download-pill">MP4 (1080×1920)</a>
+            <a href="./motion/logo-intro-4k-9x16.mp4" download class="download-pill">4K MP4 (2160×3840)</a>
+          </div>
+        </div>
+
+        <!-- 1:1 Square Video -->
+        <div class="card">
+          <h3>1:1 Square Intro (Feed / Post)</h3>
+          <p style="font-size:14px; color:var(--gray)">1080×1080 high-bitrate MP4 with transparent / WebM</p>
+          <div class="video-preview-wrapper" style="height:320px;">
+            <video src="./motion/logo-intro-1x1.mp4" autoplay loop muted playsinline></video>
+          </div>
+          <div class="action-row">
+            <a href="./motion/logo-intro-1x1.mp4" download class="download-pill">MP4 (1080×1080)</a>
+            <a href="./motion/logo-intro.webm" download class="download-pill">WebM (VP9/AV1)</a>
+            <a href="./motion/logo.json" download class="download-pill">Lottie JSON</a>
+          </div>
+        </div>
+
+        <!-- Animated GIF -->
+        <div class="card">
+          <h3>Animated GIF (512 px)</h3>
+          <p style="font-size:14px; color:var(--gray)">512px loopable GIF for GitHub, Discord, and embeds</p>
+          <div class="video-preview-wrapper" style="height:320px;">
+            <img src="./motion/logo.gif" alt="Animated Logo GIF" style="max-height:100%;">
+          </div>
+          <div class="action-row">
+            <a href="./motion/logo.gif" download class="download-pill">Download GIF (512px)</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7: APP ICONS & SOCIAL ASSETS -->
+    <section>
+      <div class="section-header">
+        <h2>7. App Icons &amp; Social Avatars</h2>
+        <span class="section-desc">Store &amp; profile package (iOS radius 22.37% on #050507)</span>
+      </div>
+
+      <div class="grid-4">
+        <div class="card" style="align-items:center; text-align:center;">
+          <img src="./icons/app-icon-512.png" style="width:120px; height:120px; border-radius:26px;">
+          <h4>App Icon (iOS / macOS)</h4>
+          <span style="font-size:12px; color:var(--gray)">1024, 512, 192, 180, 32, 16</span>
+          <a href="./icons/app-icon-1024.png" download class="download-pill">Download 1024px</a>
+        </div>
+
+        <div class="card" style="align-items:center; text-align:center;">
+          <img src="./social/avatar-1080x1080.png" style="width:120px; height:120px; border-radius:60px;">
+          <h4>Social Avatar</h4>
+          <span style="font-size:12px; color:var(--gray)">TikTok, IG, YouTube (1080×1080)</span>
+          <a href="./social/avatar-1080x1080.png" download class="download-pill">Download Avatar</a>
+        </div>
+
+        <div class="card" style="align-items:center; text-align:center;">
+          <img src="./social/og-image-1200x630.png" style="width:180px; height:auto; border-radius:8px;">
+          <h4>OG Social Share Card</h4>
+          <span style="font-size:12px; color:var(--gray)">OpenGraph / Twitter (1200×630)</span>
+          <a href="./social/og-image-1200x630.png" download class="download-pill">Download OG Image</a>
+        </div>
+
+        <div class="card" style="align-items:center; text-align:center;">
+          <img src="./social/youtube-banner-2560x1440.png" style="width:180px; height:auto; border-radius:8px;">
+          <h4>YouTube Banner</h4>
+          <span style="font-size:12px; color:var(--gray)">2560×1440 (safe area 1546×423)</span>
+          <a href="./social/youtube-banner-2560x1440.png" download class="download-pill">Download Banner</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>

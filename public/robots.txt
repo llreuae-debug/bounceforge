@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://bounceforge.app/sitemap.xml

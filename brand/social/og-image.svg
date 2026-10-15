@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#050507" />
+  
+  <!-- Flat subtle rings in background -->
+  <circle cx="600" cy="270" r="300" fill="none" stroke="#CCFF00" stroke-width="2" stroke-opacity="0.12" />
+  <circle cx="600" cy="270" r="200" fill="none" stroke="#FF2E93" stroke-width="2" stroke-opacity="0.12" />
+
+  <!-- Flat Logo Horizontal in center -->
+  <g transform="translate(330, 210) scale(1.15)">
+    <g transform="translate(0, 0)">
+      
+    <g class="symbol-concept-a">
+      <!-- 3 Flat Motion Streaks behind the bursting ball -->
+      <path d="M 64 56 L 79 43" stroke="#FF2E93" stroke-width="4.5" stroke-linecap="round" />
+      <path d="M 57 52 L 73 38" stroke="#FF2E93" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+      <path d="M 62 64 L 75 52" stroke="#00F0FF" stroke-width="3" stroke-linecap="round" opacity="0.85" />
+
+      <!-- Flat Thick Ring with Top-Right Gap (~40 deg gap centered at 45 deg) -->
+      <path d="M 94.5 68.5 A 38 38 0 1 1 79.5 27.5"
+            fill="none"
+            stroke="#CCFF00"
+            stroke-width="13"
+            stroke-linecap="round"
+            stroke-linejoin="round" />
+
+      <!-- Solid Hot-Pink Ball Bursting Out Through The Gap -->
+      <circle cx="89" cy="27" r="12.5" fill="#FF2E93" />
+    </g>
+    </g>
+    
+    <!-- Flat Wordmark: "bounceforge" in Helvetica Neue Black 900, lowercase, tracking -0.05em -->
+    <text x="132" y="74"
+          font-family="'Helvetica Neue', Helvetica, -apple-system, sans-serif"
+          font-size="52"
+          font-weight="900"
+          letter-spacing="-0.05em"
+          fill="#F5F5F0">bounceforge</text>
+  </g>
+
+  <!-- Tagline below -->
+  <text x="600" y="400"
+        font-family="'Helvetica Neue', Helvetica, -apple-system, sans-serif"
+        font-size="24"
+        font-weight="700"
+        letter-spacing="0.14em"
+        text-anchor="middle"
+        fill="#8E8E93">VIRAL BALL PHYSICS &amp; SOUND STUDIO</text>
+
+  <!-- Feature Chips -->
+  <g transform="translate(435, 450)">
+    <rect x="0" y="0" width="105" height="30" rx="15" fill="#14141E" stroke="#CCFF00" stroke-width="1.5" />
+    <text x="52" y="20" font-family="'Helvetica Neue', Helvetica, sans-serif" font-size="12" font-weight="900" fill="#CCFF00" text-anchor="middle">4K 60FPS</text>
+  </g>
+  <g transform="translate(555, 450)">
+    <rect x="0" y="0" width="105" height="30" rx="15" fill="#14141E" stroke="#FF2E93" stroke-width="1.5" />
+    <text x="52" y="20" font-family="'Helvetica Neue', Helvetica, sans-serif" font-size="12" font-weight="900" fill="#FF2E93" text-anchor="middle">ASMR AUDIO</text>
+  </g>
+  <g transform="translate(675, 450)">
+    <rect x="0" y="0" width="105" height="30" rx="15" fill="#14141E" stroke="#00F0FF" stroke-width="1.5" />
+    <text x="52" y="20" font-family="'Helvetica Neue', Helvetica, sans-serif" font-size="12" font-weight="900" fill="#00F0FF" text-anchor="middle">21+ MODES</text>
+  </g>
+</svg>

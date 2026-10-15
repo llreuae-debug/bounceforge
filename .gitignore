@@ -1,0 +1,24 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Production build output
+dist
+dist-ssr
+
+# Local env & IDE
+*.local
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing & Artifacts
+test-results
+playwright-report
+blob-report
+.backup_3d_modes_checkpoint
+scratch/

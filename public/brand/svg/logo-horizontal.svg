@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width="480" height="120">
+  <!-- Flat Symbol at left -->
+  <g transform="translate(4, 0)">
+    
+    <g class="symbol-concept-a">
+      <!-- 3 Flat Motion Streaks behind the bursting ball -->
+      <path d="M 64 56 L 79 43" stroke="#FF2E93" stroke-width="4.5" stroke-linecap="round" />
+      <path d="M 57 52 L 73 38" stroke="#FF2E93" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+      <path d="M 62 64 L 75 52" stroke="#00F0FF" stroke-width="3" stroke-linecap="round" opacity="0.85" />
+
+      <!-- Flat Thick Ring with Top-Right Gap (~40 deg gap centered at 45 deg) -->
+      <path d="M 94.5 68.5 A 38 38 0 1 1 79.5 27.5"
+            fill="none"
+            stroke="#CCFF00"
+            stroke-width="13"
+            stroke-linecap="round"
+            stroke-linejoin="round" />
+
+      <!-- Solid Hot-Pink Ball Bursting Out Through The Gap -->
+      <circle cx="89" cy="27" r="12.5" fill="#FF2E93" />
+    </g>
+  </g>
+  <!-- Flat Wordmark (no 3D) -->
+  
+    <!-- Flat Wordmark: "bounceforge" in Helvetica Neue Black 900, lowercase, tracking -0.05em -->
+    <text x="132" y="74"
+          font-family="'Helvetica Neue', Helvetica, -apple-system, sans-serif"
+          font-size="52"
+          font-weight="900"
+          letter-spacing="-0.05em"
+          fill="#F5F5F0">bounceforge</text>
+</svg>

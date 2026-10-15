@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width="480" height="120">
+  <!-- Flat Symbol at left -->
+  <g transform="translate(4, 0)">
+    
+    <g class="symbol-concept-b">
+      <!-- Flat lime squash-shadow on baseline -->
+      <ellipse cx="40" cy="102" rx="16" ry="4.5" fill="#CCFF00" />
+
+      <!-- Vertical stem of letter "b" -->
+      <path d="M 40 22 L 40 102" stroke="#CCFF00" stroke-width="12" stroke-linecap="round" />
+
+      <!-- Parabolic bounce arc forming the loop of "b" -->
+      <path d="M 40 60 C 58 42, 88 42, 96 66 C 104 88, 76 102, 40 102"
+            fill="none"
+            stroke="#CCFF00"
+            stroke-width="8"
+            stroke-linecap="round" />
+
+      <!-- Flat dotted bounce trail shrinking from left to right -->
+      <circle cx="56" cy="46" r="4.2" fill="#FF2E93" />
+      <circle cx="68" cy="42" r="3.6" fill="#FF2E93" />
+      <circle cx="80" cy="44" r="3.0" fill="#00F0FF" />
+      <circle cx="90" cy="52" r="2.4" fill="#00F0FF" />
+
+      <!-- Solid pink ball at peak -->
+      <circle cx="68" cy="32" r="12" fill="#FF2E93" />
+    </g>
+  </g>
+  <!-- Flat Wordmark (no 3D) -->
+  
+    <!-- Flat Wordmark: "bounceforge" in Helvetica Neue Black 900, lowercase, tracking -0.05em -->
+    <text x="132" y="74"
+          font-family="'Helvetica Neue', Helvetica, -apple-system, sans-serif"
+          font-size="52"
+          font-weight="900"
+          letter-spacing="-0.05em"
+          fill="#F5F5F0">bounceforge</text>
+</svg>
