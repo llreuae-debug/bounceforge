@@ -301,16 +301,21 @@ export class WorldRenderer {
       ctx.arc(b.x - b.radius * 0.3, b.y - b.radius * 0.3, b.radius * 0.25, 0, Math.PI * 2);
       ctx.fill();
 
-      // Tier label for merge mode or name for race mode
-      if (b.tier !== undefined || b.name) {
+      // Tier label for merge mode or name/label for contestants
+      if (b.tier !== undefined || b.name || b.label) {
+        ctx.save();
+        ctx.shadowBlur = 0;
+        const text = b.label || b.name || `${b.tier}`;
         ctx.fillStyle = '#ffffff';
-        ctx.font = `700 ${Math.max(12, b.radius * 0.8)}px "JetBrains Mono", monospace`;
+        ctx.font = `bold ${Math.max(11, Math.round(b.radius * 0.75))}px Helvetica, Arial, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(b.name || `${b.tier}`, b.x, b.y);
+        ctx.fillText(text, b.x, b.y);
+        ctx.restore();
       }
     }
     ctx.restore();
+
   }
 
   private drawParticles(ctx: CanvasRenderingContext2D, world: PhysicsWorld): void {

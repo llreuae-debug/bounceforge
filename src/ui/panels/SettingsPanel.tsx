@@ -5,9 +5,11 @@ import { BUILTIN_MELODIES } from '../../audio/melodies';
 import { InstrumentType } from '../../audio/types';
 import { AudioEngine } from '../../audio/audioEngine';
 import { AsmrEngine, AsmrTextureType } from '../../audio/asmrEngine';
-import { GenerativeMusicEngine } from '../../audio/generativeMusic';
 import { getDefaults, isModeAtDefault } from '../../modes/defaults';
 import { checkGpu4KCapability } from '../../export/videoExporter';
+import { getRandomHook, HOOK_CATEGORIES } from '../../engine/hooksLibrary';
+
+
 import {
   Sliders,
   Sparkles,
@@ -792,15 +794,63 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
 
             {soundSubTab === 'asmr' && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-300 font-bold">Binaural 3D ASMR Mode</span>
+                <div className="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div>
+                    <span className="text-xs text-slate-300 font-bold block">Headphones Mode</span>
+                    <span className="text-[10px] text-slate-400 block lowercase">wider stereo + close-mic detail + high-shelf boost</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={asmrSettings.headphonesMode !== false}
+                    onChange={(e) => {
+                      setAsmrSettings({ headphonesMode: e.target.checked });
+                      AsmrEngine.getInstance().setHeadphonesMode(e.target.checked);
+                    }}
+                    className="accent-pink-400 w-4 h-4 cursor-pointer"
+                  />
+                </div>
+
+                {/* ASMR Intensity Slider / Segmented Buttons */}
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-300 font-bold">ASMR Intensity</span>
+                    <span className="text-[10px] font-mono text-pink-400 uppercase font-black">
+                      {asmrSettings.asmrIntensity || 'balanced'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 pt-1">
+                    {(['subtle', 'balanced', 'max_tingles'] as const).map((lvl) => (
+                      <button
+                        key={lvl}
+                        onClick={() => {
+                          setAsmrSettings({ asmrIntensity: lvl });
+                          AsmrEngine.getInstance().setAsmrIntensity(lvl);
+                        }}
+                        className={`py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                          (asmrSettings.asmrIntensity || 'balanced') === lvl
+                            ? 'btn-3d-pink text-white shadow-pink-500/30'
+                            : 'btn-3d-glass text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {lvl === 'max_tingles' ? 'max tingles' : lvl}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/5">
+                  <span className="text-xs text-slate-300 font-bold">Binaural 3D Spatial Audio</span>
                   <input
                     type="checkbox"
                     checked={asmrSettings.asmrMode}
-                    onChange={(e) => setAsmrSettings({ asmrMode: e.target.checked })}
-                    className="accent-pink-400"
+                    onChange={(e) => {
+                      setAsmrSettings({ asmrMode: e.target.checked });
+                      AsmrEngine.getInstance().setAsmrMode(e.target.checked);
+                    }}
+                    className="accent-pink-400 w-4 h-4 cursor-pointer"
                   />
                 </div>
+
 
                 <ControlWrapper
                   label="Impact ASMR Strength"
@@ -899,7 +949,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
             {/* Hook Title */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-200 font-bold">Top Hook Title</span>
+                <span className="text-xs text-slate-200 font-bold">Top Hook Title (50+ Library)</span>
                 <input
                   type="checkbox"
                   checked={overlays.showTitle}
@@ -908,14 +958,43 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                 />
               </div>
               {overlays.showTitle && (
-                <div className="space-y-1">
-                  <input
-                    type="text"
-                    value={overlays.titleText}
-                    onChange={(e) => setOverlays({ titleText: e.target.value })}
-                    placeholder="can the ball escape?? 🔥"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-amber-400"
-                  />
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={overlays.titleText}
+                      onChange={(e) => setOverlays({ titleText: e.target.value })}
+                      placeholder="can it escape?? 🔥"
+                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-amber-400 font-medium"
+                    />
+                    <button
+                      onClick={() => {
+                        const randomHook = getRandomHook();
+                        setOverlays({ titleText: randomHook });
+                      }}
+                      className="btn-3d-cyan px-3 py-1.5 rounded-xl text-black font-black text-[11px] uppercase tracking-wider shrink-0"
+                      title="Roll random viral hook from 50+ library"
+                    >
+                      🎲 roll hook
+                    </button>
+                  </div>
+
+                  {/* Hook Category Chips */}
+                  <div className="flex flex-wrap gap-1">
+                    {HOOK_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => {
+                          const h = getRandomHook(cat.id);
+                          setOverlays({ titleText: h });
+                        }}
+                        className="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-slate-400 hover:text-cyan-300 text-[10px] font-mono border border-white/5 lowercase"
+                      >
+                        {cat.name}
+                      </button>
+                    ))}
+                  </div>
+
                   {overlays.titleText.length > 36 && (
                     <div className="flex items-center gap-1.5 text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg">
                       <AlertTriangle className="w-3 h-3 shrink-0" />
@@ -925,6 +1004,64 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                 </div>
               )}
             </div>
+
+            {/* Prediction Intro Card (2s) */}
+            <div className="pt-2 border-t border-white/10 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-slate-200 font-bold block">Prediction Intro Card</span>
+                  <span className="text-[10px] text-slate-400">2-second 'pick ur color' screen to drive comments</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={overlays.showPredictionIntro !== false}
+                  onChange={(e) => setOverlays({ showPredictionIntro: e.target.checked })}
+                  className="accent-pink-400 w-4 h-4"
+                />
+              </div>
+            </div>
+
+            {/* Part Series */}
+            <div className="pt-2 border-t border-white/10 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-slate-200 font-bold block">Part Series Tag</span>
+                  <span className="text-[10px] text-slate-400">Shows 'PART 1 / 2 / 3' in safe top-left corner</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={overlays.showPartSeries === true}
+                  onChange={(e) => setOverlays({ showPartSeries: e.target.checked })}
+                  className="accent-purple-400 w-4 h-4"
+                />
+              </div>
+              {overlays.showPartSeries && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400">Part Number:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="99"
+                    value={overlays.partNumber || 1}
+                    onChange={(e) => setOverlays({ partNumber: Number(e.target.value) })}
+                    className="w-16 bg-white/5 border border-white/10 rounded-xl px-2 py-1 text-xs text-white text-center font-mono"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* End Card CTA */}
+            <div className="pt-2 border-t border-white/10 space-y-2">
+              <span className="text-xs text-slate-200 font-bold block">Winner End Card CTA Line</span>
+              <input
+                type="text"
+                value={overlays.endCardCta || 'follow for part 2 • comment ur color'}
+                onChange={(e) => setOverlays({ endCardCta: e.target.value })}
+                placeholder="follow for part 2 • comment ur color"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-cyan-300 outline-none focus:border-cyan-400 font-mono"
+              />
+            </div>
+
 
             {/* Live Counter */}
             <div className="pt-2 border-t border-white/10 space-y-2">

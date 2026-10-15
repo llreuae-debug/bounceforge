@@ -209,3 +209,5 @@ export const THEMES: Record<string, ThemeConfig> = {
     bloomIntensity: 1.0,
   },
 };
+
+export const BUILTIN_THEMES: ThemeConfig[] = Object.values(THEMES);

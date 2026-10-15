@@ -20,6 +20,8 @@ import {
   VolumeX,
 } from 'lucide-react';
 
+import { WhatsNewModal } from './modals/WhatsNewModal';
+
 export const Header: React.FC = () => {
   const {
     currentRoute,
@@ -36,7 +38,10 @@ export const Header: React.FC = () => {
     setSeedFinderOpen,
     setShortcutsOpen,
     surpriseMe,
+    isWhatsNewOpen,
+    setWhatsNewOpen,
   } = useStudioStore();
+
 
   const [copied, setCopied] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
@@ -222,6 +227,15 @@ export const Header: React.FC = () => {
             </button>
 
             <button
+              onClick={() => setWhatsNewOpen(true)}
+              className="btn-3d-pink flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black text-white transition-all uppercase tracking-wider shadow-md shadow-pink-500/30"
+              title="What's New in BounceForge Viral Update"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+              <span className="hidden md:inline">what's new</span>
+            </button>
+
+            <button
               onClick={() => setExportOpen(true)}
               className="btn-3d-lime flex items-center gap-2 px-4 py-2 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all"
               title="Export frame-perfect 4K 9:16 vertical MP4"
@@ -232,7 +246,16 @@ export const Header: React.FC = () => {
           </>
         ) : (
           /* Landing Action */
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setWhatsNewOpen(true)}
+              className="btn-3d-pink flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black text-white transition-all uppercase tracking-wider shadow-md shadow-pink-500/30"
+              title="What's New in BounceForge Viral Update"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+              <span className="hidden sm:inline">what's new</span>
+            </button>
+
             <button
               onClick={() => setRoute('studio')}
               className="btn-3d-lime flex items-center gap-2 px-5 py-2.5 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all"
@@ -252,6 +275,10 @@ export const Header: React.FC = () => {
           {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
         </button>
       </div>
+
+      {/* What's New Sheet */}
+      <WhatsNewModal isOpen={isWhatsNewOpen} onClose={() => setWhatsNewOpen(false)} />
+
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (

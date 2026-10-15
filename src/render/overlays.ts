@@ -21,6 +21,12 @@ export interface OverlaySettings {
 
   showEndCard: boolean;
   endCardText: string;
+  endCardCta?: string;
+
+  showPredictionIntro?: boolean;
+  predictionDuration?: number;
+  showPartSeries?: boolean;
+  partNumber?: number;
 
   // Safe zones & generic mockup (Preview only, NEVER in video export)
   showSafeZone: boolean;
@@ -30,7 +36,7 @@ export interface OverlaySettings {
 
 export const DEFAULT_OVERLAYS: OverlaySettings = {
   showTitle: true,
-  titleText: 'Can the ball escape? 🔥',
+  titleText: 'can it escape??',
   titleFontSize: 42,
   titleColor: '#ffffff',
   titleY: 17, // 17% of height (between 12% and 22% safe area)
@@ -38,7 +44,7 @@ export const DEFAULT_OVERLAYS: OverlaySettings = {
   showCounter: true,
   counterType: 'rings',
   counterFontSize: 36,
-  counterColor: '#38bdf8',
+  counterColor: '#00f0ff',
 
   showProgressBar: true,
   targetDuration: 60,
@@ -48,12 +54,19 @@ export const DEFAULT_OVERLAYS: OverlaySettings = {
   watermarkOpacity: 0.6,
 
   showEndCard: true,
-  endCardText: 'ESCAPED! 🏆',
+  endCardText: 'ESCAPED!',
+  endCardCta: 'follow for part 2 • comment ur color',
+
+  showPredictionIntro: true,
+  predictionDuration: 2.0,
+  showPartSeries: false,
+  partNumber: 1,
 
   showSafeZone: false,
   showPlatformMockup: false,
   safeZonePlatform: 'all', // "all platforms (safest)" default
 };
+
 
 /**
  * Draws overlays onto any Canvas 2D context (used in both live renderer and offline video exporter)
@@ -106,13 +119,13 @@ export function drawOverlays(
     const maxTitleW = arena.layout.titleMaxW;
 
     let fontSize = Math.round((settings.titleFontSize || 42) * scale);
-    ctx.font = `800 ${fontSize}px "Plus Jakarta Sans", sans-serif`;
+    ctx.font = `bold ${fontSize}px Helvetica, Arial, sans-serif`;
 
     // Measure text and shrink if needed to fit maxTitleW
     let textWidth = ctx.measureText(settings.titleText).width;
     while (textWidth > maxTitleW && fontSize > 18 * scale) {
       fontSize -= 2 * scale;
-      ctx.font = `800 ${Math.round(fontSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.font = `bold ${Math.round(fontSize)}px Helvetica, Arial, sans-serif`;
       textWidth = ctx.measureText(settings.titleText).width;
     }
 
@@ -132,13 +145,67 @@ export function drawOverlays(
     };
   }
 
+  // Part Series Badge (Inside safe box, top-left)
+  if (settings.showPartSeries) {
+    ctx.save();
+    const partText = `PART ${settings.partNumber || 1}`;
+    ctx.font = `bold ${Math.round(20 * scale)}px Helvetica, Arial, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    const txtW = ctx.measureText(partText).width;
+    const pillX = arena.safeBox.x + 16 * scale;
+    const pillY = arena.safeBox.y + 36 * scale;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    ctx.strokeStyle = '#ff007f';
+    ctx.lineWidth = 2 * scale;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(pillX, pillY - 14 * scale, txtW + 20 * scale, 28 * scale, 14 * scale) : ctx.rect(pillX, pillY - 14 * scale, txtW + 20 * scale, 28 * scale);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#ff007f';
+    ctx.fillText(partText, pillX + 10 * scale, pillY);
+    ctx.restore();
+  }
+
+  // Prediction Intro (2-second "pick ur color" card at start of match)
+  if (settings.showPredictionIntro && stats.elapsedTime <= (settings.predictionDuration || 2.0)) {
+    const alpha = Math.min(1, Math.max(0, (settings.predictionDuration || 2.0) - stats.elapsedTime));
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const cardW = arena.safeBox.width * 0.9;
+    const cardH = 130 * scale;
+    const cardX = (width - cardW) / 2;
+    const cardY = arena.centerY - cardH / 2;
+
+    ctx.fillStyle = 'rgba(6, 10, 20, 0.92)';
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 3 * scale;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(cardX, cardY, cardW, cardH, 20 * scale) : ctx.rect(cardX, cardY, cardW, cardH);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `bold ${Math.round(32 * scale)}px Helvetica, Arial, sans-serif`;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('PICK UR COLOR 👇', width / 2, cardY + 45 * scale);
+
+    ctx.font = `bold ${Math.round(18 * scale)}px Helvetica, Arial, sans-serif`;
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText('comment before 0:02 to predict the winner', width / 2, cardY + 90 * scale);
+    ctx.restore();
+  }
+
   // 3. Live Counters (Between arena bottom and watermark, centered)
   if (settings.showCounter) {
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const counterFontSize = Math.round((settings.counterFontSize || 36) * scale);
-    ctx.font = `700 ${counterFontSize}px "JetBrains Mono", monospace`;
+    ctx.font = `bold ${counterFontSize}px Helvetica, Arial, sans-serif`;
     ctx.fillStyle = settings.counterColor;
     ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
     ctx.shadowBlur = Math.round(8 * scale);
@@ -182,24 +249,35 @@ export function drawOverlays(
     watermarkBox = drawFlatWatermark(ctx, width, height, arena, settings.watermarkOpacity);
   }
 
-  // 5. End Card Banner (Centered inside safe box)
+  // 5. Winner Reveal End Card (Centered inside safe box with vector trophy & CTA line)
   if (settings.showEndCard && stats.isFinished) {
     ctx.save();
-    const bannerH = 180 * scale;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    const bannerH = 220 * scale;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
     ctx.fillRect(0, arena.centerY - bannerH / 2, width, bannerH);
+
+    // Draw vector trophy (SVG icon drawn natively on canvas)
+    drawVectorTrophy(ctx, arena.centerX, arena.centerY - 45 * scale, 38 * scale, '#ffd700');
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `800 ${Math.round(56 * scale)}px "Plus Jakarta Sans", sans-serif`;
+    ctx.font = `bold ${Math.round(44 * scale)}px Helvetica, Arial, sans-serif`;
     ctx.fillStyle = '#ffdf00';
-    ctx.shadowColor = '#ffdf00';
-    ctx.shadowBlur = Math.round(24 * scale);
+    ctx.shadowColor = 'rgba(255, 223, 0, 0.6)';
+    ctx.shadowBlur = Math.round(20 * scale);
 
-    const bannerText = stats.winner ? `WINNER: ${stats.winner} 🏆` : settings.endCardText;
-    ctx.fillText(bannerText, arena.centerX, arena.centerY);
+    const winnerName = stats.winner ? `${stats.winner} WINS` : settings.endCardText.replace('🏆', '').trim();
+    ctx.fillText(winnerName, arena.centerX, arena.centerY + 8 * scale);
+
+    // CTA Line inside safe area
+    ctx.shadowBlur = 0;
+    ctx.font = `bold ${Math.round(20 * scale)}px Helvetica, Arial, sans-serif`;
+    ctx.fillStyle = '#00f0ff';
+    const ctaText = settings.endCardCta || 'follow for part 2 • comment ur color';
+    ctx.fillText(ctaText, arena.centerX, arena.centerY + 58 * scale);
     ctx.restore();
   }
+
 
   // 6. Safe-Zone Guides & Mockup (Preview only, NEVER in export)
   if (!isExport) {
@@ -491,3 +569,47 @@ function drawSafeWarningChip(
 
   ctx.restore();
 }
+
+/**
+ * Draws an inline vector trophy icon (no emoji) for the winner end card
+ */
+function drawVectorTrophy(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  size: number,
+  color: string = '#ffd700'
+): void {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 32;
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5 * s;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Trophy cup body
+  ctx.beginPath();
+  ctx.moveTo(-10 * s, -12 * s);
+  ctx.lineTo(10 * s, -12 * s);
+  ctx.lineTo(8 * s, 2 * s);
+  ctx.bezierCurveTo(6 * s, 8 * s, -6 * s, 8 * s, -8 * s, 2 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Handles
+  ctx.beginPath();
+  ctx.arc(-11 * s, -5 * s, 4.5 * s, -Math.PI / 2, Math.PI / 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(11 * s, -5 * s, 4.5 * s, -Math.PI / 2, Math.PI / 2, true);
+  ctx.stroke();
+
+  // Stem & Base
+  ctx.fillRect(-2.5 * s, 8 * s, 5 * s, 4.5 * s);
+  ctx.fillRect(-8 * s, 12.5 * s, 16 * s, 3.5 * s);
+
+  ctx.restore();
+}
+

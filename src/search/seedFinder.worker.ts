@@ -15,11 +15,12 @@ self.onmessage = (e: MessageEvent<SeedFinderRequest>) => {
   for (let s = 0; s < req.totalSeedsToSearch; s++) {
     const currentSeed = req.startSeed + s;
 
-    // Fast Headless Simulation
-    const finishTime = simulate(currentSeed);
+    // Fast Headless Simulation with Viral Retention Metrics
+    const metrics = simulate(currentSeed);
 
-    // Check candidate quality (keeps top 5 closest to target)
-    considerCandidate(candidates, req, currentSeed, finishTime);
+    // Check candidate quality (keeps top 5 based on retention timeline score)
+    considerCandidate(candidates, req, currentSeed, metrics);
+
 
     // Send periodic progress
     if (s % 25 === 0 || s === req.totalSeedsToSearch - 1) {

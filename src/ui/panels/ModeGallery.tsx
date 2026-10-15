@@ -11,7 +11,7 @@ export interface ModeGalleryProps {
 export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) => {
   const { currentModeId, setMode, applyPreset, surpriseMe } = useStudioStore();
   const [searchTerm, setSearchTerm] = useState('');
-  const [category, setCategory] = useState<'all' | 'core' | 'exclusive'>('all');
+  const [category, setCategory] = useState<'all' | 'fresh_drops' | 'core' | 'advanced'>('all');
 
   const activeModesList = ALL_MODES;
 
@@ -21,10 +21,15 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) 
       m.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCat =
       category === 'all' ||
-      (category === 'exclusive' && m.category === 'exclusive') ||
-      (category === 'core' && m.category === 'core');
+      (category === 'fresh_drops' && m.category === 'fresh_drops') ||
+      (category === 'core' && m.category === 'core') ||
+      (category === 'advanced' && (m.category === 'advanced' || m.category === 'exclusive'));
     return matchesSearch && matchesCat;
   });
+
+  const freshCount = activeModesList.filter((m) => m.category === 'fresh_drops').length;
+  const coreCount = activeModesList.filter((m) => m.category === 'core').length;
+  const advCount = activeModesList.filter((m) => m.category === 'advanced' || (m as any).category === 'exclusive').length;
 
   return (
     <aside className={className || "w-80 h-[calc(100vh-4rem)] border-r border-white/10 bg-[#07090e]/85 backdrop-blur-md flex flex-col select-none shrink-0"}>
@@ -74,10 +79,10 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) 
         </div>
 
         {/* Filter Pills - 3D Buttons */}
-        <div className="flex gap-1.5 pt-1">
+        <div className="grid grid-cols-4 gap-1 pt-1">
           <button
             onClick={() => setCategory('all')}
-            className={`flex-1 py-1.5 text-[11px] font-bold rounded-xl transition-all ${
+            className={`py-1.5 text-[10px] font-bold rounded-xl transition-all ${
               category === 'all'
                 ? 'btn-3d-cyan text-black'
                 : 'btn-3d-glass text-slate-400 hover:text-slate-200'
@@ -86,24 +91,34 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) 
             All ({activeModesList.length})
           </button>
           <button
+            onClick={() => setCategory('fresh_drops')}
+            className={`py-1.5 text-[10px] font-bold rounded-xl transition-all ${
+              category === 'fresh_drops'
+                ? 'btn-3d-pink text-white shadow-pink-500/30'
+                : 'btn-3d-glass text-pink-400 hover:text-pink-300'
+            }`}
+          >
+            Fresh ({freshCount})
+          </button>
+          <button
             onClick={() => setCategory('core')}
-            className={`flex-1 py-1.5 text-[11px] font-bold rounded-xl transition-all ${
+            className={`py-1.5 text-[10px] font-bold rounded-xl transition-all ${
               category === 'core'
                 ? 'btn-3d-lime text-black'
                 : 'btn-3d-glass text-slate-400 hover:text-slate-200'
             }`}
           >
-            Core (11)
+            Core ({coreCount})
           </button>
           <button
-            onClick={() => setCategory('exclusive')}
-            className={`flex-1 py-1.5 text-[11px] font-bold rounded-xl transition-all ${
-              category === 'exclusive'
+            onClick={() => setCategory('advanced')}
+            className={`py-1.5 text-[10px] font-bold rounded-xl transition-all ${
+              category === 'advanced'
                 ? 'btn-3d-purple text-white'
                 : 'btn-3d-glass text-slate-400 hover:text-slate-200'
             }`}
           >
-            Advanced (10)
+            Adv ({advCount})
           </button>
         </div>
       </div>
@@ -130,7 +145,11 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) 
                   {mode.name}
                 </h3>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {mode.id === 'classic' || mode.id === 'accumulation' || mode.id === 'web_expansion' || mode.id === 'spiral' ? (
+                  {mode.category === 'fresh_drops' ? (
+                    <span className="text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white shadow-md shadow-pink-500/40 animate-pulse border border-pink-400/50">
+                      NEW
+                    </span>
+                  ) : mode.id === 'classic' || mode.id === 'accumulation' || mode.id === 'web_expansion' || mode.id === 'spiral' ? (
                     <span className="text-[9px] uppercase font-black px-1.5 py-0.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm shadow-pink-500/20">
                       POPULAR
                     </span>
@@ -145,6 +164,7 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) 
                   )}
                 </div>
               </div>
+
 
               <p className="text-[11px] text-slate-400 leading-relaxed mb-2 line-clamp-2">
                 {mode.description}

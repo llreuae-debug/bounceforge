@@ -24,6 +24,8 @@ export interface AsmrMixSettings {
   backingVolume: number;
   binauralAsmr: boolean;
   asmrMode: boolean; // boosts close-up detail with gentle high-shelf
+  headphonesMode: boolean; // wider stereo, close-mic detail, gentle high-shelf boost
+  asmrIntensity: 'subtle' | 'balanced' | 'max_tingles';
 }
 
 export class AsmrEngine {
@@ -37,14 +39,17 @@ export class AsmrEngine {
 
   public settings: AsmrMixSettings = {
     masterVolume: 0.85,
-    musicVolume: 0.75,
-    impactVolume: 0.9,
-    destructionVolume: 0.85,
-    textureVolume: 0.7,
-    backingVolume: 0.5,
+    musicVolume: 0.65,
+    impactVolume: 0.95,
+    destructionVolume: 0.9,
+    textureVolume: 0.8,
+    backingVolume: 0.35,
     binauralAsmr: true,
-    asmrMode: false,
+    asmrMode: true, // ON by default
+    headphonesMode: true,
+    asmrIntensity: 'balanced',
   };
+
 
   private constructor() {}
 
@@ -109,6 +114,34 @@ export class AsmrEngine {
       this.settings.textureVolume = 0.95;
     }
   }
+
+  setHeadphonesMode(enabled: boolean): void {
+    this.settings.headphonesMode = enabled;
+    if (this.highShelf && this.ctx) {
+      this.highShelf.gain.setValueAtTime(enabled ? 6.0 : (this.settings.asmrMode ? 4.5 : 0), this.ctx.currentTime);
+    }
+  }
+
+  setAsmrIntensity(intensity: 'subtle' | 'balanced' | 'max_tingles'): void {
+    this.settings.asmrIntensity = intensity;
+    if (intensity === 'subtle') {
+      this.settings.impactVolume = 0.55;
+      this.settings.textureVolume = 0.45;
+      this.settings.destructionVolume = 0.6;
+    } else if (intensity === 'balanced') {
+      this.settings.impactVolume = 0.95;
+      this.settings.textureVolume = 0.8;
+      this.settings.destructionVolume = 0.9;
+    } else {
+      this.settings.impactVolume = 1.4;
+      this.settings.textureVolume = 1.25;
+      this.settings.destructionVolume = 1.35;
+      if (this.highShelf && this.ctx) {
+        this.highShelf.gain.setValueAtTime(7.0, this.ctx.currentTime);
+      }
+    }
+  }
+
 
   /**
    * Creates a 3D Spatial HRTF PannerNode pointing to world coordinate

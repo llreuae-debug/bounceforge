@@ -27,7 +27,52 @@ import { GeometricNexusMode } from './geometricNexus';
 import { RandomMarbleRunMode } from './randomMarbleRun';
 import { ProceduralAIMode } from './proceduralAI';
 
+// 20 New Engagement-First Modes (Fresh Drops)
+import { CountdownEscapeMode } from './countdownEscape';
+import { NearMissHellMode } from './nearMissHell';
+import { PickUrColorMode } from './pickUrColor';
+import { OnePercentMode } from './onePercent';
+import { NameBattleMode } from './nameBattle';
+import { ChaosToOrderMode } from './chaosToOrder';
+import { PerfectLoopMode } from './perfectLoop';
+import { GrowTillItCracksMode } from './growTillItCracks';
+import { HundredRingsMode } from './hundredRings';
+import { OddOneOutMode } from './oddOneOut';
+import { FillRaceMode } from './fillRace';
+import { SoapCubeCutMode } from './soapCubeCut';
+import { MarbleXylophoneRainMode } from './marbleXylophoneRain';
+import { BassDropEscapeMode } from './bassDropEscape';
+import { DayToNightMode } from './dayToNight';
+import { MirrorRaceMode } from './mirrorRace';
+import { EliminationWheelMode } from './eliminationWheel';
+import { EndlessFallMode } from './endlessFall';
+import { StackTheTowerMode } from './stackTheTower';
+import { BubblePopChainMode } from './bubblePopChain';
+
 export const ALL_MODES: SimulationMode[] = [
+  // 20 Fresh Drops
+  CountdownEscapeMode,
+  NearMissHellMode,
+  PickUrColorMode,
+  OnePercentMode,
+  NameBattleMode,
+  ChaosToOrderMode,
+  PerfectLoopMode,
+  GrowTillItCracksMode,
+  HundredRingsMode,
+  OddOneOutMode,
+  FillRaceMode,
+  SoapCubeCutMode,
+  MarbleXylophoneRainMode,
+  BassDropEscapeMode,
+  DayToNightMode,
+  MirrorRaceMode,
+  EliminationWheelMode,
+  EndlessFallMode,
+  StackTheTowerMode,
+  BubblePopChainMode,
+
+  // Core & Advanced Modes
   ClassicMode,
   ObstacleCourseMode,
   PlinkoCascadeMode,

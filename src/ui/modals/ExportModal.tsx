@@ -15,10 +15,17 @@ import {
   BatteryWarning,
   PauseCircle,
   Smartphone,
+  Copy,
+  Check,
+  Layers,
+  FileArchive,
+  RotateCcw,
 } from 'lucide-react';
-import { PlatformType } from '../../render/safeArea';
 import { checkBatteryStatus, BatteryInfo } from '../../platform/battery';
 import { triggerHaptic } from '../../platform/haptics';
+import { generateSocialCopy, getBatchVariation, createBatchZip, SocialCopy } from '../../export/creatorTools';
+import { BUILTIN_THEMES } from '../../render/themes';
+import { BUILTIN_MELODIES } from '../../audio/melodies';
 
 export const ExportModal: React.FC = () => {
   const {
@@ -27,6 +34,7 @@ export const ExportModal: React.FC = () => {
     currentModeId,
     modeSettings,
     seed,
+    setSeed,
     visuals,
     overlays,
     setOverlays,
@@ -34,12 +42,12 @@ export const ExportModal: React.FC = () => {
     customNotes,
     targetDuration,
     capabilities,
+    showToast,
   } = useStudioStore();
 
   const [resolution, setResolution] = useState<'1080' | '1440' | '4k' | '4k_landscape'>('1080');
-  const [fps, setFps] = useState<30 | 60>(30);
+  const [fps, setFps] = useState<30 | 60>(60);
   const [duration, setDuration] = useState<number>(targetDuration);
-  const [motionBlur, setMotionBlur] = useState<boolean>(true);
   const [useDiskStreaming, setUseDiskStreaming] = useState<boolean>(true);
 
   const [isExporting, setIsExporting] = useState(false);
@@ -49,13 +57,25 @@ export const ExportModal: React.FC = () => {
   const [exportFilename, setExportFilename] = useState<string>('');
   const [directSaved, setDirectSaved] = useState<boolean>(false);
   const [exportBlob, setExportBlob] = useState<Blob | null>(null);
+  const [coverBlob, setCoverBlob] = useState<Blob | null>(null);
   const [canShareFile, setCanShareFile] = useState<boolean>(false);
   const [batteryInfo, setBatteryInfo] = useState<BatteryInfo | null>(null);
 
-  const exporterRef = useRef<VideoExporter | null>(null);
+  // Batch Export state
+  const [isBatchExporting, setIsBatchExporting] = useState(false);
+  const [batchCount, setBatchCount] = useState<number>(10);
+  const [batchCurrentIndex, setBatchCurrentIndex] = useState<number>(0);
+  const [batchZipBlob, setBatchZipBlob] = useState<Blob | null>(null);
+  const [batchZipUrl, setBatchZipUrl] = useState<string | null>(null);
 
+  // Creator Tools state
+  const [copiedField, setCopiedField] = useState<'title' | 'caption' | 'hashtags' | null>(null);
+
+  const exporterRef = useRef<VideoExporter | null>(null);
   const gpuInfo = checkGpu4KCapability();
   const hasFilePicker = typeof window !== 'undefined' && 'showSaveFilePicker' in window;
+
+  const socialCopy: SocialCopy = generateSocialCopy(currentModeId, overlays.titleText);
 
   // Detect file share capability and battery
   useEffect(() => {
@@ -69,7 +89,6 @@ export const ExportModal: React.FC = () => {
     }
   }, []);
 
-  // Check battery & set smart default resolution based on hardware
   useEffect(() => {
     if (isExportOpen) {
       setDuration(targetDuration);
@@ -89,19 +108,41 @@ export const ExportModal: React.FC = () => {
 
   if (!isExportOpen) return null;
 
-  const applyPreset = (pRes: '1080' | '1440' | '4k' | '4k_landscape', pFps: 30 | 60, pDur: number) => {
-    setResolution(pRes);
-    setFps(pFps);
-    setDuration(pDur);
+  const applyPlatformPreset = (platform: 'tiktok' | 'reels' | 'shorts' | 'all') => {
+    setResolution('1080');
+    setFps(60);
+    if (platform === 'shorts') setDuration(60);
+    else if (platform === 'reels') setDuration(30);
+    else if (platform === 'tiktok') setDuration(60);
+    else setDuration(60);
+    showToast(`applied ${platform} preset (1080x1920 60fps)`);
+  };
+
+  const handleCopy = (field: 'title' | 'caption' | 'hashtags', text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    triggerHaptic(10);
+    showToast(`copied ${field} to clipboard`);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleMakePart2 = () => {
+    const nextPart = (overlays.partNumber || 1) + 1;
+    const newSeed = Math.floor(Math.random() * 900000) + 1000;
+    setOverlays({
+      showPartSeries: true,
+      partNumber: nextPart,
+      titleText: `can it escape part ${nextPart}??`,
+    });
+    setSeed(newSeed);
+    cleanupUrls();
+    showToast(`setup part ${nextPart} with new seed #${newSeed}`);
   };
 
   const handleStartExport = async () => {
-    let width = 2160;
-    let height = 3840;
-    if (resolution === '1080') {
-      width = 1080;
-      height = 1920;
-    } else if (resolution === '1440') {
+    let width = 1080;
+    let height = 1920;
+    if (resolution === '1440') {
       width = 1440;
       height = 2560;
     } else if (resolution === '4k') {
@@ -117,24 +158,16 @@ export const ExportModal: React.FC = () => {
     let fileHandle: any = null;
     let didDirectStream = false;
 
-    // Direct Disk Streaming via File System Access API
     if (useDiskStreaming && hasFilePicker) {
       try {
         fileHandle = await (window as any).showSaveFilePicker({
           suggestedName: defaultFilename,
-          types: [
-            {
-              description: 'MP4 Video',
-              accept: { 'video/mp4': ['.mp4'] },
-            },
-          ],
+          types: [{ description: 'MP4 Video', accept: { 'video/mp4': ['.mp4'] } }],
         });
         didDirectStream = true;
       } catch (err: any) {
-        if (err.name === 'AbortError') {
-          return; // User cancelled save picker
-        }
-        console.warn('File picker error, falling back to in-memory buffering:', err);
+        if (err.name === 'AbortError') return;
+        console.warn('File picker fallback:', err);
       }
     }
 
@@ -173,52 +206,116 @@ export const ExportModal: React.FC = () => {
       );
 
       setExportFilename(result.filename);
-
       if (result.thumbnailBlob) {
         setThumbnailUrl(URL.createObjectURL(result.thumbnailBlob));
+        setCoverBlob(result.thumbnailBlob);
       }
-
-      if (result.blob && result.blob.size > 0) {
+      if (!didDirectStream) {
+        setDownloadUrl(URL.createObjectURL(result.blob));
         setExportBlob(result.blob);
-        const url = URL.createObjectURL(result.blob);
-        setDownloadUrl(url);
-        triggerHaptic(20);
-
-        // Auto-trigger download for desktop when not direct streaming
-        const isMobile = capabilities?.isTouch || window.innerWidth < 768;
-        if (!didDirectStream && !isMobile) {
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = result.filename;
-          a.click();
-        }
       }
-    } catch (e: any) {
-      console.error('Export failed or cancelled:', e);
+      triggerHaptic(20);
+    } catch (err: any) {
+      if (err.message !== 'Export cancelled') {
+        console.error('Export error:', err);
+        showToast('Export failed: ' + err.message);
+      }
     } finally {
       setIsExporting(false);
+      exporterRef.current = null;
     }
+  };
+
+  // Batch Export: "Make 10 Videos" with Variation Guard
+  const handleStartBatchExport = async () => {
+    setIsBatchExporting(true);
+    setBatchZipBlob(null);
+    setBatchZipUrl(null);
+    setBatchCurrentIndex(0);
+
+    const width = 1080;
+    const height = 1920;
+    const batchFps = 60;
+    const batchDuration = duration;
+
+    const usedSeeds = new Set<number>();
+    const finishedItems: Array<{ filename: string; blob: Blob; coverBlob?: Blob; coverFilename?: string }> = [];
+
+    const totalToMake = batchCount;
+
+    for (let i = 0; i < totalToMake; i++) {
+      setBatchCurrentIndex(i + 1);
+      const variation = getBatchVariation(i, currentModeId, usedSeeds);
+
+      const theme = BUILTIN_THEMES.find((t) => t.id === variation.themeId) || BUILTIN_THEMES[0];
+      const melody = BUILTIN_MELODIES.find((m) => m.id === variation.melodyId) || BUILTIN_MELODIES[0];
+
+      const itemVisuals = { ...visuals, themeId: theme.id };
+      const itemOverlays = {
+        ...overlays,
+        titleText: variation.hookText,
+        showPartSeries: true,
+        partNumber: i + 1,
+      };
+      const itemAudio = { ...audioSettings, selectedMelodyId: melody.id };
+
+      const exporter = new VideoExporter();
+      exporterRef.current = exporter;
+
+      try {
+        const res = await exporter.exportVideo(
+          {
+            width,
+            height,
+            fps: batchFps,
+            duration: batchDuration,
+            seed: variation.seed,
+            modeId: currentModeId,
+            modeSettings,
+            visuals: itemVisuals,
+            overlays: itemOverlays,
+            audioSettings: itemAudio,
+          },
+          (p) => setProgress(p)
+        );
+
+        finishedItems.push({
+          filename: `batch_${i + 1}_${res.filename}`,
+          blob: res.blob,
+          coverBlob: res.thumbnailBlob,
+          coverFilename: `batch_${i + 1}_cover.png`,
+        });
+      } catch (err: any) {
+        console.warn('Batch item failed:', err);
+        break;
+      }
+    }
+
+    if (finishedItems.length > 0) {
+      showToast(`packaging ${finishedItems.length} videos into zip...`);
+      const zipBlob = await createBatchZip(finishedItems);
+      setBatchZipBlob(zipBlob);
+      setBatchZipUrl(URL.createObjectURL(zipBlob));
+      showToast(`batch export complete! (${finishedItems.length} videos ready)`);
+    }
+
+    setIsBatchExporting(false);
+    exporterRef.current = null;
   };
 
   const handleShareVideo = async () => {
     if (!exportBlob) return;
     try {
-      const file = new File([exportBlob], exportFilename || 'bounceforge_video.mp4', {
-        type: 'video/mp4',
-      });
+      const file = new File([exportBlob], exportFilename || 'bounceforge_video.mp4', { type: 'video/mp4' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'BounceForge Video',
+          title: 'BounceForge Viral Reel',
           text: 'Rendered with BounceForge Studio',
         });
         triggerHaptic(15);
       }
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        console.warn('Share error:', err);
-      }
-    }
+    } catch {}
   };
 
   const handleCancel = () => {
@@ -226,28 +323,28 @@ export const ExportModal: React.FC = () => {
       exporterRef.current.cancel();
     }
     setIsExporting(false);
+    setIsBatchExporting(false);
   };
 
   const cleanupUrls = () => {
     if (downloadUrl) URL.revokeObjectURL(downloadUrl);
     if (thumbnailUrl) URL.revokeObjectURL(thumbnailUrl);
+    if (batchZipUrl) URL.revokeObjectURL(batchZipUrl);
     setDownloadUrl(null);
     setThumbnailUrl(null);
     setExportBlob(null);
+    setBatchZipBlob(null);
+    setBatchZipUrl(null);
     setExportOpen(false);
   };
 
   const canDo4K = capabilities
     ? capabilities.supportedCodecs.h264_4k30 || capabilities.supportedCodecs.h264_4k60
     : gpuInfo.canDo4K;
-  const isPhoneLowMem =
-    capabilities?.deviceMemoryGB !== null &&
-    capabilities?.deviceMemoryGB !== undefined &&
-    capabilities.deviceMemoryGB < 4;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none">
-      <div className="w-full max-w-xl bg-[#0a0c14] border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden max-h-[92vh]">
+      <div className="w-full max-w-2xl bg-[#0a0c14] border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden max-h-[92vh]">
         {/* Header */}
         <div className="h-16 px-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02] shrink-0">
           <div className="flex items-center gap-3">
@@ -255,17 +352,14 @@ export const ExportModal: React.FC = () => {
               <Film className="w-5 h-5 text-black" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">4K UHD Video Studio Exporter</h2>
-              <p className="text-xs text-slate-400">
-                {capabilities?.exportPath === 'mediarecorder'
-                  ? 'Real-Time Quick Recorder Pipeline'
-                  : 'Frame-Perfect Offline WebCodecs Pipeline'}{' '}
-                • 48kHz Audio
+              <h2 className="text-base font-bold text-white uppercase tracking-wider">Creator Studio Video Exporter</h2>
+              <p className="text-xs text-slate-400 lowercase">
+                -14 LUFS integrated audio • viral retention timeline • 4K UHD
               </p>
             </div>
           </div>
 
-          {!isExporting && (
+          {!isExporting && !isBatchExporting && (
             <button
               onClick={cleanupUrls}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white"
@@ -275,9 +369,9 @@ export const ExportModal: React.FC = () => {
           )}
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-5 overflow-y-auto">
-          {!isExporting && !downloadUrl && !directSaved && (
+        {/* Content Body */}
+        <div className="p-6 space-y-5 overflow-y-auto text-left">
+          {!isExporting && !isBatchExporting && !downloadUrl && !directSaved && !batchZipUrl && (
             <>
               {/* Battery Low Warning */}
               {batteryInfo?.lowBatteryWarning && (
@@ -285,73 +379,44 @@ export const ExportModal: React.FC = () => {
                   <BatteryWarning className="w-5 h-5 text-amber-400 shrink-0 animate-bounce" />
                   <div>
                     <span className="font-bold block">battery is below 20% ({batteryInfo.levelPercent}%) & not charging</span>
-                    <span className="text-[11px] text-amber-300/80">
-                      rendering high resolution video drains power quickly. plug in ur charger!
-                    </span>
+                    <span className="text-[11px] text-amber-300/80">rendering video drains power quickly. plug in ur charger!</span>
                   </div>
                 </div>
               )}
 
-              {/* Quick Record Fallback Notice */}
-              {capabilities?.exportPath === 'mediarecorder' && (
-                <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center gap-2.5 text-xs text-cyan-200">
-                  <Zap className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span>
-                    quick record mode (your browser can't do frame-perfect export, using smooth real-time recorder)
-                  </span>
-                </div>
-              )}
-
-              {/* GPU / Codec 4K Alert Warning */}
-              {resolution === '4k' && !canDo4K && (
-                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs text-amber-300">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>4k not supported by your device encoder. export 1080p instead?</span>
-                  </div>
-                  <button
-                    onClick={() => setResolution('1080')}
-                    className="px-3 py-1.5 bg-amber-400 text-black font-extrabold rounded-xl hover:bg-amber-300 transition-colors shrink-0 text-[11px] uppercase tracking-wider"
-                  >
-                    switch to 1080p
-                  </button>
-                </div>
-              )}
-
-              {/* Low RAM Mobile Warning */}
-              {isPhoneLowMem && (
-                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center gap-2.5 text-xs text-slate-300">
-                  <Smartphone className="w-4 h-4 text-[#CCFF00] shrink-0" />
-                  <span>phone memory is under 4GB ({capabilities?.deviceMemoryGB || 2}GB). 1080p default selected for maximum stability.</span>
-                </div>
-              )}
-
-              {/* Social Presets */}
+              {/* Platform Presets Required by Part 4 */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
-                  Social Media Presets
+                  Social Platform Presets (1080×1920 60fps)
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
-                    onClick={() => applyPreset('1080', 60, 60)}
-                    className="p-2.5 rounded-xl bg-white/5 hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-400 text-left transition-all"
-                  >
-                    <span className="text-xs font-bold text-white block">TikTok 1080p60</span>
-                    <span className="text-[10px] text-slate-400 block">60s viral vertical</span>
-                  </button>
-                  <button
-                    onClick={() => applyPreset('4k', 60, 60)}
-                    className="p-2.5 rounded-xl bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400 text-left transition-all"
-                  >
-                    <span className="text-xs font-bold text-purple-300 block">Shorts 4K60</span>
-                    <span className="text-[10px] text-slate-400 block">Ultra UHD 60s</span>
-                  </button>
-                  <button
-                    onClick={() => applyPreset('1080', 30, 30)}
+                    onClick={() => applyPlatformPreset('tiktok')}
                     className="p-2.5 rounded-xl bg-white/5 hover:bg-pink-500/20 border border-white/10 hover:border-pink-400 text-left transition-all"
                   >
-                    <span className="text-xs font-bold text-pink-300 block">Reels 1080p30</span>
+                    <span className="text-xs font-bold text-pink-300 block">TikTok</span>
+                    <span className="text-[10px] text-slate-400 block">60s viral hook</span>
+                  </button>
+                  <button
+                    onClick={() => applyPlatformPreset('reels')}
+                    className="p-2.5 rounded-xl bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400 text-left transition-all"
+                  >
+                    <span className="text-xs font-bold text-purple-300 block">Reels</span>
                     <span className="text-[10px] text-slate-400 block">30s quick drop</span>
+                  </button>
+                  <button
+                    onClick={() => applyPlatformPreset('shorts')}
+                    className="p-2.5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-400 text-left transition-all"
+                  >
+                    <span className="text-xs font-bold text-red-300 block">Shorts</span>
+                    <span className="text-[10px] text-slate-400 block">60s vertical #shorts</span>
+                  </button>
+                  <button
+                    onClick={() => applyPlatformPreset('all')}
+                    className="p-2.5 rounded-xl bg-white/5 hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-400 text-left transition-all"
+                  >
+                    <span className="text-xs font-bold text-cyan-300 block">All Platforms</span>
+                    <span className="text-[10px] text-slate-400 block">safest boundary</span>
                   </button>
                 </div>
               </div>
@@ -359,7 +424,7 @@ export const ExportModal: React.FC = () => {
               {/* Resolution Picker */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
-                  Resolution (9:16 Vertical)
+                  Resolution Options
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
@@ -402,152 +467,70 @@ export const ExportModal: React.FC = () => {
                   </button>
 
                   <button
-                    disabled={!canDo4K}
-                    onClick={() => canDo4K && setResolution('4k_landscape')}
+                    onClick={() => setResolution('4k_landscape')}
                     className={`p-2.5 rounded-2xl border text-center transition-all ${
-                      !canDo4K
-                        ? 'opacity-40 cursor-not-allowed bg-white/5 border-white/5 text-slate-500'
-                        : resolution === '4k_landscape'
-                        ? 'bg-pink-500/20 border-pink-400 text-pink-200 shadow-md shadow-pink-500/20'
+                      resolution === '4k_landscape'
+                        ? 'bg-pink-500/20 border-pink-400 text-pink-200'
                         : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <span className="text-xs font-extrabold block">4K Landscape</span>
-                    <span className="text-[10px] text-slate-400 block">{canDo4K ? '3840 × 2160' : 'not supported'}</span>
+                    <span className="text-xs font-extrabold block">Landscape 4K</span>
+                    <span className="text-[10px] text-slate-400 block">3840 × 2160</span>
                   </button>
                 </div>
               </div>
 
-              {/* Safe Area Platform Selector */}
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
-                  Social Safe Area Platform Framing
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {(['all', 'tiktok', 'shorts', 'reels'] as const).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setOverlays({ safeZonePlatform: p as PlatformType })}
-                      className={`py-2 px-1 text-xs font-bold rounded-xl border transition-all ${
-                        overlays.safeZonePlatform === p
-                          ? 'bg-[#CCFF00]/20 border-[#CCFF00] text-[#CCFF00]'
-                          : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      {p === 'all' ? 'All (Safest)' : p.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Action Buttons: Single Export & Batch Export */}
+              <div className="pt-2 space-y-2.5">
+                <button
+                  onClick={handleStartExport}
+                  className="btn-3d-lime w-full py-3.5 rounded-2xl text-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-lime-500/20"
+                >
+                  <Sparkles className="w-4 h-4 text-black" /> Export Single Video ({resolution === '4k' ? '4K' : resolution})
+                </button>
 
-              {/* Framerate & Duration */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
-                    Frame Rate
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setFps(30)}
-                      className={`py-2 text-xs font-bold rounded-xl border transition-all ${
-                        fps === 30
-                          ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
-                          : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      30 FPS
-                    </button>
-                    <button
-                      onClick={() => setFps(60)}
-                      className={`py-2 text-xs font-bold rounded-xl border transition-all ${
-                        fps === 60
-                          ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
-                          : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      60 FPS
-                    </button>
+                {/* Batch Export ("Make 10 Videos") */}
+                <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-purple-200 flex items-center gap-1.5 uppercase">
+                      <Layers className="w-4 h-4 text-purple-400" /> Batch Creator Engine
+                    </span>
+                    <p className="text-[10px] text-slate-400 lowercase mt-0.5">
+                      variation guard enabled: 10 unique seeds, distinct themes & melody combinations.
+                    </p>
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
-                    Duration
-                  </label>
-                  <select
-                    value={duration}
-                    onChange={(e) => setDuration(Number(e.target.value))}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 outline-none"
+                  <button
+                    onClick={handleStartBatchExport}
+                    className="btn-3d-purple px-5 py-2.5 rounded-xl text-white font-black text-xs uppercase tracking-wider shrink-0 shadow-md shadow-purple-500/30 flex items-center gap-1.5"
                   >
-                    <option value={15}>15 Seconds (Quick Short)</option>
-                    <option value={30}>30 Seconds (Standard)</option>
-                    <option value={45}>45 Seconds</option>
-                    <option value={60}>60 Seconds (Viral Hook)</option>
-                    <option value={90}>90 Seconds (Extended)</option>
-                  </select>
+                    <FileArchive className="w-3.5 h-3.5" /> Make 10 Videos (ZIP)
+                  </button>
                 </div>
               </div>
-
-              {/* File System Direct Disk Streaming Toggle */}
-              {hasFilePicker && (
-                <label className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/[0.03] border border-white/10 cursor-pointer text-xs text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={useDiskStreaming}
-                    onChange={(e) => setUseDiskStreaming(e.target.checked)}
-                    className="accent-[#CCFF00] rounded w-4 h-4"
-                  />
-                  <div className="flex items-center gap-2">
-                    <HardDrive className="w-4 h-4 text-[#CCFF00]" />
-                    <span>Stream directly to disk (RAM-safe for 400MB+ 4K files)</span>
-                  </div>
-                </label>
-              )}
-
-              {/* Quality & Codec Notice */}
-              <div className="p-3.5 rounded-2xl bg-[#CCFF00]/10 border border-[#CCFF00]/20 flex items-start gap-3 text-xs text-lime-200/90 leading-relaxed">
-                <Zap className="w-4 h-4 text-[#CCFF00] shrink-0 mt-0.5" />
-                <span>
-                  {resolution === '4k' ? 'Level 5.2 H.264 High 60Mbps' : 'Level 4.2 H.264 High'} with 48kHz AAC stereo.
-                  Rendered true-to-pixel with zero upscaling and proportional watermark placement.
-                </span>
-              </div>
-
-              <button
-                onClick={handleStartExport}
-                className="btn-3d-lime w-full py-3.5 rounded-2xl text-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all"
-              >
-                <Sparkles className="w-4 h-4 text-black" /> Start MP4 Export ({resolution === '4k' ? '4K' : resolution})
-              </button>
             </>
           )}
 
-          {/* Export in Progress */}
-          {isExporting && progress && (
-            <div className="space-y-5 py-4">
+          {/* Progress State (Single or Batch) */}
+          {(isExporting || isBatchExporting) && progress && (
+            <div className="space-y-5 py-4 text-center">
               {progress.previewDataUrl && (
                 <div className="w-32 aspect-[9/16] mx-auto rounded-xl overflow-hidden border border-white/20 shadow-xl bg-black">
-                  <img
-                    src={progress.previewDataUrl}
-                    alt="Export preview"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={progress.previewDataUrl} alt="Export preview" className="w-full h-full object-cover" />
                 </div>
               )}
 
-              {progress.isPaused && (
-                <div className="p-3.5 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center gap-2 text-xs text-amber-200 animate-pulse font-bold">
-                  <PauseCircle className="w-5 h-5 text-amber-400 shrink-0" />
-                  <span>{progress.pausedMessage || 'export paused while in background — return to this tab to resume'}</span>
+              {isBatchExporting && (
+                <div className="p-2.5 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-bold font-mono">
+                  rendering batch video {batchCurrentIndex} of {batchCount}...
                 </div>
               )}
 
-              <div className="text-center space-y-1">
-                <h3 className="text-lg font-bold text-white capitalize">
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-white capitalize">
                   Stage: {progress.stage} ({progress.percent}%)
                 </h3>
                 <p className="text-xs text-slate-400 font-mono">
-                  encoding: {progress.codecChosen || (resolution === '4k' ? 'h.264 4k60' : 'h.264 1080p')} • Frame {progress.frame} / {progress.totalFrames} • ETA ~{progress.etaSeconds}s
+                  Frame {progress.frame} / {progress.totalFrames} • ETA ~{progress.etaSeconds}s • -14 LUFS audio normalization
                 </p>
               </div>
 
@@ -558,10 +541,6 @@ export const ExportModal: React.FC = () => {
                 />
               </div>
 
-              <p className="text-center text-[11px] text-amber-300/80 font-medium animate-pulse">
-                ⚠️ Keep this browser tab open until video encoding completes.
-              </p>
-
               <button
                 onClick={handleCancel}
                 className="w-full py-2.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500/30 font-bold text-xs uppercase tracking-wider transition-all"
@@ -571,72 +550,143 @@ export const ExportModal: React.FC = () => {
             </div>
           )}
 
-          {/* Export Complete */}
+          {/* Export Complete (Single Video) */}
           {(downloadUrl || directSaved) && (
-            <div className="space-y-5 text-center py-4">
-              <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/20">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold text-white">Export Complete!</h3>
-                <p className="text-xs text-slate-400 mt-1 font-mono">{exportFilename}</p>
-                {directSaved && (
-                  <p className="text-xs text-[#CCFF00] mt-1 font-semibold">
-                    ✓ Saved directly to disk via File System Access API
-                  </p>
-                )}
+            <div className="space-y-5 py-2">
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/20 mb-2">
+                  <CheckCircle2 className="w-7 h-7" />
+                </div>
+                <h3 className="text-base font-bold text-white uppercase tracking-wider">Video Export Complete!</h3>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">{exportFilename}</p>
+                <span className="text-[10px] text-cyan-300 font-mono block mt-0.5">
+                  ✓ Normalized to -14.0 LUFS integrated • True Peak -1.0 dBTP
+                </span>
               </div>
 
               {downloadUrl && (
-                <div className="w-36 aspect-[9/16] mx-auto rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black my-2">
-                  <video
-                    src={downloadUrl}
-                    controls
-                    autoPlay
-                    loop
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-32 aspect-[9/16] mx-auto rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
+                  <video src={downloadUrl} controls autoPlay loop className="w-full h-full object-cover" />
                 </div>
               )}
 
-              <div className="flex flex-col gap-2.5">
-                {canShareFile && exportBlob && (
-                  <button
-                    onClick={handleShareVideo}
-                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#CCFF00] via-cyan-400 to-purple-600 hover:opacity-95 text-slate-950 font-black text-sm uppercase tracking-wider shadow-xl shadow-[#CCFF00]/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
-                  >
-                    <Share2 className="w-5 h-5 text-black stroke-[2.5]" /> Save to Photos / Share Video
-                  </button>
-                )}
+              {/* Creator Helper: Offline Captions & Hashtags */}
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> Posting Copy Helper
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">1-click copy for reels/tiktok</span>
+                </div>
 
+                {/* Shorts Title */}
+                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2">
+                  <div className="overflow-hidden">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Shorts Title</span>
+                    <p className="text-xs text-white truncate font-medium">{socialCopy.shortsTitle}</p>
+                  </div>
+                  <button
+                    onClick={() => handleCopy('title', socialCopy.shortsTitle)}
+                    className="btn-3d-glass px-2.5 py-1 rounded-lg text-xs text-cyan-300 flex items-center gap-1 shrink-0"
+                  >
+                    {copiedField === 'title' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedField === 'title' ? 'copied' : 'copy'}</span>
+                  </button>
+                </div>
+
+                {/* Caption */}
+                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2">
+                  <div className="overflow-hidden">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Caption</span>
+                    <p className="text-xs text-white truncate font-medium">{socialCopy.caption}</p>
+                  </div>
+                  <button
+                    onClick={() => handleCopy('caption', socialCopy.caption)}
+                    className="btn-3d-glass px-2.5 py-1 rounded-lg text-xs text-cyan-300 flex items-center gap-1 shrink-0"
+                  >
+                    {copiedField === 'caption' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedField === 'caption' ? 'copied' : 'copy'}</span>
+                  </button>
+                </div>
+
+                {/* Hashtags */}
+                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2">
+                  <div className="overflow-hidden">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Hashtags</span>
+                    <p className="text-xs text-cyan-300 truncate font-mono">{socialCopy.hashtags}</p>
+                  </div>
+                  <button
+                    onClick={() => handleCopy('hashtags', socialCopy.hashtags)}
+                    className="btn-3d-glass px-2.5 py-1 rounded-lg text-xs text-cyan-300 flex items-center gap-1 shrink-0"
+                  >
+                    {copiedField === 'hashtags' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedField === 'hashtags' ? 'copied' : 'copy'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2">
                 {downloadUrl && (
                   <a
                     href={downloadUrl}
                     download={exportFilename}
-                    className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm uppercase tracking-wider shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all"
+                    className="btn-3d-lime w-full py-3 rounded-2xl text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-lime-500/20"
                   >
-                    <Download className="w-4 h-4 stroke-[2.5]" /> Download Video (MP4)
+                    <Download className="w-4 h-4" /> Download Video (MP4)
                   </a>
                 )}
 
                 {thumbnailUrl && (
                   <a
                     href={thumbnailUrl}
-                    download={`thumbnail_${exportFilename.replace('.mp4', '.png')}`}
-                    className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-bold flex items-center justify-center gap-2 transition-all"
+                    download={`cover_${exportFilename.replace('.mp4', '.png')}`}
+                    className="btn-3d-glass w-full py-2.5 rounded-xl text-slate-200 text-xs font-bold flex items-center justify-center gap-2"
                   >
-                    <ImageIcon className="w-4 h-4" /> Download PNG Thumbnail
+                    <ImageIcon className="w-4 h-4 text-cyan-400" /> Download Dramatic Cover Frame (1080×1920 PNG)
                   </a>
                 )}
 
+                {/* Make Part 2 Button */}
                 <button
-                  onClick={cleanupUrls}
-                  className="w-full py-2 text-xs font-semibold text-slate-400 hover:text-white"
+                  onClick={handleMakePart2}
+                  className="btn-3d-pink w-full py-2.5 rounded-xl text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-pink-500/30"
                 >
+                  <RotateCcw className="w-3.5 h-3.5" /> Make Part {(overlays.partNumber || 1) + 1} (New Seed)
+                </button>
+
+                <button onClick={cleanupUrls} className="w-full py-2 text-xs font-semibold text-slate-400 hover:text-white">
                   Done
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Batch Export Complete */}
+          {batchZipUrl && (
+            <div className="space-y-5 text-center py-4">
+              <div className="w-14 h-14 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-400 flex items-center justify-center mx-auto shadow-xl shadow-purple-500/20">
+                <FileArchive className="w-8 h-8" />
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-white uppercase tracking-wider">Batch Export Ready!</h3>
+                <p className="text-xs text-slate-400 mt-1 lowercase">
+                  10 unique videos with distinct seeds, palettes, and cover frames packaged in 1 ZIP archive.
+                </p>
+              </div>
+
+              <a
+                href={batchZipUrl}
+                download={`bounceforge_batch_${currentModeId}_10videos.zip`}
+                className="btn-3d-purple w-full py-3.5 rounded-2xl text-white font-black text-sm uppercase tracking-wider shadow-xl shadow-purple-500/30 flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" /> Download All 10 Videos (.ZIP)
+              </a>
+
+              <button onClick={cleanupUrls} className="w-full py-2 text-xs font-semibold text-slate-400 hover:text-white">
+                Done
+              </button>
             </div>
           )}
         </div>

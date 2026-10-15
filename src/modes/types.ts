@@ -9,12 +9,15 @@ export interface ModePreset {
 export interface SimulationMode {
   id: string;
   name: string;
-  category: 'core' | 'advanced';
+  category: 'core' | 'advanced' | 'fresh_drops';
   description: string;
   defaultSettings: Record<string, any>;
   presets: ModePreset[];
+  asmrProfile?: 'crystal' | 'destruction' | 'sand' | 'battle' | 'droplet' | 'soap' | 'bubble' | 'xylophone' | 'bass' | 'mechanical' | 'ambient';
+  hookLines?: string[];
   setup: (world: PhysicsWorld, settings: Record<string, any>, seed: number) => void;
   step?: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => void;
   onCollision?: (world: PhysicsWorld, event: CollisionEvent, settings: Record<string, any>) => void;
   isFinished: (world: PhysicsWorld, settings: Record<string, any>) => boolean;
 }
+

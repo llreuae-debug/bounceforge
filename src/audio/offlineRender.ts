@@ -2,6 +2,7 @@ import { CollisionEvent } from '../engine/types';
 import { AudioSettings, NoteItem, SfxType } from './types';
 import { SoundSynthesizer } from './synth';
 import { BUILTIN_MELODIES } from './melodies';
+import { normalizeAudioBufferToLufs } from './loudness';
 
 /**
  * Renders an offline AudioBuffer from the collision event log.
@@ -135,5 +136,11 @@ export async function renderOfflineAudio(
     }
   }
 
-  return await offlineCtx.startRendering();
+  const renderedBuffer = await offlineCtx.startRendering();
+
+  // Normalize export loudness to -14 LUFS integrated and <= -1 dBTP true peak
+  normalizeAudioBufferToLufs(renderedBuffer, -14.0, -1.0);
+
+  return renderedBuffer;
 }
+

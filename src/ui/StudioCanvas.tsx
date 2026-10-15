@@ -115,6 +115,18 @@ export const StudioCanvas: React.FC = () => {
     AudioEngine.getInstance().setMuted(isMuted);
   }, [isMuted]);
 
+  // Session audio unlock restoration
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('bounceforge_audio_unlocked') === 'true') {
+        const audio = AudioEngine.getInstance();
+        audio.resume();
+        setAudioUnlocked(true);
+      }
+    } catch {}
+  }, [setAudioUnlocked]);
+
+
   // Quality manager mode sync and live tier change listener
   useEffect(() => {
     qualityManagerRef.current.setMode(qualityMode, currentQualityTier);
@@ -327,9 +339,13 @@ export const StudioCanvas: React.FC = () => {
     audio.unlock();
     audio.resumeAudio();
     setAudioUnlocked(true);
+    try {
+      sessionStorage.setItem('bounceforge_audio_unlocked', 'true');
+    } catch {}
     triggerHaptic(15);
-    showToast('sound unlocked');
+    showToast('asmr sound unlocked');
   };
+
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     try {
@@ -495,16 +511,17 @@ export const StudioCanvas: React.FC = () => {
             quality: {currentQualityTier} ({qualityMode === 'auto' ? 'auto' : 'manual'})
           </div>
 
-          {/* Tap for sound button if locked */}
+          {/* Pulsing "tap for asmr" pill on the preview until audio starts */}
           {!audioUnlocked && (
             <button
               onClick={handleUnlockAudio}
-              className="btn-3d-lime absolute top-3 right-3 z-30 px-3.5 py-1.5 rounded-full text-black font-black text-[11px] shadow-lg flex items-center gap-1.5 animate-bounce transition-all uppercase tracking-wider"
-              title="Unlock audio for this device"
+              className="btn-3d-pink absolute top-3 right-3 z-30 px-3.5 py-1.5 rounded-full text-white font-black text-[11px] shadow-lg shadow-pink-500/40 flex items-center gap-1.5 animate-pulse transition-all uppercase tracking-wider border border-pink-400/60"
+              title="Unlock ASMR audio for this device"
             >
-              <Volume2 className="w-3.5 h-3.5" /> tap for sound
+              <Volume2 className="w-3.5 h-3.5 text-white" /> tap for asmr
             </button>
           )}
+
 
           <canvas
             ref={canvasRef}

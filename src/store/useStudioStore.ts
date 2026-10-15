@@ -125,6 +125,8 @@ interface StudioState {
   setSeedFinderOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
   setSelfTestOpen: (open: boolean) => void;
+  isWhatsNewOpen: boolean;
+  setWhatsNewOpen: (open: boolean) => void;
 
   // Toast & Undo
   toast: ToastState | null;
@@ -193,17 +195,22 @@ export const useStudioStore = create<StudioState>((set, get) => {
       pitchByVelocity: false,
       volumeByImpulse: true,
       selectedMelodyId: 'fur_elise',
+      soundMode: 'melody',
+      asmrLayer: true,
+      stereoPanning: true,
     },
 
     asmrSettings: {
       masterVolume: 0.85,
-      musicVolume: 0.75,
-      impactVolume: 0.9,
-      destructionVolume: 0.85,
-      textureVolume: 0.7,
-      backingVolume: 0.5,
+      musicVolume: 0.65,
+      impactVolume: 0.95,
+      destructionVolume: 0.9,
+      textureVolume: 0.8,
+      backingVolume: 0.35,
       binauralAsmr: true,
-      asmrMode: false,
+      asmrMode: true,
+      headphonesMode: true,
+      asmrIntensity: 'balanced',
     },
 
     backingGenre: 'none',
@@ -216,6 +223,8 @@ export const useStudioStore = create<StudioState>((set, get) => {
     isSeedFinderOpen: false,
     isShortcutsOpen: false,
     isSelfTestOpen: false,
+    isWhatsNewOpen: false,
+
 
     setRoute: (route, pushState = true) => {
       if (pushState && typeof window !== 'undefined') {
@@ -290,6 +299,8 @@ export const useStudioStore = create<StudioState>((set, get) => {
     setSeedFinderOpen: (open) => set({ isSeedFinderOpen: open }),
     setShortcutsOpen: (open) => set({ isShortcutsOpen: open }),
     setSelfTestOpen: (open) => set({ isSelfTestOpen: open }),
+    setWhatsNewOpen: (open) => set({ isWhatsNewOpen: open }),
+
 
     setQualityMode: (mode) => set({ qualityMode: mode }),
     setCurrentQualityTier: (tier) => set({ currentQualityTier: tier }),

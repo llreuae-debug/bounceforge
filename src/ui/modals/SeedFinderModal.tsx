@@ -224,21 +224,27 @@ export const SeedFinderModal: React.FC = () => {
                 {candidates.map((cand, idx) => (
                   <div
                     key={cand.seed}
-                    className="p-3 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between hover:border-cyan-500/40 transition-all"
+                    className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between hover:border-pink-500/40 transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-mono text-xs font-bold flex items-center justify-center">
+                      <span className="w-7 h-7 rounded-xl bg-pink-500/20 text-pink-300 font-mono text-xs font-black flex items-center justify-center border border-pink-500/40">
                         #{idx + 1}
                       </span>
                       <div>
-                        <span className="text-sm font-bold font-mono text-white block">
-                          Seed: {cand.seed}
-                        </span>
-                        <span className="text-xs text-emerald-400 flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> Finishes at {cand.finishTime}s
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold font-mono text-white">
+                            Seed: {cand.seed}
+                          </span>
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/40">
+                            {cand.engagementScore || 95}% retention
+                          </span>
+                        </div>
+                        <span className="text-xs text-slate-300 flex items-center gap-1.5 mt-0.5 lowercase font-mono">
+                          <Clock className="w-3 h-3 text-cyan-400" /> payoff: {cand.finishTime}s • {cand.nearMisses || 0} near-misses • {cand.bounces || 0} bounces
                         </span>
                       </div>
                     </div>
+
 
                     <button
                       onClick={() => handleApplySeed(cand.seed)}
