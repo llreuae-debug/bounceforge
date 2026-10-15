@@ -136,13 +136,13 @@ export const Header: React.FC = () => {
         )}
       </div>
 
-      {/* Center Studio Tools */}
+      {/* Center Studio Tools - Perfectly Aligned 3D Buttons */}
       {currentRoute === 'studio' && (
         <div className="hidden xl:flex items-center gap-2">
           {/* Surprise Me Feature */}
           <button
             onClick={surpriseMe}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-pink-500/20 to-purple-500/20 hover:from-pink-500/30 hover:to-purple-500/30 border border-pink-500/40 hover:border-pink-300 text-xs font-bold text-white transition-all shadow-md shadow-pink-500/10 active:scale-95"
+            className="btn-3d-glass flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition-all border-pink-500/40 text-pink-300"
             title="Randomize combination of mode, balls, obstacles, colors, melody and physics!"
           >
             <Sparkles className="w-3.5 h-3.5 text-pink-400 animate-pulse" />
@@ -152,20 +152,20 @@ export const Header: React.FC = () => {
           {/* Sound Mute / Unmute */}
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
               !isMuted
-                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                ? 'btn-3d-glass border-emerald-400/50 text-emerald-300'
+                : 'btn-3d-glass text-slate-400 hover:text-white'
             }`}
             title="Toggle studio audio"
           >
-            {!isMuted ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
+            {!isMuted ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5 text-red-400" />}
             <span>{!isMuted ? 'Sound ON' : 'Muted'}</span>
           </button>
 
           <button
             onClick={() => setSeedFinderOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 hover:text-white transition-all shadow-sm"
+            className="btn-3d-glass flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-200 hover:text-white transition-all"
             title="Run Web Worker to find seeds finishing in 59-60s"
           >
             <Compass className="w-3.5 h-3.5 text-cyan-400" />
@@ -174,7 +174,7 @@ export const Header: React.FC = () => {
 
           <button
             onClick={() => setMidiEditorOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 hover:text-white transition-all shadow-sm"
+            className="btn-3d-glass flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-200 hover:text-white transition-all"
             title="Open 4-octave interactive MIDI piano roll"
           >
             <Music className="w-3.5 h-3.5 text-purple-400" />
@@ -183,10 +183,10 @@ export const Header: React.FC = () => {
 
           <button
             onClick={() => setShortcutsOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-400 hover:text-white transition-all"
+            className="btn-3d-glass flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all"
             title="View keyboard shortcuts"
           >
-            <Keyboard className="w-3 h-3 text-[#CCFF00]" />
+            <Keyboard className="w-3.5 h-3.5 text-[#CCFF00]" />
             <span>Shortcuts</span>
           </button>
         </div>
@@ -198,7 +198,7 @@ export const Header: React.FC = () => {
           <>
             <button
               onClick={handleSave}
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all"
+              className="btn-3d-glass p-2 rounded-xl text-slate-300 hover:text-white transition-all"
               title="Save project to IndexedDB"
             >
               <Save className="w-4 h-4" />
@@ -206,7 +206,7 @@ export const Header: React.FC = () => {
 
             <button
               onClick={() => loadFromIndexedDB()}
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all"
+              className="btn-3d-glass p-2 rounded-xl text-slate-300 hover:text-white transition-all"
               title="Load saved project from IndexedDB"
             >
               <FolderOpen className="w-4 h-4" />
@@ -214,7 +214,7 @@ export const Header: React.FC = () => {
 
             <button
               onClick={handleShare}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 transition-all"
+              className="btn-3d-glass flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-200 transition-all"
               title="Copy shareable preset URL"
             >
               <Share2 className="w-3.5 h-3.5 text-[#00F0FF]" />
@@ -223,7 +223,7 @@ export const Header: React.FC = () => {
 
             <button
               onClick={() => setExportOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 via-indigo-500 to-[#CCFF00] hover:opacity-90 text-black font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-cyan-400/25 transition-all transform hover:scale-[1.02]"
+              className="btn-3d-lime flex items-center gap-2 px-4 py-2 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all"
               title="Export frame-perfect 4K 9:16 vertical MP4"
             >
               <Download className="w-4 h-4 stroke-[2.5]" />
@@ -235,7 +235,7 @@ export const Header: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setRoute('studio')}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-[#CCFF00] text-black font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-lime-400/20 hover:scale-105 transition-all"
+              className="btn-3d-lime flex items-center gap-2 px-5 py-2.5 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Launch Studio Free</span>
@@ -246,7 +246,7 @@ export const Header: React.FC = () => {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-white xl:hidden ml-1"
+          className="btn-3d-glass p-2 rounded-xl text-slate-300 hover:text-white xl:hidden ml-1"
           aria-label="Toggle navigation menu"
         >
           {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}

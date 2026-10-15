@@ -205,36 +205,36 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
   const gpuStatus = checkGpu4KCapability();
 
   return (
-    <aside className={className || "w-88 h-[calc(100vh-4rem)] border-l border-white/10 bg-[#07090e]/90 backdrop-blur-md flex flex-col select-none shrink-0 font-sans"}>
+    <aside className={className || "w-92 h-[calc(100vh-4rem)] border-l border-white/10 bg-[#07090e]/90 backdrop-blur-md flex flex-col select-none shrink-0 font-sans"}>
       {/* Settings Panel Header with Master Reset to Default Button */}
-      <div className="p-3 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[#CCFF00] shadow-[0_0_8px_#CCFF00]" />
-          <span className="text-xs font-bold text-white tracking-wide uppercase">
+      <div className="px-3.5 py-2.5 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#CCFF00] shadow-[0_0_10px_#CCFF00] shrink-0" />
+          <span className="text-xs font-black text-white tracking-wider uppercase truncate">
             {currentModeId}
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {/* Master Reset to Default Button */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Master Reset to Default 3D Button */}
           <button
             onClick={() => resetModeToDefault()}
             disabled={isCurrentModeDefault}
             title={isCurrentModeDefault ? 'mode is already at default' : 'reset current mode to default (Shift+R)'}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-extrabold tracking-tight transition-all ${
               isCurrentModeDefault
-                ? 'opacity-35 cursor-not-allowed border-white/5 bg-white/[0.02] text-slate-500'
-                : 'border-[#CCFF00]/30 bg-[#CCFF00]/10 text-[#CCFF00] hover:bg-[#CCFF00]/20 hover:border-[#CCFF00]/60 shadow-[0_0_12px_rgba(204,255,0,0.15)] active:scale-95'
+                ? 'opacity-40 cursor-not-allowed border border-white/10 bg-white/[0.03] text-slate-500 shadow-none'
+                : 'btn-3d-reset-pill'
             }`}
           >
-            <RotateCcw className="w-3.5 h-3.5 stroke-[2.2]" />
-            <span>reset to default</span>
+            <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span className="whitespace-nowrap">reset to default</span>
           </button>
 
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-bold"
+              className="p-1.5 rounded-xl btn-3d-glass text-slate-300 hover:text-white text-xs font-bold"
               title="Close panel"
             >
               ✕
@@ -243,61 +243,71 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex border-b border-white/10 p-1.5 gap-1 bg-white/[0.02] overflow-x-auto scrollbar-none">
+      {/* Navigation Tabs - Perfectly Aligned 3D Tactile Tabs (Zero Truncation) */}
+      <div className="grid grid-cols-5 border-b border-white/10 p-1.5 gap-1 bg-white/[0.02] shrink-0">
         <button
           onClick={() => setActiveTab('physics')}
-          className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-xl flex items-center justify-center gap-1 transition-all ${
+          className={`tab-3d py-1.5 px-0.5 rounded-xl text-[10.5px] font-extrabold tracking-tight flex items-center justify-center gap-1 min-w-0 ${
             activeTab === 'physics'
-              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              ? 'tab-3d-active bg-cyan-500/20 text-cyan-300 border-cyan-400/50 border-b-cyan-400 shadow-[0_2px_0_0_#007380,0_4px_12px_rgba(6,182,212,0.25)]'
+              : 'tab-3d-inactive'
           }`}
+          title="Physics & Simulation Parameters"
         >
-          <Sliders className="w-3 h-3" /> physics
+          <Sliders className="w-3 h-3 shrink-0" />
+          <span className="whitespace-nowrap">physics</span>
         </button>
 
         <button
           onClick={() => setActiveTab('visuals')}
-          className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-xl flex items-center justify-center gap-1 transition-all ${
+          className={`tab-3d py-1.5 px-0.5 rounded-xl text-[10.5px] font-extrabold tracking-tight flex items-center justify-center gap-1 min-w-0 ${
             activeTab === 'visuals'
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              ? 'tab-3d-active bg-emerald-500/20 text-emerald-300 border-emerald-400/50 border-b-emerald-400 shadow-[0_2px_0_0_#065f46,0_4px_12px_rgba(160,255,200,0.2)]'
+              : 'tab-3d-inactive'
           }`}
+          title="Visual Effects & Shaders"
         >
-          <Sparkles className="w-3 h-3" /> visuals
+          <Sparkles className="w-3 h-3 shrink-0" />
+          <span className="whitespace-nowrap">visuals</span>
         </button>
 
         <button
           onClick={() => setActiveTab('audio')}
-          className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-xl flex items-center justify-center gap-1 transition-all ${
+          className={`tab-3d py-1.5 px-0.5 rounded-xl text-[10.5px] font-extrabold tracking-tight flex items-center justify-center gap-1 min-w-0 ${
             activeTab === 'audio'
-              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              ? 'tab-3d-active bg-purple-500/20 text-purple-300 border-purple-400/50 border-b-purple-400 shadow-[0_2px_0_0_#581c87,0_4px_12px_rgba(168,85,247,0.25)]'
+              : 'tab-3d-inactive'
           }`}
+          title="Synthesizers, Notes & Scales"
         >
-          <Volume2 className="w-3 h-3" /> sound
+          <Volume2 className="w-3 h-3 shrink-0" />
+          <span className="whitespace-nowrap">sound</span>
         </button>
 
         <button
           onClick={() => setActiveTab('overlays')}
-          className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-xl flex items-center justify-center gap-1 transition-all ${
+          className={`tab-3d py-1.5 px-0.5 rounded-xl text-[10.5px] font-extrabold tracking-tight flex items-center justify-center gap-1 min-w-0 ${
             activeTab === 'overlays'
-              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              ? 'tab-3d-active bg-amber-500/20 text-amber-300 border-amber-400/50 border-b-amber-400 shadow-[0_2px_0_0_#78350f,0_4px_12px_rgba(245,158,11,0.25)]'
+              : 'tab-3d-inactive'
           }`}
+          title="Viral Overlays & Hooks"
         >
-          <Tv className="w-3 h-3" /> hooks
+          <Tv className="w-3 h-3 shrink-0" />
+          <span className="whitespace-nowrap">hooks</span>
         </button>
 
         <button
           onClick={() => setActiveTab('diagnostics')}
-          className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-xl flex items-center justify-center gap-1 transition-all ${
+          className={`tab-3d py-1.5 px-0.5 rounded-xl text-[10.5px] font-extrabold tracking-tight flex items-center justify-center gap-1 min-w-0 ${
             activeTab === 'diagnostics'
-              ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              ? 'tab-3d-active bg-red-500/20 text-red-300 border-red-400/50 border-b-red-400 shadow-[0_2px_0_0_#7f1d1d,0_4px_12px_rgba(239,68,68,0.25)]'
+              : 'tab-3d-inactive'
           }`}
+          title="Performance Diagnostics & System"
         >
-          <Activity className="w-3 h-3" /> system
+          <Activity className="w-3 h-3 shrink-0" />
+          <span className="whitespace-nowrap">system</span>
         </button>
       </div>
 
@@ -313,10 +323,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
               <button
                 onClick={() => resetSection('physics')}
                 aria-label="reset physics to default"
-                className="p-1 px-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1 text-[11px]"
+                className="btn-3d-glass p-1 px-2.5 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-1.5 text-[11px] font-bold"
                 title="reset physics to default"
               >
-                <RotateCcw className="w-3 h-3" />
+                <RotateCcw className="w-3 h-3 stroke-[2.2]" />
                 <span className="text-[10px]">reset</span>
               </button>
             </div>
@@ -474,10 +484,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
               <button
                 onClick={() => resetSection('visuals')}
                 aria-label="reset visuals to default"
-                className="p-1 px-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1 text-[11px]"
+                className="btn-3d-glass p-1 px-2.5 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-1.5 text-[11px] font-bold"
                 title="reset visuals to default"
               >
-                <RotateCcw className="w-3 h-3" />
+                <RotateCcw className="w-3 h-3 stroke-[2.2]" />
                 <span className="text-[10px]">reset</span>
               </button>
             </div>
@@ -599,36 +609,42 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
               <button
                 onClick={() => resetSection('sound')}
                 aria-label="reset sound to default"
-                className="p-1 px-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1 text-[11px]"
+                className="btn-3d-glass p-1 px-2.5 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-1.5 text-[11px] font-bold"
                 title="reset sound to default"
               >
-                <RotateCcw className="w-3 h-3" />
+                <RotateCcw className="w-3 h-3 stroke-[2.2]" />
                 <span className="text-[10px]">reset</span>
               </button>
             </div>
 
-            {/* Sub-Tabs */}
+            {/* Sub-Tabs - 3D Buttons */}
             <div className="flex border-b border-white/10 pb-2 gap-1.5">
               <button
                 onClick={() => setSoundSubTab('music')}
-                className={`flex-1 py-1 text-[11px] font-bold rounded-lg ${
-                  soundSubTab === 'music' ? 'bg-purple-500/20 text-purple-300' : 'text-slate-400'
+                className={`flex-1 py-1 text-[11px] font-bold rounded-xl transition-all ${
+                  soundSubTab === 'music'
+                    ? 'tab-3d-active bg-purple-500/20 text-purple-300 border border-purple-400/50 border-b-2 border-b-purple-400 shadow-[0_2px_0_0_#581c87]'
+                    : 'btn-3d-glass text-slate-400 hover:text-slate-200'
                 }`}
               >
                 music
               </button>
               <button
                 onClick={() => setSoundSubTab('asmr')}
-                className={`flex-1 py-1 text-[11px] font-bold rounded-lg ${
-                  soundSubTab === 'asmr' ? 'bg-pink-500/20 text-pink-300' : 'text-slate-400'
+                className={`flex-1 py-1 text-[11px] font-bold rounded-xl transition-all ${
+                  soundSubTab === 'asmr'
+                    ? 'tab-3d-active bg-pink-500/20 text-pink-300 border border-pink-400/50 border-b-2 border-b-pink-400 shadow-[0_2px_0_0_#831843]'
+                    : 'btn-3d-glass text-slate-400 hover:text-slate-200'
                 }`}
               >
                 asmr
               </button>
               <button
                 onClick={() => setSoundSubTab('beat')}
-                className={`flex-1 py-1 text-[11px] font-bold rounded-lg ${
-                  soundSubTab === 'beat' ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400'
+                className={`flex-1 py-1 text-[11px] font-bold rounded-xl transition-all ${
+                  soundSubTab === 'beat'
+                    ? 'tab-3d-active bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 border-b-2 border-b-cyan-400 shadow-[0_2px_0_0_#007380]'
+                    : 'btn-3d-glass text-slate-400 hover:text-slate-200'
                 }`}
               >
                 beat
@@ -872,10 +888,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
               <button
                 onClick={() => resetSection('overlays')}
                 aria-label="reset overlays to default"
-                className="p-1 px-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1 text-[11px]"
+                className="btn-3d-glass p-1 px-2.5 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-1.5 text-[11px] font-bold"
                 title="reset overlays to default"
               >
-                <RotateCcw className="w-3 h-3" />
+                <RotateCcw className="w-3 h-3 stroke-[2.2]" />
                 <span className="text-[10px]">reset</span>
               </button>
             </div>
@@ -1238,14 +1254,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
               <button
                 onClick={() => setShowFactoryModal(false)}
                 disabled={isResetting}
-                className="flex-1 py-2 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition-all"
+                className="btn-3d-glass flex-1 py-2 px-3 rounded-xl text-xs font-bold text-white transition-all"
               >
                 cancel
               </button>
               <button
                 onClick={handleConfirmFactoryReset}
                 disabled={isResetting}
-                className="flex-1 py-2 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 border border-red-400/50 border-b-[3px] border-b-red-900 shadow-[0_3px_0_0_#4c0519] text-xs font-black uppercase tracking-wider text-white active:translate-y-0.5 active:border-b-1 transition-all flex items-center justify-center gap-1.5"
               >
                 {isResetting ? 'resetting...' : 'yes, reset'}
               </button>

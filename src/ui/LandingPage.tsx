@@ -127,14 +127,14 @@ export const LandingPage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
               <button
                 onClick={() => setRoute('studio')}
-                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white font-extrabold text-sm uppercase tracking-wider shadow-xl shadow-cyan-500/25 flex items-center gap-3 transform hover:scale-105 transition-all"
+                className="btn-3d-lime px-8 py-4 rounded-2xl text-black font-black text-sm uppercase tracking-wider flex items-center gap-3 transition-all"
               >
                 <Play className="w-4 h-4 fill-current" /> Launch Studio Free
               </button>
 
               <a
                 href="#modes"
-                className="px-6 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-sm flex items-center gap-2 transition-all"
+                className="btn-3d-glass px-6 py-4 rounded-2xl text-white font-bold text-sm flex items-center gap-2 transition-all"
               >
                 Explore 21 Modes <ArrowRight className="w-4 h-4" />
               </a>

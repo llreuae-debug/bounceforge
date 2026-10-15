@@ -93,8 +93,8 @@ export const Studio: React.FC = () => {
                 }}
                 className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
                   currentModeId === mode.id
-                    ? 'bg-[#CCFF00] text-black shadow-md shadow-[#CCFF00]/25'
-                    : 'bg-white/5 border border-white/10 text-slate-300 hover:text-white'
+                    ? 'btn-3d-lime text-black'
+                    : 'btn-3d-glass text-slate-300 hover:text-white'
                 }`}
               >
                 {mode.name}
@@ -115,7 +115,7 @@ export const Studio: React.FC = () => {
                 triggerHaptic(10);
                 setIsMobileSettingsOpen(true);
               }}
-              className="pointer-events-auto px-4 py-2.5 rounded-full bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xs border border-white/15 backdrop-blur-xl shadow-2xl flex items-center gap-2 active:scale-95 transition-all"
+              className="pointer-events-auto btn-3d-glass px-4 py-2.5 rounded-full text-white font-bold text-xs backdrop-blur-xl flex items-center gap-2"
             >
               <Sliders className="w-3.5 h-3.5 text-[#CCFF00]" />
               <span>settings</span>
@@ -127,7 +127,7 @@ export const Studio: React.FC = () => {
                 triggerHaptic(15);
                 setExportOpen(true);
               }}
-              className="pointer-events-auto px-5 py-3 rounded-full bg-gradient-to-r from-[#CCFF00] via-cyan-400 to-purple-500 text-black font-black text-xs uppercase tracking-wider shadow-2xl shadow-[#CCFF00]/30 flex items-center gap-2 active:scale-95 transition-all"
+              className="pointer-events-auto btn-3d-lime px-5 py-2.5 rounded-full text-black font-black text-xs uppercase tracking-wider flex items-center gap-2"
             >
               <Download className="w-4 h-4 stroke-[2.5]" />
               <span>render</span>

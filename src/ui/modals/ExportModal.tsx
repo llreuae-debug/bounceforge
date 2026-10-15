@@ -515,7 +515,7 @@ export const ExportModal: React.FC = () => {
 
               <button
                 onClick={handleStartExport}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#CCFF00] via-cyan-400 to-purple-600 hover:opacity-95 text-slate-950 font-black text-sm uppercase tracking-wider shadow-xl shadow-[#CCFF00]/25 flex items-center justify-center gap-2 transform hover:scale-[1.01] transition-all"
+                className="btn-3d-lime w-full py-3.5 rounded-2xl text-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all"
               >
                 <Sparkles className="w-4 h-4 text-black" /> Start MP4 Export ({resolution === '4k' ? '4K' : resolution})
               </button>

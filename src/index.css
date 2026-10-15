@@ -149,3 +149,164 @@ html, body, #root {
   }
 }
 
+/* =====================================================================
+   3D TACTILE BUTTONS DESIGN SYSTEM (ALL APP)
+   ===================================================================== */
+
+button,
+.btn-3d {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.12s cubic-bezier(0.2, 0.8, 0.2, 1),
+              background 0.15s ease,
+              border-color 0.15s ease,
+              color 0.15s ease;
+  vertical-align: middle;
+}
+
+/* Subtle default 3D tactile elevation for all standard buttons */
+button:not(:disabled):not(.no-3d) {
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Tactile 3D press-down interaction */
+button:not(:disabled):not(.no-3d):hover,
+.btn-3d:not(:disabled):not(.no-3d):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
+}
+
+button:not(:disabled):not(.no-3d):active,
+.btn-3d:not(:disabled):not(.no-3d):active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 0px 0 0 rgba(0, 0, 0, 0.4), inset 0 1px 2px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 3D Button Presets */
+.btn-3d-lime {
+  background: linear-gradient(180deg, #dfff40 0%, #ccff00 55%, #b5e600 100%) !important;
+  color: #050608 !important;
+  font-weight: 800 !important;
+  border: 1px solid #eaff66 !important;
+  border-bottom: 3px solid #7d9e00 !important;
+  box-shadow: 0 3px 0 0 #597000, 0 6px 16px rgba(204, 255, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.btn-3d-lime:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e6ff66 0%, #d4ff1a 55%, #bef000 100%) !important;
+  box-shadow: 0 4px 0 0 #597000, 0 8px 22px rgba(204, 255, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+.btn-3d-lime:active:not(:disabled) {
+  border-bottom-width: 1px !important;
+  box-shadow: 0 1px 0 0 #597000, 0 2px 6px rgba(204, 255, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+}
+
+.btn-3d-cyan {
+  background: linear-gradient(180deg, #4df3ff 0%, #00f0ff 55%, #00d6e6 100%) !important;
+  color: #050608 !important;
+  font-weight: 800 !important;
+  border: 1px solid #80f6ff !important;
+  border-bottom: 3px solid #008f9c !important;
+  box-shadow: 0 3px 0 0 #006b75, 0 6px 16px rgba(0, 240, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.btn-3d-cyan:hover:not(:disabled) {
+  background: linear-gradient(180deg, #6bf5ff 0%, #1af1ff 55%, #00e0f0 100%) !important;
+  box-shadow: 0 4px 0 0 #006b75, 0 8px 22px rgba(0, 240, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+.btn-3d-cyan:active:not(:disabled) {
+  border-bottom-width: 1px !important;
+  box-shadow: 0 1px 0 0 #006b75, 0 2px 6px rgba(0, 240, 255, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+}
+
+.btn-3d-purple {
+  background: linear-gradient(180deg, #d8b4fe 0%, #a855f7 55%, #9333ea 100%) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border: 1px solid #e9d5ff !important;
+  border-bottom: 3px solid #6b21a8 !important;
+  box-shadow: 0 3px 0 0 #581c87, 0 6px 16px rgba(168, 85, 247, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+.btn-3d-purple:hover:not(:disabled) {
+  box-shadow: 0 4px 0 0 #581c87, 0 8px 22px rgba(168, 85, 247, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+.btn-3d-purple:active:not(:disabled) {
+  border-bottom-width: 1px !important;
+  box-shadow: 0 1px 0 0 #581c87, 0 2px 6px rgba(168, 85, 247, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+}
+
+.btn-3d-glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%), #121622 !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-bottom: 3px solid rgba(0, 0, 0, 0.8) !important;
+  box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+.btn-3d-glass:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.05) 100%), #171c2c !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+}
+.btn-3d-glass:active:not(:disabled) {
+  border-bottom-width: 1px !important;
+  box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Master Reset to Default 3D Tactile Button */
+.btn-3d-reset-pill {
+  background: linear-gradient(180deg, rgba(204, 255, 0, 0.2) 0%, rgba(204, 255, 0, 0.08) 100%) !important;
+  border: 1px solid rgba(204, 255, 0, 0.45) !important;
+  border-bottom: 3px solid #7d9e00 !important;
+  box-shadow: 0 2.5px 0 0 #4a5e00, 0 4px 12px rgba(204, 255, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  color: #ccff00 !important;
+}
+.btn-3d-reset-pill:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(204, 255, 0, 0.3) 0%, rgba(204, 255, 0, 0.14) 100%) !important;
+  border-color: rgba(204, 255, 0, 0.7) !important;
+  box-shadow: 0 3.5px 0 0 #4a5e00, 0 6px 16px rgba(204, 255, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+}
+.btn-3d-reset-pill:active:not(:disabled) {
+  border-bottom-width: 1px !important;
+  box-shadow: 0 0.5px 0 0 #4a5e00, inset 0 2px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 3D Navigation Tab Buttons */
+.tab-3d {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border: 1px solid transparent;
+  border-bottom-width: 3px;
+  user-select: none;
+}
+.tab-3d-active {
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+.tab-3d-inactive {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+  border-bottom-color: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+.tab-3d-inactive:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-color: rgba(255, 255, 255, 0.16);
+  border-bottom-color: rgba(0, 0, 0, 0.7);
+  color: #f8fafc;
+  transform: translateY(-1px);
+}
+.tab-3d:active {
+  transform: translateY(1.5px) !important;
+  border-bottom-width: 1px !important;
+  box-shadow: 0 0.5px 0 0 rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+

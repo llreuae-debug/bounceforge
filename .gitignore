@@ -22,3 +22,4 @@ playwright-report
 blob-report
 .backup_3d_modes_checkpoint
 scratch/
+.vercel

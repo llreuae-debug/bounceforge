@@ -35,10 +35,10 @@ export const DurationPicker: React.FC<DurationPickerProps> = ({
           aria-checked={value === d}
           disabled={disabled}
           onClick={() => onChange(d)}
-          className={`${pad} font-bold font-mono rounded-md transition-all disabled:opacity-40 ${
+          className={`${pad} font-bold font-mono rounded-lg transition-all disabled:opacity-40 ${
             value === d
-              ? 'bg-[#CCFF00] text-black shadow-sm shadow-[#CCFF00]/30'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              ? 'btn-3d-lime text-black'
+              : 'btn-3d-glass text-slate-400 hover:text-white'
           }`}
         >
           {d}s

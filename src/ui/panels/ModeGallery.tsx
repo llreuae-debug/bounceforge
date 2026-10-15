@@ -42,7 +42,7 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) 
             {onClose && (
               <button
                 onClick={onClose}
-                className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-bold"
+                className="btn-3d-glass p-1.5 rounded-xl text-slate-300 hover:text-white text-xs font-bold"
                 title="Close modes"
               >
                 <X className="w-3.5 h-3.5" />
@@ -51,14 +51,14 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) 
           </div>
         </div>
 
-        {/* Surprise Me Feature Button */}
+        {/* Surprise Me 3D Tactile Button */}
         <button
           onClick={surpriseMe}
-          className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-cyan-500/20 hover:from-pink-500/30 hover:to-cyan-500/30 border border-pink-500/40 hover:border-pink-300 text-xs font-bold text-white flex items-center justify-center gap-2 shadow-lg shadow-pink-500/10 transition-all active:scale-95 group"
+          className="btn-3d-purple w-full py-2.5 px-3 rounded-xl text-xs font-black text-white flex items-center justify-center gap-2 transition-all uppercase tracking-wider"
           title="Randomize combination of mode, balls, obstacles, colors, melody and physics!"
         >
-          <Sparkles className="w-3.5 h-3.5 text-pink-400 group-hover:rotate-12 transition-transform" />
-          <span>🎲 Surprise Me</span>
+          <Sparkles className="w-4 h-4 text-white animate-pulse" />
+          <span>Surprise Me</span>
         </button>
 
         {/* Search */}
@@ -73,34 +73,34 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) 
           />
         </div>
 
-        {/* Filter Pills */}
+        {/* Filter Pills - 3D Buttons */}
         <div className="flex gap-1.5 pt-1">
           <button
             onClick={() => setCategory('all')}
-            className={`flex-1 py-1 text-[11px] font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 text-[11px] font-bold rounded-xl transition-all ${
               category === 'all'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                : 'bg-white/5 text-slate-400 hover:text-slate-200'
+                ? 'btn-3d-cyan text-black'
+                : 'btn-3d-glass text-slate-400 hover:text-slate-200'
             }`}
           >
             All ({activeModesList.length})
           </button>
           <button
             onClick={() => setCategory('core')}
-            className={`flex-1 py-1 text-[11px] font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 text-[11px] font-bold rounded-xl transition-all ${
               category === 'core'
-                ? 'bg-pink-500/20 text-pink-300 border border-pink-500/40'
-                : 'bg-white/5 text-slate-400 hover:text-slate-200'
+                ? 'btn-3d-lime text-black'
+                : 'btn-3d-glass text-slate-400 hover:text-slate-200'
             }`}
           >
             Core (11)
           </button>
           <button
             onClick={() => setCategory('exclusive')}
-            className={`flex-1 py-1 text-[11px] font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 text-[11px] font-bold rounded-xl transition-all ${
               category === 'exclusive'
-                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
-                : 'bg-white/5 text-slate-400 hover:text-slate-200'
+                ? 'btn-3d-purple text-white'
+                : 'btn-3d-glass text-slate-400 hover:text-slate-200'
             }`}
           >
             Advanced (10)
