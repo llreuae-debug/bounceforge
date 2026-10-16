@@ -107,6 +107,31 @@ export class SoundSynthesizer {
       case 'snareRimshot':
         this.synthSnareRimshot(ctx, targetNode, freq, startTime, duration, volume);
         break;
+      // 9-Instrument Selector Set:
+      case 'trumpet':
+        this.synthTrumpet(ctx, targetNode, freq, startTime, duration, volume);
+        break;
+      case 'saxophone':
+        this.synthSaxophone(ctx, targetNode, freq, startTime, duration, volume);
+        break;
+      case 'piano':
+        this.synthPiano(ctx, targetNode, freq, startTime, duration, volume);
+        break;
+      case 'synth':
+        this.synthLead(ctx, targetNode, freq, startTime, duration, volume);
+        break;
+      case 'eightBit':
+        this.synthSquare8Bit(ctx, targetNode, freq, startTime, duration, volume);
+        break;
+      case 'pluck':
+        this.synthPluckHarp(ctx, targetNode, freq, startTime, duration, volume);
+        break;
+      case 'xylophone':
+        this.synthMarimba(ctx, targetNode, freq, startTime, duration, volume);
+        break;
+      case 'guitar':
+        this.synthGuitarHarmonic(ctx, targetNode, freq, startTime, duration, volume);
+        break;
       default:
         this.synthPiano(ctx, targetNode, freq, startTime, duration, volume);
     }
@@ -809,5 +834,85 @@ export class SoundSynthesizer {
         break;
       }
     }
+  }
+
+  // 25. Trumpet (Brass acoustic model with bright tongue attack, dual-oscillator rich harmonics, and resonant brass formant)
+  private static synthTrumpet(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    osc1.type = 'sawtooth';
+    osc1.frequency.setValueAtTime(freq, t);
+
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(freq * 1.002, t);
+
+    // Brass formant peak around 1200Hz - 2800Hz with fast envelope opening
+    filter.type = 'bandpass';
+    filter.Q.setValueAtTime(2.2, t);
+    filter.frequency.setValueAtTime(freq * 1.5, t);
+    filter.frequency.exponentialRampToValueAtTime(Math.min(freq * 4.5, 3200), t + 0.05);
+    filter.frequency.exponentialRampToValueAtTime(Math.max(freq * 2.0, 800), t + Math.min(dur, 0.45));
+
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.7, t + 0.03); // Quick brass tongue attack
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(dur, 0.45));
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(dest);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + Math.max(dur, 0.45));
+    osc2.stop(t + Math.max(dur, 0.45));
+  }
+
+  // 26. Saxophone (Warm reed brass with rich overtones, expressive 5.5Hz vibrato, and mellow lowpass formant)
+  private static synthSaxophone(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
+    const osc = ctx.createOscillator();
+    const subOsc = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    // Reed oscillator (square + saw hybrid warmth)
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, t);
+
+    // Subtle natural vibrato starting after 80ms
+    const vibrato = ctx.createOscillator();
+    const vibratoGain = ctx.createGain();
+    vibrato.frequency.setValueAtTime(5.5, t); // 5.5 Hz vibrato rate
+    vibratoGain.gain.setValueAtTime(0, t);
+    vibratoGain.gain.linearRampToValueAtTime(freq * 0.025, t + 0.12);
+    vibrato.connect(vibratoGain);
+    vibratoGain.connect(osc.frequency);
+
+    subOsc.type = 'triangle';
+    subOsc.frequency.setValueAtTime(freq, t);
+
+    filter.type = 'lowpass';
+    filter.Q.setValueAtTime(2.0, t);
+    filter.frequency.setValueAtTime(freq * 2.8, t);
+    filter.frequency.exponentialRampToValueAtTime(freq * 1.8, t + Math.max(dur, 0.5));
+
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.65, t + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(dur, 0.5));
+
+    osc.connect(filter);
+    subOsc.connect(filter);
+    filter.connect(gain);
+    gain.connect(dest);
+
+    osc.start(t);
+    subOsc.start(t);
+    vibrato.start(t);
+    osc.stop(t + Math.max(dur, 0.5));
+    subOsc.stop(t + Math.max(dur, 0.5));
+    vibrato.stop(t + Math.max(dur, 0.5));
   }
 }

@@ -215,7 +215,21 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
     audioSettings,
   });
 
+  const quick9Instruments: { id: InstrumentType; name: string; emoji: string }[] = [
+    { id: 'trumpet', name: 'Trumpet', emoji: '🎺' },
+    { id: 'grandPiano', name: 'Piano', emoji: '🎹' },
+    { id: 'synthLead', name: 'Synth', emoji: '🎛️' },
+    { id: 'square8bit', name: '8-bit', emoji: '🎮' },
+    { id: 'pluckHarp', name: 'Pluck', emoji: '🪕' },
+    { id: 'marimba', name: 'Xylophone', emoji: '🎼' },
+    { id: 'musicBox', name: 'Music Box', emoji: '🎵' },
+    { id: 'guitarHarmonic', name: 'Guitar', emoji: '🎸' },
+    { id: 'saxophone', name: 'Saxophone', emoji: '🎷' },
+  ];
+
   const instruments: { id: InstrumentType; name: string; tag: string }[] = [
+    { id: 'trumpet', name: 'Trumpet', tag: 'Brass' },
+    { id: 'saxophone', name: 'Saxophone', tag: 'Reed Jazz' },
     { id: 'grandPiano', name: 'Grand Piano', tag: 'Classic' },
     { id: 'waterDrop', name: 'Water Drop', tag: 'Viral ASMR' },
     { id: 'kalimba', name: 'Kalimba', tag: 'Chime' },
@@ -762,20 +776,67 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
 
             {soundSubTab === 'music' && (
               <div className="space-y-4">
+                {/* Reference 9-Instrument Selector Grid matching user screenshot */}
+                <div className="p-3 rounded-2xl bg-[#141722] border border-white/10 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-200 font-bold flex items-center gap-1.5">
+                      <span>Step 2: Choose an instrument</span>
+                    </span>
+                    <span className="text-[10px] text-pink-400 font-mono bg-pink-500/10 px-1.5 py-0.5 rounded border border-pink-500/20 font-bold">
+                      Instant Swap
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    {quick9Instruments.map((inst) => {
+                      const isSelected =
+                        audioSettings.instrument === inst.id ||
+                        (inst.id === 'grandPiano' && audioSettings.instrument === 'piano') ||
+                        (inst.id === 'synthLead' && audioSettings.instrument === 'synth') ||
+                        (inst.id === 'square8bit' && audioSettings.instrument === 'eightBit') ||
+                        (inst.id === 'pluckHarp' && audioSettings.instrument === 'pluck') ||
+                        (inst.id === 'marimba' && audioSettings.instrument === 'xylophone') ||
+                        (inst.id === 'guitarHarmonic' && audioSettings.instrument === 'guitar');
+
+                      return (
+                        <button
+                          key={inst.id}
+                          onClick={() => {
+                            setAudioSettings({ instrument: inst.id });
+                            AudioEngine.getInstance().updateSettings({ instrument: inst.id });
+                            AudioEngine.getInstance().playAuditionNote(inst.id, 440, 0.3);
+                          }}
+                          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#252a38] border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.22)] text-white scale-[1.02]'
+                              : 'bg-[#1b1f2b] border border-white/5 hover:border-white/20 hover:bg-[#232735] text-slate-300'
+                          }`}
+                        >
+                          <span className="text-xl mb-1">{inst.emoji}</span>
+                          <span className={`text-[10px] font-medium tracking-tight truncate w-full text-center ${isSelected ? 'text-white font-bold' : 'text-slate-300'}`}>
+                            {inst.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-slate-300 font-bold">Ball Sound Synthesizer (24 Instruments)</span>
+                    <span className="text-xs text-slate-300 font-bold">All Procedural Instruments ({instruments.length})</span>
                     <span className="text-[10px] text-purple-300 font-mono bg-purple-500/20 px-1.5 py-0.5 rounded border border-purple-400/30">
                       {audioSettings.instrument}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5 max-h-52 overflow-y-auto pr-1">
+                  <div className="grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-1">
                     {instruments.map((inst) => (
                       <button
                         key={inst.id}
                         onClick={() => {
                           setAudioSettings({ instrument: inst.id });
                           AudioEngine.getInstance().updateSettings({ instrument: inst.id });
+                          AudioEngine.getInstance().playAuditionNote(inst.id, 440, 0.25);
                         }}
                         className={`p-2 rounded-xl border text-left text-xs transition-all flex flex-col justify-between gap-1 ${
                           audioSettings.instrument === inst.id

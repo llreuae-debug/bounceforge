@@ -23,7 +23,16 @@ export type InstrumentType =
   | 'celesta'
   | 'laserBounce'
   | 'guitarHarmonic'
-  | 'snareRimshot';
+  | 'snareRimshot'
+  // 9-Instrument Selector Set:
+  | 'trumpet'
+  | 'saxophone'
+  | 'piano'
+  | 'synth'
+  | 'eightBit'
+  | 'pluck'
+  | 'xylophone'
+  | 'guitar';
 
 export type SfxType = 'shatter' | 'crunch' | 'pop' | 'whoosh' | 'thud';
 

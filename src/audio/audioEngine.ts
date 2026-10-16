@@ -301,6 +301,44 @@ export class AudioEngine {
     return note;
   }
 
+  playAuditionNote(instrument?: InstrumentType, freq: number = 440, duration: number = 0.5): void {
+    this.resume();
+    if (!this.ctx || !this.masterGain) return;
+    const dest = this.masterGain;
+    const t = this.ctx.currentTime;
+    SoundSynthesizer.playNote(
+      this.ctx,
+      dest,
+      freq,
+      t,
+      duration,
+      instrument || this.settings.instrument,
+      0.85,
+      0
+    );
+  }
+
+  playAuditionRiff(instrument?: InstrumentType): void {
+    this.resume();
+    if (!this.ctx || !this.masterGain) return;
+    const dest = this.masterGain;
+    const t = this.ctx.currentTime;
+    const inst = instrument || this.settings.instrument;
+    const freqs = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5 major arpeggio
+    freqs.forEach((freq, idx) => {
+      SoundSynthesizer.playNote(
+        this.ctx!,
+        dest,
+        freq,
+        t + idx * 0.12,
+        0.38,
+        inst,
+        0.8,
+        (idx - 1.5) * 0.2
+      );
+    });
+  }
+
   getSettings(): AudioSettings {
     return { ...this.settings };
   }

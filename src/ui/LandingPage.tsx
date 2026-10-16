@@ -23,6 +23,7 @@ import {
 import { Logo } from '../brand/Logo';
 import { Footer } from './Footer';
 import { MultipleModesShowcase } from './components/MultipleModesShowcase';
+import { InstrumentSelectorShowcase } from './components/InstrumentSelectorShowcase';
 
 export const LandingPage: React.FC = () => {
   const { setRoute, setMode } = useStudioStore();
@@ -247,6 +248,9 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* 9-Instrument Selector Feature Showcase matching reference UI */}
+      <InstrumentSelectorShowcase />
 
       {/* Multiple Modes Infinite Possibilities Showcase matching reference UI */}
       <MultipleModesShowcase />
