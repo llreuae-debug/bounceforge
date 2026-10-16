@@ -1,138 +1,100 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
-import { Play, Sparkles, Wand2, Music, CheckCircle2 } from 'lucide-react';
 import { AudioEngine } from '../../audio/audioEngine';
+import { Play, Sparkles, ArrowRight } from 'lucide-react';
 
-interface ModeCardData {
+export interface GameModeItem {
   id: string;
   name: string;
-  category: 'fresh_drops' | 'core' | 'advanced';
-  badge?: {
-    text: string;
-    variant: 'popular' | 'exclusif' | 'new';
-  };
   description: string;
   visualType:
-    | 'countdown_escape'
-    | 'near_miss_hell'
-    | 'pick_ur_color'
-    | 'one_percent'
-    | 'name_battle'
-    | 'soap_cube_cut'
     | 'classic'
-    | 'infinite_loop'
-    | 'destruction'
     | 'accumulation'
-    | 'web_battle'
-    | 'merge';
+    | 'multiply'
+    | 'lines'
+    | 'paint'
+    | 'target'
+    | 'grow'
+    | 'shatter'
+    | 'color_match'
+    | 'portal';
 }
 
-const MODES_DATA: ModeCardData[] = [
-  {
-    id: 'countdown_escape',
-    name: 'COUNTDOWN ESCAPE',
-    category: 'fresh_drops',
-    badge: { text: 'NEW', variant: 'new' },
-    description: 'Big 60→0 countdown timer. Gaps tighten and align so the ball escapes exactly as the clock strikes 0.0.',
-    visualType: 'countdown_escape',
-  },
-  {
-    id: 'near_miss_hell',
-    name: 'NEAR-MISS HELL',
-    category: 'fresh_drops',
-    badge: { text: 'NEW', variant: 'new' },
-    description: 'Tuned micro-gaps tease the exit over and over. Every near-miss triggers a tension flash before the final clean escape.',
-    visualType: 'near_miss_hell',
-  },
-  {
-    id: 'pick_ur_color',
-    name: 'PICK UR COLOR',
-    category: 'fresh_drops',
-    badge: { text: 'NEW', variant: 'new' },
-    description: '4 colored balls with a prediction card at start. High engagement comment-driver with spotlight winner reveal.',
-    visualType: 'pick_ur_color',
-  },
-  {
-    id: 'one_percent',
-    name: 'ONE PERCENT',
-    category: 'fresh_drops',
-    badge: { text: 'NEW', variant: 'new' },
-    description: 'A 1% microscopic gap that opens rarely. Watch the attempt counter climb with rapid-fire bounces until triumph.',
-    visualType: 'one_percent',
-  },
-  {
-    id: 'name_battle',
-    name: 'NAME BATTLE',
-    category: 'fresh_drops',
-    badge: { text: 'NEW', variant: 'new' },
-    description: 'User-named balls duel with live HP bars in a closed arena until one champion is crowned.',
-    visualType: 'name_battle',
-  },
-  {
-    id: 'soap_cube_cut',
-    name: 'SOAP CUBE CUT',
-    category: 'fresh_drops',
-    badge: { text: 'NEW', variant: 'new' },
-    description: 'Procedurally layered pastel soap block sliced by high-tension wire. Deep, satisfying ASMR crunch.',
-    visualType: 'soap_cube_cut',
-  },
+export const GAME_MODES: GameModeItem[] = [
   {
     id: 'classic',
-    name: 'CLASSIC',
-    category: 'core',
-    badge: { text: 'POPULAR', variant: 'popular' },
+    name: 'Classic',
     description:
-      'The ultimate viral simulation. A hypnotic dance where the ball, desperate to escape, keeps viewers hooked until the very last circle.',
+      'A ball bounces inside concentric circles, each with a gap. As it breaks through walls, satisfying effects play. Simple, mesmerising, and endlessly watchable.',
     visualType: 'classic',
   },
   {
-    id: 'destruction',
-    name: 'DESTRUCTION',
-    category: 'core',
-    badge: { text: 'POPULAR', variant: 'popular' },
-    description:
-      'Raw satisfaction (ASMR). Turn every beat into impact and watch the walls shatter, until the ball finally escapes!',
-    visualType: 'destruction',
-  },
-  {
-    id: 'infinite_loop',
-    name: 'INFINITE LOOP',
-    category: 'core',
-    description:
-      'Mathematical virality at its peak. Watch as a single ball multiplies into thousands in an exponential storm.',
-    visualType: 'infinite_loop',
-  },
-  {
     id: 'accumulation',
-    name: 'ACCUMULATION',
-    category: 'core',
-    badge: { text: 'POPULAR', variant: 'popular' },
+    name: 'Accumulation',
     description:
-      'One of the trendiest bouncing ball modes! Every ball that hits a spike stays trapped until the final escape!',
+      'The ball has a limited time to escape before it freezes in place. Each frozen ball becomes a new obstacle for the next one. Can the final ball make it out?',
     visualType: 'accumulation',
   },
   {
-    id: 'web_battle',
-    name: 'WEB BATTLE',
-    category: 'advanced',
-    badge: { text: 'NEW', variant: 'new' },
+    id: 'multiply',
+    name: 'Multiply',
     description:
-      'The ultimate geometric arena. Multiple balls clash and weave their web with every bounce until one champion stands.',
-    visualType: 'web_battle',
+      'Every time a ball escapes a wall, it spawns extra balls. The arena quickly fills with bouncing chaos — perfect for explosive, shareable clips.',
+    visualType: 'multiply',
   },
   {
-    id: 'merge',
-    name: 'MERGE',
-    category: 'advanced',
-    badge: { text: 'NEW', variant: 'new' },
+    id: 'lines',
+    name: 'Lines',
     description:
-      'Chain reactions and 2D merging. Balls drop automatically, fuse on contact, and grow in a satisfying cascade.',
-    visualType: 'merge',
+      'Every bounce point is connected by a line, creating intricate geometric art as the ball ricochets around the circle.',
+    visualType: 'lines',
+  },
+  {
+    id: 'paint',
+    name: 'Paint',
+    description:
+      'The ball leaves a colourful rainbow trail as it moves, gradually painting the entire circle. A live percentage counter tracks your coverage.',
+    visualType: 'paint',
+  },
+  {
+    id: 'target',
+    name: 'Target',
+    description:
+      'Numbered segments line the wall. The ball must hit them in the correct order — each correct hit triggers a satisfying wall-break effect.',
+    visualType: 'target',
+  },
+  {
+    id: 'grow',
+    name: 'Grow',
+    description:
+      'The ball is trapped in a single large circle. With every bounce, it grows larger, pushing the limits of the space until the very end.',
+    visualType: 'grow',
+  },
+  {
+    id: 'shatter',
+    name: 'Shatter',
+    description:
+      'Every wall is divided into segments with hit points. Each bounce cracks the segment — after enough hits it shatters. Clear a path through all walls to escape.',
+    visualType: 'shatter',
+  },
+  {
+    id: 'color_match',
+    name: 'Color Match',
+    description:
+      'The wall is divided into coloured segments. The ball changes colour on every bounce — break the segment when your colour matches. Clear them all to escape.',
+    visualType: 'color_match',
+  },
+  {
+    id: 'portal',
+    name: 'Portal',
+    description:
+      'Colour-matched portal pairs sit on the wall. Hit one portal and teleport to its twin — after enough uses the portals break and the ball escapes.',
+    visualType: 'portal',
   },
 ];
 
-// Animated Canvas Preview for each Mode card
-const ModeVisualCanvas: React.FC<{ type: ModeCardData['visualType'] }> = ({ type }) => {
+// Interactive live animated canvas simulation for each of the 10 reference game modes
+const GameModeCanvas: React.FC<{ type: GameModeItem['visualType'] }> = ({ type }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -144,213 +106,502 @@ const ModeVisualCanvas: React.FC<{ type: ModeCardData['visualType'] }> = ({ type
     let animId: number;
     let t = 0;
 
+    // Persistent state per mode
+    const frozenBalls: { x: number; y: number; r: number }[] = [];
+    for (let i = 0; i < 28; i++) {
+      const angle = (i / 28) * Math.PI * 2 + (i % 3) * 0.4;
+      const dist = 30 + ((i * 19) % 75);
+      frozenBalls.push({
+        x: Math.cos(angle) * dist,
+        y: Math.sin(angle) * dist,
+        r: 3.5 + (i % 3),
+      });
+    }
+
+    const linePoints: { x: number; y: number; color: string }[] = [];
+    const colors = ['#00f0ff', '#ff007f', '#ffe600', '#00ff88', '#a855f7', '#ff7a00'];
+    for (let i = 0; i < 24; i++) {
+      const a = i * 1.35;
+      const r = 90;
+      linePoints.push({
+        x: Math.cos(a) * r,
+        y: Math.sin(a) * r,
+        color: colors[i % colors.length],
+      });
+    }
+
+    const rainbowBands: { x1: number; y1: number; x2: number; y2: number; color: string; width: number }[] = [];
+    const rColors = ['#ff0055', '#ff7a00', '#ffe600', '#00ff88', '#00f0ff', '#a855f7'];
+    for (let i = 0; i < 18; i++) {
+      const a1 = (i / 18) * Math.PI * 2;
+      const a2 = a1 + 2.2;
+      rainbowBands.push({
+        x1: Math.cos(a1) * 88,
+        y1: Math.sin(a1) * 88,
+        x2: Math.cos(a2) * 88,
+        y2: Math.sin(a2) * 88,
+        color: rColors[i % rColors.length],
+        width: 14 + (i % 6) * 2,
+      });
+    }
+
     const render = () => {
-      t += 0.025;
+      t += 0.024;
       const w = canvas.width;
       const h = canvas.height;
       const cx = w / 2;
       const cy = h / 2;
-      const r = Math.min(w, h) * 0.44;
+      const arenaR = Math.min(w, h) * 0.43;
 
-      ctx.fillStyle = '#03050a';
+      ctx.fillStyle = '#080a10';
       ctx.fillRect(0, 0, w, h);
 
-      // Arena Outer Ring
-      ctx.strokeStyle = '#0ef0ff';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.stroke();
+      // Subtle radial background gradient
+      const radGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, arenaR * 1.2);
+      radGrad.addColorStop(0, 'rgba(255, 255, 255, 0.02)');
+      radGrad.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+      ctx.fillStyle = radGrad;
+      ctx.fillRect(0, 0, w, h);
 
-      if (type === 'countdown_escape') {
-        // Red pulsating timer + concentric escaping rings
-        const ringCount = 5;
-        for (let i = 1; i <= ringCount; i++) {
-          const ringR = (r / ringCount) * i;
-          ctx.strokeStyle = i === ringCount ? '#ff0055' : '#00f0ff';
-          ctx.lineWidth = 2;
+      // 1. CLASSIC MODE
+      if (type === 'classic') {
+        const rings = [
+          { r: arenaR * 0.95, color: '#00f0ff', speed: 0.6, gap: 0.6 },
+          { r: arenaR * 0.78, color: '#ff007f', speed: -0.9, gap: 0.7 },
+          { r: arenaR * 0.6, color: '#ffe600', speed: 1.2, gap: 0.8 },
+          { r: arenaR * 0.42, color: '#ff0055', speed: -1.4, gap: 0.9 },
+        ];
+
+        rings.forEach((ring, idx) => {
+          ctx.strokeStyle = ring.color;
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = ring.color;
+          ctx.shadowBlur = 8;
           ctx.beginPath();
-          const rot = t * 1.2 + i * 0.8;
-          ctx.arc(cx, cy, ringR, rot + 0.4, rot + Math.PI * 2 - 0.4);
+          const rot = t * ring.speed + idx * 0.8;
+          ctx.arc(cx, cy, ring.r, rot + ring.gap, rot + Math.PI * 2);
           ctx.stroke();
+        });
+
+        // Bouncing pink ball
+        const bx = cx + Math.cos(t * 3.2) * (arenaR * 0.48);
+        const by = cy + Math.sin(t * 2.6) * (arenaR * 0.48);
+        ctx.fillStyle = '#ff007f';
+        ctx.shadowColor = '#ff007f';
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(bx, by, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Particle sparks
+        for (let i = 0; i < 8; i++) {
+          const spA = t * 5 + i * 0.8;
+          const spR = arenaR * 0.9 + Math.sin(t * 4 + i) * 12;
+          ctx.fillStyle = i % 2 === 0 ? '#ffe600' : '#00f0ff';
+          ctx.shadowBlur = 6;
+          ctx.beginPath();
+          ctx.arc(cx + Math.cos(spA) * spR, cy + Math.sin(spA) * spR, 2, 0, Math.PI * 2);
+          ctx.fill();
         }
-        // Center Countdown text
-        ctx.fillStyle = '#ff0055';
-        ctx.font = 'bold 16px monospace';
+      }
+
+      // 2. ACCUMULATION MODE
+      else if (type === 'accumulation') {
+        // Outer boundary
+        ctx.strokeStyle = '#223048';
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(cx, cy, arenaR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Frozen obstacle balls
+        frozenBalls.forEach((fb, i) => {
+          ctx.fillStyle = i % 5 === 0 ? '#a855f7' : '#cbd5e1';
+          ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+          ctx.shadowBlur = 4;
+          ctx.beginPath();
+          ctx.arc(cx + fb.x, cy + fb.y, fb.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // Active glowing ball
+        const abx = cx + Math.cos(t * 4.2) * (arenaR * 0.72);
+        const aby = cy + Math.sin(t * 3.6) * (arenaR * 0.72);
+        ctx.fillStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.arc(abx, aby, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Center HUD
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        const timerVal = Math.max(0, 60 - Math.floor((t * 12) % 60));
-        ctx.fillText(`0:${timerVal.toString().padStart(2, '0')}`, cx, cy);
-      } else if (type === 'near_miss_hell') {
-        // Micro gaps with tease flashes
-        ctx.strokeStyle = '#ff9900';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.arc(cx, cy, r * 0.75, t * 1.5, t * 1.5 + Math.PI * 2 - 0.25);
-        ctx.stroke();
-        // Ball skimming gap
-        const bx = cx + Math.cos(t * 3) * (r * 0.72);
-        const by = cy + Math.sin(t * 3) * (r * 0.72);
-        ctx.fillStyle = '#00ffff';
-        ctx.beginPath();
-        ctx.arc(bx, by, 5, 0, Math.PI * 2);
-        ctx.fill();
-        // Near miss ping
-        if (Math.sin(t * 4) > 0.8) {
-          ctx.strokeStyle = 'rgba(255, 0, 85, 0.8)';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(bx, by, 12, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-      } else if (type === 'pick_ur_color') {
-        // 4 color contestant orbs
-        const colors = ['#00f0ff', '#ff007f', '#ffe600', '#39ff14'];
-        colors.forEach((col, idx) => {
-          const a = (idx / 4) * Math.PI * 2 + t * 0.8;
-          const dist = r * 0.55;
-          ctx.fillStyle = col;
-          ctx.beginPath();
-          ctx.arc(cx + Math.cos(a) * dist, cy + Math.sin(a) * dist, 7, 0, Math.PI * 2);
-          ctx.fill();
-        });
-      } else if (type === 'one_percent') {
-        // Tiny needle gap ring
+        ctx.fillStyle = '#00ff88';
+        ctx.font = 'bold 15px monospace';
+        ctx.shadowColor = 'rgba(0, 255, 136, 0.6)';
+        ctx.shadowBlur = 8;
+        const secs = Math.max(0.1, (2.7 - ((t * 0.4) % 2.7))).toFixed(1);
+        ctx.fillText(`${secs}s`, cx, cy - 8);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.shadowBlur = 0;
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('Frozen: 28', cx, cy + 8);
+      }
+
+      // 3. MULTIPLY MODE
+      else if (type === 'multiply') {
+        // Segmented outer ring
         ctx.strokeStyle = '#ff0055';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = '#ff0055';
+        ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.arc(cx, cy, r * 0.8, t * 2, t * 2 + Math.PI * 2 - 0.12);
+        ctx.arc(cx, cy, arenaR, t * 0.8 + 0.4, t * 0.8 + Math.PI * 2 - 0.4);
         ctx.stroke();
-        // Rapid bouncing ball
-        const bx = cx + Math.cos(t * 7) * (r * 0.6);
-        const by = cy + Math.sin(t * 5) * (r * 0.6);
-        ctx.fillStyle = '#00f0ff';
-        ctx.beginPath();
-        ctx.arc(bx, by, 5, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (type === 'name_battle') {
-        // 2 duel balls with health bars
-        const d = Math.abs(Math.sin(t * 2)) * (r * 0.5);
-        ctx.fillStyle = '#00f0ff';
-        ctx.beginPath();
-        ctx.arc(cx - d, cy, 7, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#ff007f';
-        ctx.beginPath();
-        ctx.arc(cx + d, cy, 7, 0, Math.PI * 2);
-        ctx.fill();
-        // Mini HP bar
-        ctx.fillStyle = '#39ff14';
-        ctx.fillRect(cx - 35, cy - 25, 30, 4);
-        ctx.fillRect(cx + 5, cy - 25, 30, 4);
-      } else if (type === 'soap_cube_cut') {
-        // Pastel horizontal slices
-        const slices = 6;
-        for (let i = 0; i < slices; i++) {
-          const y = cy - 30 + i * 10;
-          ctx.strokeStyle = `hsl(${i * 45}, 90%, 75%)`;
-          ctx.lineWidth = 2;
+
+        // 20+ Chaotic bouncing balls with trails
+        for (let i = 0; i < 22; i++) {
+          const speed = 2.5 + (i % 7) * 0.4;
+          const a = t * speed + (i * Math.PI) / 11;
+          const r = Math.sin(t * 1.5 + i) * (arenaR * 0.85);
+          const bx = cx + Math.cos(a) * r;
+          const by = cy + Math.sin(a) * r;
+
+          const col = colors[i % colors.length];
+          ctx.fillStyle = col;
+          ctx.shadowColor = col;
+          ctx.shadowBlur = 8;
           ctx.beginPath();
-          ctx.moveTo(cx - 35, y);
-          ctx.lineTo(cx + 35, y);
+          ctx.arc(bx, by, 4 + (i % 3), 0, Math.PI * 2);
+          ctx.fill();
+
+          // Motion lines
+          ctx.strokeStyle = col;
+          ctx.lineWidth = 1.2;
+          ctx.globalAlpha = 0.4;
+          ctx.beginPath();
+          ctx.moveTo(bx, by);
+          ctx.lineTo(bx - Math.cos(a) * 18, by - Math.sin(a) * 18);
+          ctx.stroke();
+          ctx.globalAlpha = 1.0;
+        }
+      }
+
+      // 4. LINES MODE
+      else if (type === 'lines') {
+        // Ring
+        ctx.strokeStyle = '#ff007f';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#ff007f';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(cx, cy, arenaR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Intricate geometric chords
+        ctx.lineWidth = 1.3;
+        for (let i = 1; i < linePoints.length; i++) {
+          const p1 = linePoints[i - 1];
+          const p2 = linePoints[i];
+          ctx.strokeStyle = p2.color;
+          ctx.shadowColor = p2.color;
+          ctx.shadowBlur = 4;
+          ctx.beginPath();
+          ctx.moveTo(cx + p1.x, cy + p1.y);
+          ctx.lineTo(cx + p2.x, cy + p2.y);
           ctx.stroke();
         }
-        // Wire cutter ball
-        const dropY = cy - 40 + ((t * 25) % 65);
+
+        // Active node
+        const activeNode = linePoints[Math.floor(t * 4) % linePoints.length];
         ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 12;
         ctx.beginPath();
-        ctx.arc(cx, dropY, 5, 0, Math.PI * 2);
+        ctx.arc(cx + activeNode.x, cy + activeNode.y, 6, 0, Math.PI * 2);
         ctx.fill();
-      } else if (type === 'classic') {
-        // Concentric rainbow rings with gap
-        const ringCount = 7;
-        for (let i = 1; i <= ringCount; i++) {
-          const ringR = (r / ringCount) * i;
-          const hue = (i * 45 + t * 20) % 360;
-          ctx.strokeStyle = `hsl(${hue}, 100%, 60%)`;
-          ctx.lineWidth = 2;
+      }
+
+      // 5. PAINT MODE
+      else if (type === 'paint') {
+        // Arena circle boundary
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, arenaR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Broad colorful painted bands
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, arenaR - 2, 0, Math.PI * 2);
+        ctx.clip();
+
+        rainbowBands.forEach((b) => {
+          ctx.strokeStyle = b.color;
+          ctx.lineWidth = b.width;
+          ctx.lineCap = 'round';
           ctx.beginPath();
-          const rot = t * (i % 2 === 0 ? 0.8 : -0.8) + i * 0.6;
-          ctx.arc(cx, cy, ringR, rot + 0.5, rot + Math.PI * 2 - 0.5);
+          ctx.moveTo(cx + b.x1, cy + b.y1);
+          ctx.lineTo(cx + b.x2, cy + b.y2);
           ctx.stroke();
+        });
+        ctx.restore();
+
+        // Center HUD
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#080a10';
+        ctx.shadowBlur = 0;
+        ctx.fillRect(cx - 52, cy - 14, 104, 28);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(cx - 52, cy - 14, 104, 28);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText('66% painted', cx, cy);
+      }
+
+      // 6. TARGET MODE
+      else if (type === 'target') {
+        // Target numbered segments around wall
+        const segCount = 8;
+        const targetNums = [14, 6, 5, 11, 15, 1, 13, 7];
+        const step = (Math.PI * 2) / segCount;
+
+        for (let i = 0; i < segCount; i++) {
+          const a1 = i * step + 0.08;
+          const a2 = (i + 1) * step - 0.08;
+          const isTarget = targetNums[i] === 13;
+          ctx.strokeStyle = isTarget ? '#ffd600' : '#00e599';
+          ctx.lineWidth = isTarget ? 4 : 2;
+          ctx.shadowColor = isTarget ? '#ffd600' : '#00e599';
+          ctx.shadowBlur = isTarget ? 10 : 4;
+          ctx.beginPath();
+          ctx.arc(cx, cy, arenaR, a1, a2);
+          ctx.stroke();
+
+          // Number label
+          const midA = (a1 + a2) / 2;
+          const tx = cx + Math.cos(midA) * (arenaR - 16);
+          const ty = cy + Math.sin(midA) * (arenaR - 16);
+          ctx.fillStyle = isTarget ? '#ffd600' : '#64748b';
+          ctx.font = `bold ${isTarget ? 13 : 9}px monospace`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(targetNums[i].toString(), tx, ty);
         }
-        const ballDist = r * 0.35 * Math.abs(Math.sin(t * 2));
-        const bx = cx + Math.cos(t * 3) * ballDist;
-        const by = cy + Math.sin(t * 3) * ballDist;
-        ctx.fillStyle = '#ff7700';
+
+        // Active blue ball
+        const bx = cx + Math.cos(t * 3.8) * (arenaR * 0.7);
+        const by = cy + Math.sin(t * 3.1) * (arenaR * 0.7);
+        ctx.fillStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 14;
         ctx.beginPath();
-        ctx.arc(bx, by, 5, 0, Math.PI * 2);
+        ctx.arc(bx, by, 7, 0, Math.PI * 2);
         ctx.fill();
-      } else if (type === 'infinite_loop') {
-        ctx.fillStyle = '#ff6600';
-        const numDots = 100;
-        for (let i = 0; i < numDots; i++) {
-          const angle = (i * 0.2 + t * 0.5) % (Math.PI * 2);
-          const dist = (Math.sin(i * 13 + t) * 0.4 + 0.5) * (r * 0.85);
-          const px = cx + Math.cos(angle) * dist;
-          const py = cy + Math.sin(angle) * dist * 0.8 + r * 0.2;
-          if (Math.hypot(px - cx, py - cy) < r - 4) {
+
+        // Center HUD
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffd600';
+        ctx.font = 'bold 28px monospace';
+        ctx.shadowColor = 'rgba(255, 214, 0, 0.5)';
+        ctx.shadowBlur = 10;
+        ctx.fillText('13', cx, cy - 8);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.shadowBlur = 0;
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('2/15', cx, cy + 14);
+      }
+
+      // 7. GROW MODE
+      else if (type === 'grow') {
+        // Thin green ring
+        ctx.strokeStyle = '#00e599';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#00e599';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(cx, cy, arenaR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Giant glowing purple ball expanding
+        const ballR = arenaR * 0.48 + Math.sin(t * 1.5) * 6;
+        const gbx = cx - arenaR * 0.28;
+        const gby = cy;
+
+        const ballGrad = ctx.createRadialGradient(gbx - ballR * 0.3, gby - ballR * 0.3, 5, gbx, gby, ballR);
+        ballGrad.addColorStop(0, '#e879f9');
+        ballGrad.addColorStop(0.6, '#a855f7');
+        ballGrad.addColorStop(1, '#581c87');
+
+        ctx.fillStyle = ballGrad;
+        ctx.shadowColor = '#a855f7';
+        ctx.shadowBlur = 30;
+        ctx.beginPath();
+        ctx.arc(gbx, gby, ballR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 8. SHATTER MODE
+      else if (type === 'shatter') {
+        // Concentric dashed segments
+        const ringLayers = 5;
+        for (let l = 1; l <= ringLayers; l++) {
+          const lr = (arenaR / ringLayers) * l;
+          const segs = 18 + l * 6;
+          const step = (Math.PI * 2) / segs;
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = l % 2 === 0 ? '#ffd600' : '#00e599';
+          ctx.shadowColor = ctx.strokeStyle;
+          ctx.shadowBlur = 4;
+
+          for (let s = 0; s < segs; s++) {
+            // Leave shattered gaps
+            if ((s + l * 3) % 7 === 0) continue;
             ctx.beginPath();
-            ctx.arc(px, py, 2.2, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.arc(cx, cy, lr, s * step + 0.04, (s + 1) * step - 0.04);
+            ctx.stroke();
           }
         }
-      } else if (type === 'destruction') {
-        const dots = 36;
-        for (let i = 0; i < dots; i++) {
-          if ((i + Math.floor(t * 3)) % 5 === 0) continue;
-          const ang = (i / dots) * Math.PI * 2 + t * 0.3;
-          const dx = cx + Math.cos(ang) * (r * 0.75);
-          const dy = cy + Math.sin(ang) * (r * 0.75);
-          ctx.fillStyle = `hsl(${(i * 10 + t * 40) % 360}, 100%, 65%)`;
-          ctx.beginPath();
-          ctx.arc(dx, dy, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        const bx = cx + Math.cos(t * 4) * (r * 0.5);
-        const by = cy + Math.sin(t * 4) * (r * 0.5);
-        ctx.fillStyle = '#ff3366';
+
+        // Active ball in center
+        const bx = cx + Math.cos(t * 3.5) * (arenaR * 0.3);
+        const by = cy + Math.sin(t * 2.8) * (arenaR * 0.3);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 12;
         ctx.beginPath();
         ctx.arc(bx, by, 5, 0, Math.PI * 2);
         ctx.fill();
-      } else if (type === 'accumulation') {
-        const spikeCount = 18;
-        for (let i = 0; i < spikeCount; i++) {
-          const a1 = (i / spikeCount) * Math.PI * 2;
-          const a2 = ((i + 0.5) / spikeCount) * Math.PI * 2;
-          const a3 = ((i + 1) / spikeCount) * Math.PI * 2;
-          ctx.fillStyle = i % 2 === 0 ? '#ff00aa' : '#00ffff';
-          ctx.beginPath();
-          ctx.moveTo(cx + Math.cos(a1) * r, cy + Math.sin(a1) * r);
-          ctx.lineTo(cx + Math.cos(a2) * (r - 10), cy + Math.sin(a2) * (r - 10));
-          ctx.lineTo(cx + Math.cos(a3) * r, cy + Math.sin(a3) * r);
-          ctx.fill();
-        }
-      } else if (type === 'web_battle') {
-        ctx.strokeStyle = '#00f0ff';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(cx - r * 0.7, cy - r * 0.5);
-        ctx.lineTo(cx + Math.cos(t) * (r * 0.6), cy + Math.sin(t) * (r * 0.6));
-        ctx.stroke();
-        ctx.strokeStyle = '#ff0055';
-        ctx.beginPath();
-        ctx.moveTo(cx + r * 0.7, cy + r * 0.5);
-        ctx.lineTo(cx - Math.cos(t) * (r * 0.6), cy - Math.sin(t) * (r * 0.6));
-        ctx.stroke();
-      } else if (type === 'merge') {
-        const fruits = [
-          { x: cx - 25, y: cy + 20, r: 16, color: '#ff3344' },
-          { x: cx + 25, y: cy + 20, r: 16, color: '#ffaa00' },
-          { x: cx, y: cy + 30, r: 24, color: '#33cc55' },
-        ];
-        fruits.forEach((f) => {
-          ctx.fillStyle = f.color;
-          ctx.beginPath();
-          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-          ctx.fill();
-        });
+
+        // Center HUD
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px monospace';
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+        ctx.shadowBlur = 6;
+        ctx.fillText('12/180', cx, cy - 6);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.shadowBlur = 0;
+        ctx.font = 'bold 8px monospace';
+        ctx.fillText('segments shattered', cx, cy + 9);
       }
+
+      // 9. COLOR MATCH MODE
+      else if (type === 'color_match') {
+        // Divided colored segments around the wall
+        const segs = [
+          { a1: 0, a2: Math.PI * 0.5 - 0.1, color: '#ff007f' },
+          { a1: Math.PI * 0.5 + 0.1, a2: Math.PI - 0.1, color: '#00f0ff' },
+          { a1: Math.PI + 0.1, a2: Math.PI * 1.5 - 0.1, color: '#ffd600' },
+          { a1: Math.PI * 1.5 + 0.1, a2: Math.PI * 2 - 0.1, color: '#00ff88' },
+        ];
+
+        segs.forEach((s) => {
+          ctx.strokeStyle = s.color;
+          ctx.lineWidth = 3.5;
+          ctx.shadowColor = s.color;
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.arc(cx, cy, arenaR, s.a1, s.a2);
+          ctx.stroke();
+        });
+
+        // Bouncing colored ball
+        const bx = cx + Math.cos(t * 3.2) * (arenaR * 0.65);
+        const by = cy + Math.sin(t * 2.9) * (arenaR * 0.65);
+        ctx.fillStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(bx, by, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Center HUD
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px monospace';
+        ctx.shadowBlur = 0;
+        ctx.fillText('7 / 12', cx, cy - 6);
+
+        ctx.fillStyle = '#00ff88';
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('Match color', cx, cy + 10);
+      }
+
+      // 10. PORTAL MODE
+      else if (type === 'portal') {
+        // Ring
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, arenaR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Paired glowing wormhole portals
+        const portals = [
+          { a1: 0.2, a2: 0.9, color: '#ffd600' },
+          { a1: Math.PI + 0.2, a2: Math.PI + 0.9, color: '#ffd600' },
+          { a1: Math.PI * 0.5 + 0.2, a2: Math.PI * 0.5 + 0.8, color: '#00f0ff' },
+          { a1: Math.PI * 1.5 + 0.2, a2: Math.PI * 1.5 + 0.8, color: '#00f0ff' },
+        ];
+
+        portals.forEach((p) => {
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 5;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 14;
+          ctx.beginPath();
+          ctx.arc(cx, cy, arenaR, p.a1, p.a2);
+          ctx.stroke();
+        });
+
+        // Teleporting ball with streak
+        const warpPhase = (t * 1.5) % 2;
+        const curA = warpPhase < 1 ? warpPhase * Math.PI : Math.PI + (warpPhase - 1) * Math.PI;
+        const bx = cx + Math.cos(curA) * (arenaR * 0.7);
+        const by = cy + Math.sin(curA) * (arenaR * 0.7);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.arc(bx, by, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Center HUD
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+        ctx.shadowBlur = 6;
+        ctx.fillText('3', cx, cy - 6);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.shadowBlur = 0;
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('teleports', cx, cy + 12);
+      }
+
+      // Subtle Center Watermark matching reference screenshot
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+      ctx.font = '500 11px sans-serif';
+      ctx.shadowBlur = 0;
+      ctx.fillText('viralballs.com', cx, cy + arenaR * 0.48);
 
       animId = requestAnimationFrame(render);
     };
@@ -360,181 +611,84 @@ const ModeVisualCanvas: React.FC<{ type: ModeCardData['visualType'] }> = ({ type
   }, [type]);
 
   return (
-    <div className="w-full sm:w-44 h-44 aspect-square rounded-2xl overflow-hidden bg-[#03050a] border border-cyan-400/30 flex items-center justify-center shrink-0 relative group-hover:border-cyan-300 transition-colors shadow-inner">
-      <canvas
-        ref={canvasRef}
-        width={180}
-        height={180}
-        className="w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center pointer-events-none">
-        <span className="px-3.5 py-1.5 rounded-full border-2 border-cyan-400 bg-cyan-400/20 text-cyan-300 text-xs font-black uppercase tracking-wider shadow-lg shadow-cyan-400/40 transform group-hover:scale-105 transition-transform">
-          Play Mode ⚡
-        </span>
-      </div>
-    </div>
+    <canvas
+      ref={canvasRef}
+      width={360}
+      height={270}
+      className="w-full h-full object-cover"
+    />
   );
 };
 
 export const MultipleModesShowcase: React.FC = () => {
-  const { setRoute, setMode } = useStudioStore();
-  const [filter, setFilter] = useState<'all' | 'fresh_drops' | 'core' | 'advanced'>('all');
+  const { setRoute, setMode, showToast } = useStudioStore();
 
-  const handleModeClick = (modeId: string) => {
+  const handleLaunchMode = (modeId: string, modeName: string) => {
     try {
       const audio = AudioEngine.getInstance();
       audio.init();
       audio.resume();
-    } catch {
-      // AudioContext fallback
-    }
+      audio.playAuditionNote('8bit', 523.25, 0.4);
+    } catch {}
+
     setMode(modeId);
     setRoute('studio');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast(`Loaded ${modeName} Studio Mode!`);
   };
 
-  const filteredCards = MODES_DATA.filter((m) => {
-    if (filter === 'all') return true;
-    return m.category === filter;
-  });
-
   return (
-    <section id="modes" className="py-20 border-b border-white/10 bg-[#04060d] scroll-mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Header - Exact prompt specification */}
-        <div className="text-center mb-10 space-y-3">
-          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-center tracking-tight lowercase text-white font-sans">
-            pick ur chaos.{' '}
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
-              infinite possibilities.
-            </span>
+    <section id="modes" className="py-24 border-b border-white/10 bg-[#000000] scroll-mt-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        {/* Title matching exact user screenshot */}
+        <div className="text-center mb-14">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Game Modes
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed lowercase font-medium">
-            every sim is 100% deterministic, synced to procedural asmr soundscapes, and ready for instant 4k export.
-          </p>
         </div>
 
-        {/* Category Filters */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
-          <button
-            onClick={() => setFilter('all')}
-            className={`btn-3d px-4 py-2 rounded-xl text-xs font-black tracking-wider transition-all lowercase ${
-              filter === 'all'
-                ? 'btn-3d-cyan text-black'
-                : 'btn-3d-glass text-slate-300 hover:text-white'
-            }`}
-          >
-            all modes (47)
-          </button>
-          <button
-            onClick={() => setFilter('fresh_drops')}
-            className={`btn-3d px-4 py-2 rounded-xl text-xs font-black tracking-wider transition-all lowercase flex items-center gap-1.5 ${
-              filter === 'fresh_drops'
-                ? 'btn-3d-pink text-white shadow-pink-500/40'
-                : 'btn-3d-glass text-pink-400 hover:text-pink-300'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" /> fresh drops (20 new)
-          </button>
-          <button
-            onClick={() => setFilter('core')}
-            className={`btn-3d px-4 py-2 rounded-xl text-xs font-black tracking-wider transition-all lowercase ${
-              filter === 'core'
-                ? 'btn-3d-lime text-black'
-                : 'btn-3d-glass text-slate-300 hover:text-white'
-            }`}
-          >
-            core classic
-          </button>
-          <button
-            onClick={() => setFilter('advanced')}
-            className={`btn-3d px-4 py-2 rounded-xl text-xs font-black tracking-wider transition-all lowercase ${
-              filter === 'advanced'
-                ? 'btn-3d-purple text-white'
-                : 'btn-3d-glass text-slate-300 hover:text-white'
-            }`}
-          >
-            advanced arena
-          </button>
-        </div>
-
-        {/* 2-Column Responsive Card Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-12">
-          {filteredCards.map((mode) => (
+        {/* 10 Game Modes Grid matching user reference UI */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {GAME_MODES.map((mode) => (
             <div
               key={mode.id}
-              onClick={() => handleModeClick(mode.id)}
-              className="p-4 sm:p-5 rounded-3xl bg-[#060a14] border border-cyan-400/40 hover:border-cyan-300 hover:shadow-xl hover:shadow-cyan-400/15 transition-all duration-300 cursor-pointer group flex flex-col sm:flex-row items-center gap-5 relative overflow-hidden"
+              onClick={() => handleLaunchMode(mode.id, mode.name)}
+              className="group relative rounded-2xl bg-[#090b10] border border-white/5 hover:border-cyan-500/40 p-3.5 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10 cursor-pointer flex flex-col justify-between"
             >
-              {/* Left: Animated Preview Canvas */}
-              <ModeVisualCanvas type={mode.visualType} />
+              <div>
+                {/* Visual Canvas Container */}
+                <div className="relative rounded-xl overflow-hidden aspect-[4/3] bg-[#05060a] border border-white/5 group-hover:border-white/10 transition-colors">
+                  <GameModeCanvas type={mode.visualType} />
 
-              {/* Right: Content & Badges */}
-              <div className="flex-1 flex flex-col justify-between self-stretch text-left">
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide group-hover:text-cyan-300 transition-colors">
-                      {mode.name}
-                    </h3>
-
-                    {/* Hot pink NEW badge */}
-                    {mode.badge && (
-                      <span
-                        className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
-                          mode.badge.variant === 'new'
-                            ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white shadow-md shadow-pink-500/40 border border-pink-400/50 animate-pulse'
-                            : mode.badge.variant === 'popular'
-                            ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-500/30'
-                            : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-md shadow-purple-500/30'
-                        }`}
-                      >
-                        {mode.badge.text}
-                      </span>
-                    )}
+                  {/* Hover Overlay Play Icon */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                    <div className="w-12 h-12 rounded-full bg-cyan-400 text-black flex items-center justify-center shadow-lg shadow-cyan-400/30 transform group-hover:scale-110 transition-transform">
+                      <Play className="w-5 h-5 fill-black ml-0.5" />
+                    </div>
                   </div>
-
-                  <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                    {mode.description}
-                  </p>
                 </div>
 
-                <div className="pt-4 flex items-center justify-between text-xs font-bold text-cyan-400 group-hover:text-cyan-300 transition-colors">
-                  <span className="flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                    <Play className="w-3.5 h-3.5 fill-current" /> launch studio mode
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-500 group-hover:text-slate-300">
-                    240Hz Pure Physics →
-                  </span>
-                </div>
+                {/* Card Title */}
+                <h3 className="text-base font-bold text-white mt-4 mb-2 group-hover:text-cyan-300 transition-colors">
+                  {mode.name}
+                </h3>
+
+                {/* Card Description */}
+                <p className="text-xs text-slate-400 leading-relaxed font-normal">
+                  {mode.description}
+                </p>
+              </div>
+
+              {/* Bottom Subtle Indicator */}
+              <div className="pt-4 flex items-center justify-between text-[11px] font-mono text-slate-500 group-hover:text-cyan-400 transition-colors">
+                <span>Deterministic Physics</span>
+                <span className="flex items-center gap-1 font-bold">
+                  <span>Launch</span>
+                  <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </span>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* "See all modes" Button opening studio gallery */}
-        <div className="text-center mb-10">
-          <button
-            onClick={() => {
-              setRoute('studio');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="btn-3d-cyan px-8 py-3.5 rounded-2xl text-black font-black text-sm uppercase tracking-wider shadow-xl shadow-cyan-400/20 hover:scale-105 transition-all inline-flex items-center gap-2"
-          >
-            <Sparkles className="w-4 h-4" /> see all 47 modes in studio gallery
-          </button>
-        </div>
-
-        {/* Three feature chips required by Part 5 */}
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-6 border-t border-white/5">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 text-xs font-black tracking-wider lowercase shadow-sm">
-            <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" /> same seed = same video
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-pink-500/10 border border-pink-500/30 text-pink-300 text-xs font-black tracking-wider lowercase shadow-sm">
-            <Music className="w-3.5 h-3.5 text-pink-400" /> asmr built in
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-black tracking-wider lowercase shadow-sm">
-            <Wand2 className="w-3.5 h-3.5 text-purple-400" /> 4k in one click
-          </div>
         </div>
       </div>
     </section>

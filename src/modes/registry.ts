@@ -48,9 +48,24 @@ import { EliminationWheelMode } from './eliminationWheel';
 import { EndlessFallMode } from './endlessFall';
 import { StackTheTowerMode } from './stackTheTower';
 import { BubblePopChainMode } from './bubblePopChain';
+import { TargetMode } from './target';
+import { ColorMatchMode } from './colorMatch';
+import { LinesMode } from './lines';
 
 export const ALL_MODES: SimulationMode[] = [
-  // 20 Fresh Drops
+  // 10 Featured Game Modes (from Reference UI)
+  ClassicMode,
+  AccumulationMode,
+  InfiniteLoopMode, // Multiply
+  LinesMode,
+  PaintArenaMode, // Paint
+  TargetMode,
+  GrowTillItCracksMode, // Grow
+  DestructionMode, // Shatter
+  ColorMatchMode,
+  PortalRingsMode, // Portal
+
+  // Additional 20 Engagement Drops & Advanced Modes
   CountdownEscapeMode,
   NearMissHellMode,
   PickUrColorMode,
@@ -58,7 +73,6 @@ export const ALL_MODES: SimulationMode[] = [
   NameBattleMode,
   ChaosToOrderMode,
   PerfectLoopMode,
-  GrowTillItCracksMode,
   HundredRingsMode,
   OddOneOutMode,
   FillRaceMode,
@@ -71,9 +85,6 @@ export const ALL_MODES: SimulationMode[] = [
   EndlessFallMode,
   StackTheTowerMode,
   BubblePopChainMode,
-
-  // Core & Advanced Modes
-  ClassicMode,
   ObstacleCourseMode,
   PlinkoCascadeMode,
   BallSorterMode,
@@ -82,27 +93,35 @@ export const ALL_MODES: SimulationMode[] = [
   SpiralMode,
   PendulumWaveMode,
   MergeMode,
-  AccumulationMode,
   MagneticForceFieldMode,
   GeometricNexusMode,
   RandomMarbleRunMode,
   ProceduralAIMode,
-  InfiniteLoopMode,
-  DestructionMode,
   CollisionMode,
   WebExpansionMode,
   TrailExpansionMode,
   FragmentExpansionMode,
   WebBattleMode,
-  PaintArenaMode,
   GravityFlipMode,
   BlackHoleMode,
-  PortalRingsMode,
   ShrinkingPrisonMode,
   SandFillMode,
 ];
 
 export function getModeById(id: string): SimulationMode {
+  // Support exact aliases matching viral reference names
+  const cleanId = id.toLowerCase().replace(/[\s-]/g, '_');
+  if (cleanId === 'multiply' || cleanId === 'infinite_loop') return InfiniteLoopMode;
+  if (cleanId === 'lines' || cleanId === 'line') return LinesMode;
+  if (cleanId === 'paint' || cleanId === 'paint_arena') return PaintArenaMode;
+  if (cleanId === 'target' || cleanId === 'targets') return TargetMode;
+  if (cleanId === 'grow' || cleanId === 'grow_till_it_cracks') return GrowTillItCracksMode;
+  if (cleanId === 'shatter' || cleanId === 'destruction') return DestructionMode;
+  if (cleanId === 'color_match' || cleanId === 'colormatch') return ColorMatchMode;
+  if (cleanId === 'portal' || cleanId === 'portal_rings') return PortalRingsMode;
+  if (cleanId === 'classic') return ClassicMode;
+  if (cleanId === 'accumulation') return AccumulationMode;
+
   const mode = ALL_MODES.find((m) => m.id === id);
   return mode || ClassicMode;
 }
