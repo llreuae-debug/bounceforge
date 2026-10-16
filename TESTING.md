@@ -88,9 +88,58 @@ BounceForge is engineered for 100% cross-device compatibility across all form fa
 
 ---
 
-## 3. Failure & Fallback Handling Verification
+## 3. Pass 2: Accounts, Auth, In-App Browsers, Payments & Admin Matrix
+
+| Device / Context | Login (Email / Magic) | Login (Google) | Checkout Flow | Studio & Sound | AI & SEO Tools | Admin Console |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **TikTok In-App Browser** | ✓ Inline form / magic link | ⚠ Blocked by Google (Banner shown: "Open in browser") | Hosted redirect | 1080p, touch unlock | Offline fallback + text copy | Card list view |
+| **Instagram / FB Webview** | ✓ Inline form / magic link | ⚠ Blocked by Google (Banner shown: Android Intent / iOS instructions) | Hosted redirect | 1080p, touch unlock | Offline fallback + text copy | Card list view |
+| **iPhone Safari / Chrome** | ✓ Full support | ✓ Redirect OAuth (no blocked popup) | Hosted redirect (Apple Pay supported) | 1080p60 WebCodecs, silent switch bypass | 5s timeout fallback, RTL for Urdu/Arabic | Card list + modal |
+| **Android Chrome / Samsung** | ✓ Full support | ✓ One-tap Google OAuth | Google Pay / hosted redirect | 1080p/4K, WebCodecs | RTL rendering, clipboard copy fallback | Card list + modal |
+| **iPad (Split View / Stage)** | ✓ Full support | ✓ Full support | Responsive layout | Ultra tier, 60fps | Side panel + bottom sheet | Collapsible sidebar, tables |
+| **Installed PWA** | ✓ Stays inside PWA | ✓ Seamless redirect without exiting PWA | Hosted redirect & return | Full offline physics cache | Cached presets + offline warning | Full access |
+| **Desktop (Win/Mac/Linux)** | ✓ Full support | ✓ Full support | Desktop overlay / hosted | 4K UHD 60fps frame-perfect WebCodecs | Side drawer + ZIP batch export | Full tables + filters |
+
+---
+
+## 4. In-App Browser & Mobile QA Procedures
+
+### F. Social Bio Link Test (TikTok, Instagram, Facebook)
+1. **Bio Link Landing**: Open `https://bounceforge.app/` inside TikTok/Instagram bio link.
+2. **Auth Attempt**:
+   - Tap "Sign In".
+   - Notice banner: "Open in browser for Google login" with quick action button.
+   - On Android: Tap "Open in Chrome" triggers Chrome intent.
+   - On iOS: Displays 3-dot menu indicator with "Open in Safari" instructions.
+   - Type email & password or request magic link: Signs in directly without exiting webview.
+3. **Checkout**:
+   - Navigate to `/pricing`, select 6-month or 12-month billing.
+   - Tap "Subscribe" -> Automatically uses full-page hosted redirect (not blocked iframe/popup).
+   - Complete checkout -> Returns to `/checkout/success` with entitlements active.
+
+### G. Admin Panel Mobile Verification
+1. **2FA Entry**:
+   - Log in as admin, navigate to `/admin`.
+   - Admin 2FA screen displays.
+   - Virtual keyboard automatically opens in numeric mode (`inputMode="numeric"`, `autoComplete="one-time-code"`).
+2. **Mobile Card View**:
+   - Screen width < 640px displays card list view instead of wide tables.
+   - Tap "Manage Member & Plan" -> Bottom sheet modal opens.
+   - Switch user plan (Free -> Creator Pro), tap "+30 Days" to extend.
+   - Confirm destructive delete prompts require explicit touch confirmation.
+3. **Responsive Navigation**:
+   - Tabs horizontally scroll on mobile and tablet without causing horizontal page scroll (`overflow-x: clip`).
+
+---
+
+## 5. Failure & Fallback Handling Verification
 
 - **Older Browser Fallback**: Browsers lacking Canvas2D / ES6 show an explicit branded message with Chrome, Edge, and Safari download buttons rather than a blank screen.
+- **In-App Google OAuth Block**: Embedded webviews detect Google's block and prompt users to open in external browser or use email/magic link.
+- **Clipboard Fallback**: Browsers blocking `navigator.clipboard` fall back to hidden DOM selection and `execCommand('copy')`.
+- **AI Timeout & Slow Networks**: AI hook requests abort after 5s and seamlessly populate from `offlineEngine`.
+- **RTL & Multilingual Text**: Urdu and Arabic hooks render right-to-left in canvas overlays and UI inputs.
 - **WebGL Context Loss**: Automatically catches `contextlost`, displays toast notification, and restores physics and scene upon `contextrestored`.
 - **Battery Conservation**: If battery < 20% and not charging, Export modal warns user to plug in charger before running intensive 4K exports.
 - **Background Export Pause**: If mobile tab is backgrounded during export, encoding safely pauses and resumes when tab returns.
+

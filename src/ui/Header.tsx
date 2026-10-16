@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStudioStore } from '../store/useStudioStore';
 import { Logo } from '../brand/Logo';
+import { copyText } from '../platform/clipboard';
 import {
   Play,
   Share2,
@@ -61,11 +62,11 @@ export const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const url = getShareableUrl();
-    navigator.clipboard.writeText(url);
+    const ok = await copyText(url);
     setCopied(true);
-    showToast('share link copied to clipboard!');
+    showToast(ok ? 'share link copied to clipboard!' : 'could not copy link automatically');
     setTimeout(() => setCopied(false), 2000);
   };
 

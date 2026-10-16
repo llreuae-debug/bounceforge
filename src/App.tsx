@@ -3,24 +3,26 @@ import { useStudioStore, StudioRoute } from './store/useStudioStore';
 import { useAuthStore } from './auth/useAuthStore';
 import { affiliateService } from './affiliates/affiliateService';
 import { LandingPage } from './ui/LandingPage';
-import { Studio } from './ui/Studio';
 import { Header } from './ui/Header';
-import { DiagnosticsPage } from './ui/pages/DiagnosticsPage';
 import { FaqPage } from './ui/pages/FaqPage';
 import { TermsPage } from './ui/pages/TermsPage';
 import { PrivacyPage } from './ui/pages/PrivacyPage';
 import { ContactPage } from './ui/pages/ContactPage';
 import { NotFoundPage } from './ui/pages/NotFoundPage';
-import { PricingPage } from './ui/pages/PricingPage';
-import { AccountPage } from './ui/pages/AccountPage';
-import { AdminPanel } from './ui/admin/AdminPanel';
-import { BlogPage } from './ui/pages/BlogPage';
-import { ArticlePage } from './ui/pages/ArticlePage';
 import { AffiliateTermsPage } from './ui/pages/AffiliateTermsPage';
 import { RefundPolicyPage } from './ui/pages/RefundPolicyPage';
 import { CheckoutSuccessPage } from './ui/pages/CheckoutSuccessPage';
 import { CheckoutCancelPage } from './ui/pages/CheckoutCancelPage';
 import { BackgroundSimulator3D } from './render3d/background3d';
+
+// Code-split heavy routes so Landing, FAQ, Terms load immediately without 3D simulation or Admin bundles
+const Studio = React.lazy(() => import('./ui/Studio').then((m) => ({ default: m.Studio })));
+const PricingPage = React.lazy(() => import('./ui/pages/PricingPage').then((m) => ({ default: m.PricingPage })));
+const AccountPage = React.lazy(() => import('./ui/pages/AccountPage').then((m) => ({ default: m.AccountPage })));
+const AdminPanel = React.lazy(() => import('./ui/admin/AdminPanel').then((m) => ({ default: m.AdminPanel })));
+const BlogPage = React.lazy(() => import('./ui/pages/BlogPage').then((m) => ({ default: m.BlogPage })));
+const ArticlePage = React.lazy(() => import('./ui/pages/ArticlePage').then((m) => ({ default: m.ArticlePage })));
+const DiagnosticsPage = React.lazy(() => import('./ui/pages/DiagnosticsPage').then((m) => ({ default: m.DiagnosticsPage })));
 import { GlobalToast } from './ui/components/GlobalToast';
 import { AuthModal } from './ui/modals/AuthModal';
 import { OnboardingModal } from './ui/modals/OnboardingModal';
@@ -160,29 +162,40 @@ export const App: React.FC = () => {
 
       {/* Foreground Application Content */}
       <div className="relative z-10">
-        {currentRoute === 'studio' && <Studio />}
-        {currentRoute === 'settings' && <Studio />}
-        {currentRoute === 'landing' && (
-          <>
-            <Header />
-            <LandingPage />
-          </>
-        )}
-        {currentRoute === 'pricing' && <PricingPage />}
-        {currentRoute === 'account' && <AccountPage />}
-        {currentRoute === 'admin' && <AdminPanel />}
-        {currentRoute === 'blog' && <BlogPage />}
-        {currentRoute === 'article' && <ArticlePage />}
-        {currentRoute === 'affiliate_terms' && <AffiliateTermsPage />}
-        {currentRoute === 'refunds' && <RefundPolicyPage />}
-        {currentRoute === 'checkout_success' && <CheckoutSuccessPage />}
-        {currentRoute === 'checkout_cancelled' && <CheckoutCancelPage />}
-        {currentRoute === 'diagnostics' && <DiagnosticsPage />}
-        {currentRoute === 'faq' && <FaqPage />}
-        {currentRoute === 'terms' && <TermsPage />}
-        {currentRoute === 'privacy' && <PrivacyPage />}
-        {currentRoute === 'contact' && <ContactPage />}
-        {currentRoute === '404' && <NotFoundPage />}
+        <React.Suspense
+          fallback={
+            <div className="min-h-screen bg-[#050608] flex items-center justify-center font-mono text-xs text-slate-400">
+              <div className="flex items-center gap-2.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+                <span className="uppercase tracking-widest text-[11px] font-bold">Loading BounceForge...</span>
+              </div>
+            </div>
+          }
+        >
+          {currentRoute === 'studio' && <Studio />}
+          {currentRoute === 'settings' && <Studio />}
+          {currentRoute === 'landing' && (
+            <>
+              <Header />
+              <LandingPage />
+            </>
+          )}
+          {currentRoute === 'pricing' && <PricingPage />}
+          {currentRoute === 'account' && <AccountPage />}
+          {currentRoute === 'admin' && <AdminPanel />}
+          {currentRoute === 'blog' && <BlogPage />}
+          {currentRoute === 'article' && <ArticlePage />}
+          {currentRoute === 'affiliate_terms' && <AffiliateTermsPage />}
+          {currentRoute === 'refunds' && <RefundPolicyPage />}
+          {currentRoute === 'checkout_success' && <CheckoutSuccessPage />}
+          {currentRoute === 'checkout_cancelled' && <CheckoutCancelPage />}
+          {currentRoute === 'diagnostics' && <DiagnosticsPage />}
+          {currentRoute === 'faq' && <FaqPage />}
+          {currentRoute === 'terms' && <TermsPage />}
+          {currentRoute === 'privacy' && <PrivacyPage />}
+          {currentRoute === 'contact' && <ContactPage />}
+          {currentRoute === '404' && <NotFoundPage />}
+        </React.Suspense>
       </div>
 
       {/* Modals */}

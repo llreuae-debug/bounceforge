@@ -28,6 +28,7 @@ import { BUILTIN_THEMES } from '../../render/themes';
 import { BUILTIN_MELODIES } from '../../audio/melodies';
 import { AiService } from '../../ai/aiService';
 import { generateSeoPack, SeoPack, formatSeoPackAsText } from '../../ai/seoEngine';
+import { copyText } from '../../platform/clipboard';
 import { SeoPackViewer } from '../components/SeoPackViewer';
 
 export const ExportModal: React.FC = () => {
@@ -124,11 +125,11 @@ export const ExportModal: React.FC = () => {
     showToast(`applied ${platform} preset (1080x1920 60fps)`);
   };
 
-  const handleCopy = (field: 'title' | 'caption' | 'hashtags', text: string) => {
-    navigator.clipboard.writeText(text);
+  const handleCopy = async (field: 'title' | 'caption' | 'hashtags', text: string) => {
+    const ok = await copyText(text);
     setCopiedField(field);
     triggerHaptic(10);
-    showToast(`copied ${field} to clipboard`);
+    showToast(ok ? `copied ${field} to clipboard` : `could not copy ${field} automatically`);
     setTimeout(() => setCopiedField(null), 2000);
   };
 

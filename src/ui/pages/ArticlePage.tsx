@@ -4,6 +4,7 @@ import { Header } from '../Header';
 import { Footer } from '../Footer';
 import { Clock, ArrowLeft, ArrowRight, Share2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useStudioStore } from '../../store/useStudioStore';
+import { copyText } from '../../platform/clipboard';
 
 interface ArticlePageProps {
   slug?: string;
@@ -16,9 +17,9 @@ export const ArticlePage: React.FC<ArticlePageProps> = ({ slug }) => {
 
   const article = getArticleBySlug(currentSlug) || articles[0];
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('Article link copied to clipboard!');
+  const handleShare = async () => {
+    const ok = await copyText(window.location.href);
+    showToast(ok ? 'Article link copied to clipboard!' : 'Could not copy link automatically');
   };
 
   return (

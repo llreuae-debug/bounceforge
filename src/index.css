@@ -2,8 +2,8 @@
 
 @layer base {
   :root {
-    --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+    --font-sans: 'Helvetica Neue', Helvetica, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
   }
 
   body {
@@ -303,10 +303,46 @@ button:not(:disabled):not(.no-3d):active,
   color: #f8fafc;
   transform: translateY(-1px);
 }
-.tab-3d:active {
-  transform: translateY(1.5px) !important;
-  border-bottom-width: 1px !important;
-  box-shadow: 0 0.5px 0 0 rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(0, 0, 0, 0.3) !important;
+/* Mobile, Cross-Device & Accessibility Rules */
+html {
+  overflow-x: clip;
+}
+
+/* Prevent iOS Safari auto-zoom on input focus */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Minimum touch target size utility */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Safe area padding utilities */
+.safe-area-pb {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+.safe-area-pt {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+/* RTL layout support for non-Latin scripts (Urdu, Arabic) */
+[dir="rtl"], .dir-rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Respect user's motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 

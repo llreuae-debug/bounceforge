@@ -16,6 +16,7 @@ import { AiService, DEFAULT_AI_SETTINGS, AiUserSettings } from '../../ai/aiServi
 import { TrendsManager } from '../../ai/trendsManager';
 import { SupportedLanguage, HookStyle } from '../../ai/offlineEngine';
 import { generateSeoPack } from '../../ai/seoEngine';
+import { copyText } from '../../platform/clipboard';
 
 import {
   Sliders,
@@ -197,12 +198,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
     }
   }, [capabilities, setCapabilities]);
 
-  const handleCopyReport = () => {
+  const handleCopyReport = async () => {
     if (!capabilities) return;
     const report = generateDiagnosticReport(capabilities);
-    navigator.clipboard.writeText(report);
+    const ok = await copyText(report);
     triggerHaptic(15);
-    showToast('device report copied to clipboard');
+    showToast(ok ? 'device report copied to clipboard' : 'could not copy report automatically');
   };
 
   const defaults = getDefaults(currentModeId);
@@ -1122,6 +1123,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                   <div className="flex gap-2">
                     <input
                       type="text"
+                      dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(overlays.titleText) ? 'rtl' : 'ltr'}
                       value={overlays.titleText}
                       onChange={(e) => setOverlays({ titleText: e.target.value })}
                       placeholder="can it escape?? 🔥"

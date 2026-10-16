@@ -120,14 +120,19 @@ export function drawOverlays(
     const titlePosY = (height * clampedTitleYPct) / 100;
     const maxTitleW = arena.layout.titleMaxW;
 
+    const isRtl = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(settings.titleText);
+    ctx.direction = isRtl ? 'rtl' : 'ltr';
+
     let fontSize = Math.round((settings.titleFontSize || 42) * scale);
-    ctx.font = `bold ${fontSize}px Helvetica, Arial, sans-serif`;
+    const fontStack =
+      '"Noto Nastaliq Urdu", "Geeza Pro", "Arabic Typesetting", "Noto Sans Devanagari", "Kohinoor Devanagari", "Helvetica Neue", Helvetica, Arial, sans-serif';
+    ctx.font = `bold ${fontSize}px ${fontStack}`;
 
     // Measure text and shrink if needed to fit maxTitleW
     let textWidth = ctx.measureText(settings.titleText).width;
     while (textWidth > maxTitleW && fontSize > 18 * scale) {
       fontSize -= 2 * scale;
-      ctx.font = `bold ${Math.round(fontSize)}px Helvetica, Arial, sans-serif`;
+      ctx.font = `bold ${Math.round(fontSize)}px ${fontStack}`;
       textWidth = ctx.measureText(settings.titleText).width;
     }
 

@@ -32,21 +32,26 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Skip non-GET requests or chrome extension schemes
-  if (event.request.method !== 'GET' || !url.protocol.startsWith('http')) {
+  // Skip non-GET requests, API routes, or non-http protocols
+  if (event.request.method !== 'GET' || !url.protocol.startsWith('http') || url.pathname.startsWith('/api/')) {
     return;
   }
 
-  // Network-first for HTML, Stale-while-revalidate for assets
+  // Network-first for HTML navigation, falling back to cached index.html
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const resClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+          if (response && response.status === 200) {
+            const resClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+          }
           return response;
         })
-        .catch(() => caches.match('/index.html') || caches.match(event.request))
+        .catch(async () => {
+          const fallback = (await caches.match('/index.html')) || (await caches.match('/'));
+          return fallback || new Response('Offline: BounceForge App Shell', { status: 503, headers: { 'Content-Type': 'text/plain' } });
+        })
     );
     return;
   }

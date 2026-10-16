@@ -7,6 +7,7 @@ import { affiliateService } from '../../affiliates/affiliateService';
 import { AffiliateProfile, PayoutMethod } from '../../affiliates/types';
 import { Header } from '../Header';
 import { Footer } from '../Footer';
+import { copyText } from '../../platform/clipboard';
 import {
   User,
   CreditCard,
@@ -101,10 +102,10 @@ export const AccountPage: React.FC = () => {
     }
   };
 
-  const handleCopyReferral = () => {
-    navigator.clipboard.writeText(referralUrl);
+  const handleCopyReferral = async () => {
+    const ok = await copyText(referralUrl);
     setCopiedLink(true);
-    showToast('Referral link copied to clipboard!');
+    showToast(ok ? 'Referral link copied to clipboard!' : 'Could not copy referral link automatically');
     setTimeout(() => setCopiedLink(false), 2000);
   };
 

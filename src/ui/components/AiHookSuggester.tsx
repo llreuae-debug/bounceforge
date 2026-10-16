@@ -276,6 +276,7 @@ export const AiHookSuggester: React.FC<AiHookSuggesterProps> = ({
                     {options.map((hook, idx) => {
                       const isCurrent = currentText === hook;
                       const isSaved = myHooks.includes(hook);
+                      const isRtl = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(hook);
                       return (
                         <div
                           key={idx}
@@ -286,9 +287,9 @@ export const AiHookSuggester: React.FC<AiHookSuggesterProps> = ({
                               : 'bg-white/[0.03] border-white/10 hover:border-pink-500/40 hover:bg-white/[0.05]'
                           }`}
                         >
-                          <div className="flex items-center gap-2 overflow-hidden">
+                          <div className={`flex items-center gap-2 overflow-hidden flex-1 ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
                             {isCurrent && <Check className="w-3.5 h-3.5 text-pink-400 shrink-0" />}
-                            <span className="text-xs text-white font-medium truncate">
+                            <span dir={isRtl ? 'rtl' : 'ltr'} className="text-xs text-white font-medium truncate flex-1">
                               {hook}
                             </span>
                           </div>

@@ -65,7 +65,21 @@ class AuthService {
   private initLocalStorage() {
     if (typeof window === 'undefined') return;
     if (!localStorage.getItem(STORAGE_KEY_USERS)) {
-      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(INITIAL_USERS));
+      // Demo accounts (incl. the seeded admin) exist only in local dev builds.
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(import.meta.env.DEV ? INITIAL_USERS : []));
+    } else if (!import.meta.env.DEV) {
+      // Purge demo accounts that an earlier production build may have seeded.
+      const demoIds = new Set(INITIAL_USERS.map((u) => u.id));
+      const cleaned = this.getUsersFromStorage().filter((u) => !demoIds.has(u.id));
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(cleaned));
+      const sess = localStorage.getItem(STORAGE_KEY_SESSION);
+      if (sess) {
+        try {
+          if (demoIds.has(JSON.parse(sess).user?.id)) localStorage.removeItem(STORAGE_KEY_SESSION);
+        } catch {
+          localStorage.removeItem(STORAGE_KEY_SESSION);
+        }
+      }
     }
     if (!localStorage.getItem(STORAGE_KEY_AUDIT)) {
       const initialLogs: AuditLogEntry[] = [
@@ -83,12 +97,35 @@ class AuthService {
   }
 
   private getUsersFromStorage(): UserProfile[] {
+    const fallback = import.meta.env.DEV ? INITIAL_USERS : [];
     try {
       const raw = localStorage.getItem(STORAGE_KEY_USERS);
-      return raw ? JSON.parse(raw) : INITIAL_USERS;
+      return raw ? JSON.parse(raw) : fallback;
     } catch {
-      return INITIAL_USERS;
+      return fallback;
     }
+  }
+
+  // Local-fallback password store (salted SHA-256). Only used when Supabase
+  // is not configured; real deployments verify passwords in Supabase Auth.
+  private async hashPassword(email: string, pass: string): Promise<string> {
+    const data = new TextEncoder().encode(`bf:${email.toLowerCase()}:${pass}`);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  private getPasswordHashes(): Record<string, string> {
+    try {
+      return JSON.parse(localStorage.getItem('bounceforge_db_pwhash') || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  private async setPasswordHash(email: string, pass: string) {
+    const all = this.getPasswordHashes();
+    all[email.toLowerCase()] = await this.hashPassword(email, pass);
+    localStorage.setItem('bounceforge_db_pwhash', JSON.stringify(all));
   }
 
   private saveUsersToStorage(users: UserProfile[]) {
@@ -220,7 +257,9 @@ class AuthService {
       email: cleanEmail,
       fullName: fullName.trim() || cleanEmail.split('@')[0],
       avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(cleanEmail)}`,
-      role: cleanEmail.includes('admin') ? 'admin' : 'member',
+      // Roles are never derived from the email address. Admins are promoted
+      // explicitly (SQL UPDATE in Supabase, see README).
+      role: 'member',
       provider: 'email',
       createdAt: new Date().toISOString(),
       emailVerified: true, // Auto-verified in local mode with option to resend
@@ -230,6 +269,7 @@ class AuthService {
 
     users.push(newUser);
     this.saveUsersToStorage(users);
+    await this.setPasswordHash(cleanEmail, _pass);
     const session = this.setSession(newUser);
 
     this.logAction({
@@ -278,6 +318,17 @@ class AuthService {
 
     if (user.isSuspended) {
       throw new Error('This account has been suspended by administration. Please contact support.');
+    }
+
+    const stored = this.getPasswordHashes()[cleanEmail];
+    const isDevDemo = import.meta.env.DEV && INITIAL_USERS.some((u) => u.id === user.id);
+    if (!isDevDemo) {
+      if (!stored) {
+        throw new Error('This account uses Google or magic-link sign-in. Use that option, or reset your password.');
+      }
+      if (stored !== (await this.hashPassword(cleanEmail, _pass))) {
+        throw new Error('Incorrect email or password.');
+      }
     }
 
     const session = this.setSession(user);
@@ -352,11 +403,23 @@ class AuthService {
     return updated;
   }
 
-  // Delete Account
+  // Delete Account (self)
   async deleteAccount(userId: string): Promise<void> {
     const users = this.getUsersFromStorage().filter((u) => u.id !== userId);
     this.saveUsersToStorage(users);
     this.signOut();
+  }
+
+  // Admin: Delete user without signing out admin
+  async deleteUserByAdmin(userId: string, adminId: string, adminEmail: string): Promise<void> {
+    const users = this.getUsersFromStorage().filter((u) => u.id !== userId);
+    this.saveUsersToStorage(users);
+    this.logAction({
+      adminId,
+      adminEmail,
+      action: 'ADMIN_DELETE_USER',
+      details: { deletedUserId: userId },
+    });
   }
 
   // Admin: Get all users

@@ -63,6 +63,16 @@ export class EntitlementsEngine {
     } catch {}
   }
 
+  updateUserPlan(userId: string, planId: PlanId, extendDays: number = 30): UserEntitlements {
+    const ent = this.getEntitlements(userId);
+    ent.planId = planId;
+    ent.status = 'active';
+    const curEnd = Math.max(Date.now(), new Date(ent.periodEnd || Date.now()).getTime());
+    ent.periodEnd = new Date(curEnd + extendDays * 24 * 60 * 60 * 1000).toISOString();
+    this.saveEntitlements(ent);
+    return ent;
+  }
+
   can(userId: string | undefined | null, capability: FeatureCapability): boolean {
     if (!userId) {
       // Guests only have free access

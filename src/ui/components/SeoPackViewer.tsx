@@ -14,6 +14,7 @@ import {
 import { SeoPack, formatSeoPackAsText } from '../../ai/seoEngine';
 import { TrendsManager } from '../../ai/trendsManager';
 import { useStudioStore } from '../../store/useStudioStore';
+import { copyText } from '../../platform/clipboard';
 
 interface SeoPackViewerProps {
   seoPack: SeoPack;
@@ -41,14 +42,14 @@ export const SeoPackViewer: React.FC<SeoPackViewerProps> = ({
     });
   }, []);
 
-  const handleCopy = (key: string, text: string, maxLength?: number) => {
+  const handleCopy = async (key: string, text: string, maxLength?: number) => {
     if (maxLength && text.length > maxLength) {
       showToast(`cannot copy: exceeds ${maxLength} character limit`);
       return;
     }
-    navigator.clipboard.writeText(text);
+    const ok = await copyText(text);
     setCopiedKey(key);
-    showToast('copied to clipboard');
+    showToast(ok ? 'copied to clipboard' : 'could not copy text automatically');
     setTimeout(() => setCopiedKey(null), 2000);
   };
 

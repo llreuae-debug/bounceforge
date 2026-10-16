@@ -29,8 +29,10 @@ import {
   Trash2,
   Eye,
   Key,
+  X,
 } from 'lucide-react';
 import { PlanId } from '../../billing/types';
+import { entitlements } from '../../billing/entitlements';
 
 export const AdminPanel: React.FC = () => {
   const { currentUser, isAdmin } = useAuthStore();
@@ -135,11 +137,16 @@ export const AdminPanel: React.FC = () => {
             className="space-y-4"
           >
             <input
+              id="admin-totp-code"
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="one-time-code"
               maxLength={6}
               value={totpCode}
-              onChange={(e) => setTotpCode(e.target.value)}
+              onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
               placeholder="000000"
+              aria-label="6-digit two-factor authentication code"
               className="w-full py-3 text-center tracking-[0.5em] text-lg font-mono rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-400"
             />
             <button
@@ -252,35 +259,38 @@ export const AdminPanel: React.FC = () => {
 
       {/* Main Admin Workspace */}
       <div className="flex-1 flex flex-col md:flex-row">
-        {/* Left Navigation Sidebar */}
-        <aside className="w-full md:w-64 border-r border-white/10 bg-[#090c13] p-4 space-y-1.5 shrink-0">
-          {[
-            { id: 'dashboard', label: 'Dashboard & KPIs', icon: Activity },
-            { id: 'members', label: 'Members Directory', icon: Users },
-            { id: 'pricing', label: 'Plans & Pricing', icon: CreditCard },
-            { id: 'coupons', label: 'Coupons & Promos', icon: Sparkles },
-            { id: 'affiliates', label: 'Affiliates & Payouts', icon: DollarSign },
-            { id: 'content', label: 'Blog & Content CMS', icon: FileText },
-            { id: 'settings', label: 'Payment & System', icon: Settings },
-            { id: 'audit', label: 'Security Audit Log', icon: Shield },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
-                  active
-                    ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
-                }`}
-              >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+        {/* Navigation Sidebar (Scrollable tabs on mobile/tablet, vertical sidebar on desktop) */}
+        <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/10 bg-[#090c13] p-2 sm:p-3 md:p-4 shrink-0 overflow-x-auto md:overflow-x-visible">
+          <div className="flex md:flex-col gap-1.5 min-w-max md:min-w-0">
+            {[
+              { id: 'dashboard', label: 'Dashboard', fullLabel: 'Dashboard & KPIs', icon: Activity },
+              { id: 'members', label: 'Members', fullLabel: 'Members Directory', icon: Users },
+              { id: 'pricing', label: 'Pricing', fullLabel: 'Plans & Pricing', icon: CreditCard },
+              { id: 'coupons', label: 'Coupons', fullLabel: 'Coupons & Promos', icon: Sparkles },
+              { id: 'affiliates', label: 'Affiliates', fullLabel: 'Affiliates & Payouts', icon: DollarSign },
+              { id: 'content', label: 'CMS', fullLabel: 'Blog & Content CMS', icon: FileText },
+              { id: 'settings', label: 'Settings', fullLabel: 'Payment & System', icon: Settings },
+              { id: 'audit', label: 'Audit', fullLabel: 'Security Audit Log', icon: Shield },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center gap-2 px-3 py-2 md:px-3.5 md:py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer whitespace-nowrap min-h-[40px] ${
+                    active
+                      ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30'
+                      : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span className="hidden md:inline">{tab.fullLabel}</span>
+                  <span className="md:hidden">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </aside>
 
         {/* Admin Content Area */}
@@ -373,31 +383,90 @@ export const AdminPanel: React.FC = () => {
                 </div>
               </div>
 
-              {/* Members Table */}
-              <div className="rounded-2xl border border-white/10 bg-[#0e121a] overflow-x-auto">
+              {/* Members Table (Desktop & Tablet) */}
+              <div className="hidden sm:block rounded-2xl border border-white/10 bg-[#0e121a] overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-white/[0.02] border-b border-white/10 text-slate-400 uppercase text-[10px] font-mono">
                     <tr>
                       <th className="p-3.5">User</th>
                       <th className="p-3.5">Role</th>
+                      <th className="p-3.5">Plan</th>
                       <th className="p-3.5">Provider</th>
                       <th className="p-3.5">Joined</th>
                       <th className="p-3.5 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {filteredUsers.map((u) => (
-                      <tr key={u.id} className="hover:bg-white/[0.02]">
-                        <td className="p-3.5 flex items-center gap-3">
-                          <img src={u.avatarUrl} alt="" className="w-8 h-8 rounded-lg object-cover" />
-                          <div>
-                            <div className="font-bold text-white">{u.fullName}</div>
-                            <div className="text-[11px] text-slate-400 font-mono">{u.email}</div>
+                    {filteredUsers.map((u) => {
+                      const ent = entitlements.getEntitlements(u.id);
+                      return (
+                        <tr key={u.id} className="hover:bg-white/[0.02]">
+                          <td className="p-3.5 flex items-center gap-3">
+                            <img src={u.avatarUrl} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                            <div>
+                              <div className="font-bold text-white">{u.fullName}</div>
+                              <div className="text-[11px] text-slate-400 font-mono">{u.email}</div>
+                            </div>
+                          </td>
+                          <td className="p-3.5">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                                u.role === 'admin'
+                                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                  : 'bg-white/5 text-slate-300'
+                              }`}
+                            >
+                              {u.role}
+                            </span>
+                          </td>
+                          <td className="p-3.5">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                              {ent.planId.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="p-3.5 font-mono text-[11px] text-slate-400 capitalize">{u.provider}</td>
+                          <td className="p-3.5 text-slate-400">{new Date(u.createdAt).toLocaleDateString()}</td>
+                          <td className="p-3.5 text-right">
+                            <button
+                              onClick={() => {
+                                setSelectedUser(u);
+                                showToast(`Managing member: ${u.email}`);
+                              }}
+                              className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-cyan-400 font-bold cursor-pointer"
+                            >
+                              Manage
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Members Card List View (Phones < 640px) */}
+              <div className="sm:hidden space-y-3">
+                {filteredUsers.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-500">No members match your search.</div>
+                ) : (
+                  filteredUsers.map((u) => {
+                    const ent = entitlements.getEntitlements(u.id);
+                    return (
+                      <div
+                        key={u.id}
+                        className="p-4 rounded-2xl bg-[#0e121a] border border-white/10 space-y-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <img src={u.avatarUrl} alt="" className="w-10 h-10 rounded-xl object-cover border border-white/10" />
+                          <div className="min-w-0 flex-1">
+                            <div className="font-bold text-white text-sm truncate">{u.fullName}</div>
+                            <div className="text-xs text-slate-400 font-mono truncate">{u.email}</div>
                           </div>
-                        </td>
-                        <td className="p-3.5">
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                            className={`px-2 py-0.5 rounded font-bold uppercase ${
                               u.role === 'admin'
                                 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                                 : 'bg-white/5 text-slate-300'
@@ -405,24 +474,34 @@ export const AdminPanel: React.FC = () => {
                           >
                             {u.role}
                           </span>
-                        </td>
-                        <td className="p-3.5 font-mono text-[11px] text-slate-400 capitalize">{u.provider}</td>
-                        <td className="p-3.5 text-slate-400">{new Date(u.createdAt).toLocaleDateString()}</td>
-                        <td className="p-3.5 text-right">
+                          <span className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 uppercase font-bold">
+                            {ent.planId.replace('_', ' ')}
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-white/5 text-slate-400 capitalize">
+                            {u.provider}
+                          </span>
+                          <span className="text-slate-500 ml-auto">
+                            {new Date(u.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <div className="pt-1">
                           <button
+                            type="button"
                             onClick={() => {
                               setSelectedUser(u);
-                              showToast(`Inspecting member: ${u.email}`);
+                              showToast(`Managing member: ${u.email}`);
                             }}
-                            className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-cyan-400 font-bold"
+                            className="w-full min-h-[44px] rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-200 border border-purple-500/30 text-xs font-bold uppercase flex items-center justify-center gap-1.5 cursor-pointer"
                           >
-                            Details
+                            <Settings className="w-3.5 h-3.5" />
+                            <span>Manage Member &amp; Plan</span>
                           </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}
@@ -714,6 +793,121 @@ export const AdminPanel: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Selected Member Details & Plan Management Modal */}
+      {selectedUser && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn"
+          onClick={(e) => e.target === e.currentTarget && setSelectedUser(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="member-modal-title"
+            className="w-full sm:max-w-lg max-h-[92dvh] overflow-y-auto overscroll-contain bg-[#0e121a] border border-white/10 rounded-t-3xl sm:rounded-3xl p-6 space-y-5 shadow-2xl"
+            style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+          >
+            {/* Grab handle for touch swipe down */}
+            <div className="sm:hidden mx-auto -mt-2 mb-1 h-1.5 w-12 rounded-full bg-white/20" />
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <img src={selectedUser.avatarUrl} alt="" className="w-12 h-12 rounded-2xl object-cover border border-white/10 shrink-0" />
+                <div className="min-w-0">
+                  <h3 id="member-modal-title" className="text-base font-black text-white truncate">{selectedUser.fullName}</h3>
+                  <p className="text-xs text-slate-400 font-mono truncate">{selectedUser.email}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedUser(null)}
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer shrink-0"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Plan Switcher */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-300 uppercase font-mono">Assigned Membership Plan</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['free', 'gamer_pack', 'creator_pro'] as PlanId[]).map((plan) => {
+                  const currentPlan = entitlements.getEntitlements(selectedUser.id).planId;
+                  const isCurrent = currentPlan === plan;
+                  return (
+                    <button
+                      key={plan}
+                      type="button"
+                      onClick={() => {
+                        entitlements.updateUserPlan(selectedUser.id, plan);
+                        showToast(`Updated ${selectedUser.fullName} to ${plan.replace('_', ' ')}`);
+                        setUsersList([...authService.getAllUsers()]);
+                      }}
+                      className={`min-h-[44px] p-2.5 rounded-xl border text-xs font-bold capitalize transition-all cursor-pointer ${
+                        isCurrent
+                          ? 'bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-600/30'
+                          : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      {plan.replace('_', ' ')}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Extend Subscription */}
+            <div className="space-y-2 pt-2 border-t border-white/5">
+              <label className="text-xs font-bold text-slate-300 uppercase font-mono">Extend Entitlement Period</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const curPlan = entitlements.getEntitlements(selectedUser.id).planId;
+                    entitlements.updateUserPlan(selectedUser.id, curPlan, 30);
+                    showToast(`Extended ${selectedUser.fullName} access by 30 days`);
+                  }}
+                  className="flex-1 min-h-[44px] py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 cursor-pointer"
+                >
+                  +30 Days
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const curPlan = entitlements.getEntitlements(selectedUser.id).planId;
+                    entitlements.updateUserPlan(selectedUser.id, curPlan, 365);
+                    showToast(`Extended ${selectedUser.fullName} access by 1 Year`);
+                  }}
+                  className="flex-1 min-h-[44px] py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 cursor-pointer"
+                >
+                  +1 Year
+                </button>
+              </div>
+            </div>
+
+            {/* Destructive Action with Confirmation */}
+            <div className="space-y-2 pt-2 border-t border-white/5">
+              <label className="text-xs font-bold text-rose-400 uppercase font-mono">Danger Zone</label>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (window.confirm(`Are you sure you want to revoke access and delete member ${selectedUser.email}? This action cannot be undone.`)) {
+                    await authService.deleteUserByAdmin(selectedUser.id, currentUser.id, currentUser.email);
+                    setUsersList([...authService.getAllUsers()]);
+                    setSelectedUser(null);
+                    showToast(`Member removed.`);
+                  }
+                }}
+                className="w-full min-h-[44px] py-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-bold uppercase transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Revoke &amp; Delete Member</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -22,6 +22,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { triggerHaptic } from '../../platform/haptics';
+import { copyText } from '../../platform/clipboard';
 
 export const DiagnosticsPage: React.FC = () => {
   const { setRoute, setQualityMode, qualityMode } = useStudioStore();
@@ -38,9 +39,10 @@ export const DiagnosticsPage: React.FC = () => {
   const handleCopy = async () => {
     if (!caps) return;
     const text = generateDiagnosticReport(caps);
-    await navigator.clipboard.writeText(text);
+    const ok = await copyText(text);
     triggerHaptic(15);
-    setCopied(true);
+    setCopied(ok);
+    showToast(ok ? 'Diagnostic report copied!' : 'Could not copy report automatically');
     setTimeout(() => setCopied(false), 2000);
   };
 

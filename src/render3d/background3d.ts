@@ -22,14 +22,20 @@ export class BackgroundSimulator3D {
     this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 50);
     this.camera.position.set(0, 0, 8);
 
-    this.renderer = new THREE.WebGLRenderer({
-      canvas,
-      alpha: true,
-      antialias: false,
-      powerPreference: 'low-power',
-    });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0) * 0.6); // 0.6x for lightweight performance
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    try {
+      this.renderer = new THREE.WebGLRenderer({
+        canvas,
+        alpha: true,
+        antialias: false,
+        powerPreference: 'low-power',
+      });
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0) * 0.6); // 0.6x for lightweight performance
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+    } catch (e) {
+      console.warn('WebGL background initialization skipped (unsupported device/browser)', e);
+      this.isPaused = true;
+      return;
+    }
 
     // Ambient & Rim Lights
     const amb = new THREE.AmbientLight(0xffffff, 0.4);
@@ -152,7 +158,9 @@ export class BackgroundSimulator3D {
       this.camera.position.z += (targetCamZ - this.camera.position.z) * 0.05;
       this.camera.lookAt(0, 0, 0);
 
-      this.renderer.render(this.scene, this.camera);
+      if (this.renderer) {
+        this.renderer.render(this.scene, this.camera);
+      }
     };
 
     this.animId = requestAnimationFrame(loop);
@@ -164,6 +172,6 @@ export class BackgroundSimulator3D {
     window.removeEventListener('scroll', this.onScroll);
     window.removeEventListener('resize', this.onResize);
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
-    this.renderer.dispose();
+    this.renderer?.dispose();
   }
 }
