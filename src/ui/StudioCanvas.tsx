@@ -438,27 +438,6 @@ export const StudioCanvas: React.FC = () => {
 
   return (
     <div className="flex-1 h-[calc(100vh-4rem)] flex flex-col items-center justify-between p-3 sm:p-4 bg-[#050608] relative overflow-hidden select-none font-sans">
-      {/* 6-Second Undo Toast */}
-      {toast && (
-        <div className="absolute top-4 z-50 px-4 py-2.5 rounded-2xl bg-[#090b12]/95 border border-[#CCFF00]/50 shadow-2xl backdrop-blur-xl flex items-center gap-3 animate-bounce">
-          <RotateCcw className="w-4 h-4 text-[#CCFF00]" />
-          <span className="text-xs font-bold text-white lowercase tracking-wide">{toast.message}</span>
-          {toast.undoAction && (
-            <button
-              onClick={toast.undoAction}
-              className="px-3 py-1 rounded-xl bg-[#CCFF00] hover:bg-[#b5e600] text-black font-black text-xs uppercase tracking-wider transition-colors shadow-md shadow-[#CCFF00]/20"
-            >
-              undo
-            </button>
-          )}
-          <button
-            onClick={dismissToast}
-            className="text-slate-500 hover:text-white text-xs px-1"
-          >
-            ✕
-          </button>
-        </div>
-      )}
 
       {/* Interactive Tool Selector Bar */}
       <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md mb-2 shadow-sm">

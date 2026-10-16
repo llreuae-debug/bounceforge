@@ -46,24 +46,24 @@ export const Header: React.FC = () => {
     setWhatNextOpen,
     isTrendsAdminOpen,
     setTrendsAdminOpen,
+    showToast,
   } = useStudioStore();
 
 
   const [copied, setCopied] = useState(false);
-  const [savedToast, setSavedToast] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleShare = () => {
     const url = getShareableUrl();
     navigator.clipboard.writeText(url);
     setCopied(true);
+    showToast('share link copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleSave = async () => {
     await saveToIndexedDB();
-    setSavedToast(true);
-    setTimeout(() => setSavedToast(false), 2000);
+    showToast('project saved locally to indexeddb!');
   };
 
   const handleAnchor = (e: React.MouseEvent, anchorId: string) => {
@@ -380,13 +380,6 @@ export const Header: React.FC = () => {
               </button>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Save Notification Toast */}
-      {savedToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#CCFF00] text-black px-4 py-2.5 rounded-xl text-xs font-black shadow-2xl flex items-center gap-2 animate-bounce">
-          ✓ Project saved locally to IndexedDB!
         </div>
       )}
     </header>

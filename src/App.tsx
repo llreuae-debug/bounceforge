@@ -10,6 +10,7 @@ import { PrivacyPage } from './ui/pages/PrivacyPage';
 import { ContactPage } from './ui/pages/ContactPage';
 import { NotFoundPage } from './ui/pages/NotFoundPage';
 import { BackgroundSimulator3D } from './render3d/background3d';
+import { GlobalToast } from './ui/components/GlobalToast';
 
 const pathToRoute = (pathname: string): StudioRoute => {
   const clean = pathname.replace(/\/$/, '') || '/';
@@ -115,6 +116,9 @@ export const App: React.FC = () => {
         {currentRoute === 'contact' && <ContactPage />}
         {currentRoute === '404' && <NotFoundPage />}
       </div>
+
+      {/* App-Wide Fixed Centered Toast System */}
+      <GlobalToast />
     </div>
   );
 };
