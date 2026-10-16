@@ -108,6 +108,7 @@ export function isModeAtDefault(
     current.overlays.titleText !== defaults.overlays.titleText ||
     current.overlays.showCounter !== defaults.overlays.showCounter ||
     current.overlays.counterType !== defaults.overlays.counterType ||
+    current.overlays.showWatermark !== defaults.overlays.showWatermark ||
     current.overlays.safeZonePlatform !== defaults.overlays.safeZonePlatform
   ) {
     return false;

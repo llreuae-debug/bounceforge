@@ -52,8 +52,8 @@ export const DEFAULT_OVERLAYS: OverlaySettings = {
   targetDuration: 60,
   progressBarColor: '#00f0ff',
 
-  showWatermark: false,
-  watermarkOpacity: 0.6,
+  showWatermark: true,
+  watermarkOpacity: 0.85,
 
   showEndCard: true,
   endCardText: 'ESCAPED!',
@@ -318,9 +318,10 @@ function drawFlatWatermark(
   width: number,
   height: number,
   arena: ReturnType<typeof getSafeArena>,
-  opacity: number = 0.6
+  opacity: number = 0.85
 ): { x: number; y: number; width: number; height: number } {
   ctx.save();
+  ctx.globalAlpha = opacity;
   const targetWidth = arena.layout.watermarkW; // 30% of frame width
   const targetHeight = targetWidth / 4;
   const bottomEdgeY = arena.layout.watermarkBottomY; // 77% of frame height (23% from bottom)
@@ -328,14 +329,13 @@ function drawFlatWatermark(
   const originY = bottomEdgeY - targetHeight;
   const s = targetWidth / 480;
 
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-  ctx.shadowBlur = Math.max(4, Math.round(8 * s));
-  ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
-  ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+  ctx.shadowBlur = Math.max(4, Math.round(10 * s));
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
-  // 1. Symbol Ring with Top-Right Gap
+  // 1. Symbol Ring with Top-Right Gap: Fluorescent Lime #CCFF00
+  ctx.strokeStyle = '#CCFF00';
   ctx.lineWidth = 13 * s;
   ctx.beginPath();
   const ringCenterX = originX + 60 * s;
@@ -345,7 +345,8 @@ function drawFlatWatermark(
   ctx.arc(ringCenterX, ringCenterY, 38 * s, startAngle, endAngle, false);
   ctx.stroke();
 
-  // 2. 3 Motion Streaks
+  // 2. 3 Motion Streaks: Hot Pink #FF2E93 & Cyan #00F0FF
+  ctx.strokeStyle = '#FF2E93';
   ctx.lineWidth = 4.5 * s;
   ctx.beginPath();
   ctx.moveTo(originX + 64 * s, originY + 56 * s);
@@ -358,18 +359,21 @@ function drawFlatWatermark(
   ctx.lineTo(originX + 73 * s, originY + 38 * s);
   ctx.stroke();
 
+  ctx.strokeStyle = '#00F0FF';
   ctx.lineWidth = 3 * s;
   ctx.beginPath();
   ctx.moveTo(originX + 62 * s, originY + 64 * s);
   ctx.lineTo(originX + 75 * s, originY + 52 * s);
   ctx.stroke();
 
-  // 3. Ball
+  // 3. Ball: Hot Pink #FF2E93
+  ctx.fillStyle = '#FF2E93';
   ctx.beginPath();
   ctx.arc(originX + 89 * s, originY + 27 * s, 12.5 * s, 0, Math.PI * 2);
   ctx.fill();
 
-  // 4. Wordmark: "bounceforge" (Helvetica Neue Black 900, lowercase, no 3D)
+  // 4. Wordmark: "bounceforge" (Helvetica Neue Black 900, lowercase, #FFFFFF)
+  ctx.fillStyle = '#FFFFFF';
   ctx.font = `900 ${Math.round(52 * s)}px "Helvetica Neue", Helvetica, -apple-system, sans-serif`;
   ctx.letterSpacing = '-0.05em';
   ctx.textAlign = 'left';

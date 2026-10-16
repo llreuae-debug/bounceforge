@@ -535,7 +535,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
           modeSettings: saved.modeSettings,
           seed: saved.seed,
           visuals: saved.visuals,
-          overlays: saved.overlays,
+          overlays: saved.overlays ? { ...DEFAULT_OVERLAYS, ...saved.overlays } : { ...DEFAULT_OVERLAYS },
           audioSettings: saved.audioSettings,
           asmrSettings: saved.asmrSettings ?? get().asmrSettings,
           customNotes: saved.customNotes || [],
