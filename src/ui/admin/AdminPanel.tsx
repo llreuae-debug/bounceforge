@@ -7,6 +7,8 @@ import { authService } from '../../auth/authService';
 import { UserProfile, AuditLogEntry } from '../../auth/types';
 import { affiliateService } from '../../affiliates/affiliateService';
 import { AffiliateProfile, PayoutRequest } from '../../affiliates/types';
+import { feedbackService, FeedbackItem } from '../../feedback/feedbackService';
+import { showcaseService, ShowcaseItem } from '../../showcase/showcaseService';
 import { Header } from '../Header';
 import {
   Users,
@@ -30,9 +32,14 @@ import {
   Eye,
   Key,
   X,
+  MessageSquare,
+  Film,
+  ExternalLink,
+  Languages,
 } from 'lucide-react';
 import { PlanId } from '../../billing/types';
 import { entitlements } from '../../billing/entitlements';
+import { TranslationManager } from './TranslationManager';
 
 export const AdminPanel: React.FC = () => {
   const { currentUser, isAdmin } = useAuthStore();
@@ -49,8 +56,19 @@ export const AdminPanel: React.FC = () => {
   const { showToast, setRoute } = useStudioStore();
 
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'members' | 'pricing' | 'coupons' | 'affiliates' | 'content' | 'settings' | 'audit'
+    'dashboard' | 'members' | 'pricing' | 'coupons' | 'affiliates' | 'content' | 'feedback' | 'showcase' | 'settings' | 'audit' | 'translations'
   >('dashboard');
+
+  // Feedback & Showcase CMS state
+  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
+  const [showcaseList, setShowcaseList] = useState<ShowcaseItem[]>([]);
+  const [newShowcaseTitle, setNewShowcaseTitle] = useState('');
+  const [newShowcaseMode, setNewShowcaseMode] = useState('sequence_break');
+  const [newShowcaseSeed, setNewShowcaseSeed] = useState(42069);
+  const [newShowcaseVideoUrl, setNewShowcaseVideoUrl] = useState('');
+  const [newShowcasePosterUrl, setNewShowcasePosterUrl] = useState('');
+  const [newShowcaseSound, setNewShowcaseSound] = useState('Numbered Impact ASMR');
+  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
 
   // 2FA TOTP verification state
   const [totpVerified, setTotpVerified] = useState(false);
@@ -91,6 +109,8 @@ export const AdminPanel: React.FC = () => {
     setAffiliatesList(affiliateService.getAllAffiliates());
     setPayoutsList(affiliateService.getAllPayouts());
     setAuditLogs(authService.getAuditLogs());
+    feedbackService.getFeedback().then(setFeedbackList);
+    showcaseService.getShowcaseItems().then(setShowcaseList);
   }, []);
 
   // Access check
@@ -269,8 +289,11 @@ export const AdminPanel: React.FC = () => {
               { id: 'coupons', label: 'Coupons', fullLabel: 'Coupons & Promos', icon: Sparkles },
               { id: 'affiliates', label: 'Affiliates', fullLabel: 'Affiliates & Payouts', icon: DollarSign },
               { id: 'content', label: 'CMS', fullLabel: 'Blog & Content CMS', icon: FileText },
+              { id: 'feedback', label: 'Feedback', fullLabel: 'User Feedback & Bugs', icon: MessageSquare },
+              { id: 'showcase', label: 'Showcase', fullLabel: 'Showcase Videos CMS', icon: Film },
               { id: 'settings', label: 'Settings', fullLabel: 'Payment & System', icon: Settings },
               { id: 'audit', label: 'Audit', fullLabel: 'Security Audit Log', icon: Shield },
+              { id: 'translations', label: 'i18n', fullLabel: 'Translations & i18n', icon: Languages },
             ].map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.id;
@@ -726,7 +749,331 @@ export const AdminPanel: React.FC = () => {
             </div>
           )}
 
-          {/* 7. SETTINGS TAB */}
+          {/* 7. USER FEEDBACK & BUGS TAB */}
+          {activeTab === 'feedback' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-black text-white uppercase">User Feedback & Bug Reports ({feedbackList.length})</h3>
+                  <p className="text-xs text-slate-400">Incoming tickets from /feedback, categorized by status and urgency</p>
+                </div>
+                <button
+                  onClick={() => feedbackService.getFeedback().then(setFeedbackList)}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Refresh</span>
+                </button>
+              </div>
+
+              {/* Status overview cards */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-4 rounded-2xl bg-[#0e121a] border border-amber-500/20">
+                  <div className="text-[10px] font-mono uppercase text-amber-400 font-bold">New Submissions</div>
+                  <div className="text-2xl font-black text-amber-400">
+                    {feedbackList.filter((f) => f.status === 'new').length}
+                  </div>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#0e121a] border border-cyan-500/20">
+                  <div className="text-[10px] font-mono uppercase text-cyan-400 font-bold">In Review</div>
+                  <div className="text-2xl font-black text-cyan-400">
+                    {feedbackList.filter((f) => f.status === 'reviewing').length}
+                  </div>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#0e121a] border border-emerald-500/20">
+                  <div className="text-[10px] font-mono uppercase text-emerald-400 font-bold">Resolved / Done</div>
+                  <div className="text-2xl font-black text-emerald-400">
+                    {feedbackList.filter((f) => f.status === 'done').length}
+                  </div>
+                </div>
+              </div>
+
+              {/* Feedback List */}
+              <div className="space-y-3">
+                {feedbackList.length === 0 ? (
+                  <div className="p-10 rounded-2xl bg-[#0e121a] border border-white/5 text-center text-slate-500 text-xs">
+                    No feedback items received yet.
+                  </div>
+                ) : (
+                  feedbackList.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-5 rounded-2xl bg-[#0e121a] border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-black uppercase font-mono ${
+                              item.type === 'bug'
+                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                : item.type === 'idea'
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                            }`}
+                          >
+                            {item.type}
+                          </span>
+                          <span className="text-[11px] font-mono text-slate-500">
+                            {new Date(item.createdAt).toLocaleDateString()} at{' '}
+                            {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {item.email && (
+                            <span className="text-[11px] text-slate-300 font-mono bg-white/5 px-2 py-0.5 rounded">
+                              {item.email}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-200 leading-relaxed font-sans">{item.message}</p>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        {item.screenshotUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedScreenshot(item.screenshotUrl || null)}
+                            className="relative group w-12 h-12 rounded-xl overflow-hidden border border-white/10 bg-black/40 cursor-pointer shrink-0"
+                            title="Click to view screenshot"
+                          >
+                            <img src={item.screenshotUrl} alt="Screenshot" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <Eye className="w-4 h-4 text-white" />
+                            </div>
+                          </button>
+                        )}
+
+                        {/* Status Dropdown */}
+                        <select
+                          value={item.status}
+                          onChange={async (e) => {
+                            const updated = await feedbackService.updateStatus(item.id, e.target.value as any);
+                            setFeedbackList(updated);
+                            showToast(`Updated status to "${e.target.value}"`);
+                          }}
+                          className={`text-xs font-bold uppercase rounded-xl px-3 py-2 border font-mono cursor-pointer ${
+                            item.status === 'new'
+                              ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+                              : item.status === 'reviewing'
+                              ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-300'
+                              : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+                          }`}
+                        >
+                          <option value="new" className="bg-[#0e121a] text-amber-300">New</option>
+                          <option value="reviewing" className="bg-[#0e121a] text-cyan-300">Reviewing</option>
+                          <option value="done" className="bg-[#0e121a] text-emerald-300">Done</option>
+                        </select>
+
+                        {/* Delete button */}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (window.confirm('Delete this feedback item?')) {
+                              const updated = await feedbackService.deleteFeedback(item.id);
+                              setFeedbackList(updated);
+                              showToast('Feedback item removed');
+                            }
+                          }}
+                          className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                          title="Delete ticket"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 8. SHOWCASE VIDEOS CMS TAB */}
+          {activeTab === 'showcase' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-black text-white uppercase">Showcase Videos CMS ({showcaseList.length})</h3>
+                  <p className="text-xs text-slate-400">Curated community & viral creations displayed on /showcase</p>
+                </div>
+                <button
+                  onClick={() => showcaseService.getShowcaseItems().then(setShowcaseList)}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Refresh</span>
+                </button>
+              </div>
+
+              {/* Add New Showcase Form */}
+              <div className="p-6 rounded-3xl bg-[#0e121a] border border-purple-500/20 space-y-4">
+                <h4 className="text-xs font-black uppercase text-purple-300 tracking-wider font-mono flex items-center gap-2">
+                  <Plus className="w-4 h-4" /> Add Showcase Video Entry
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-slate-400 font-bold block mb-1">Title / Hook</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 100-Ball Sequence Break Finale"
+                      value={newShowcaseTitle}
+                      onChange={(e) => setNewShowcaseTitle(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-xs text-white placeholder-slate-600 focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-slate-400 font-bold block mb-1">Mode</label>
+                    <select
+                      value={newShowcaseMode}
+                      onChange={(e) => setNewShowcaseMode(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-xs text-white focus:border-purple-400 focus:outline-none"
+                    >
+                      <option value="sequence_break">Sequence Break</option>
+                      <option value="color_lock">Color Lock</option>
+                      <option value="portal_rings">Portal Rings</option>
+                      <option value="accumulation">Accumulation</option>
+                      <option value="sand_fill">Sand Fill</option>
+                      <option value="pendulum_wave">Pendulum Wave</option>
+                      <option value="fibonacci_spiral">Fibonacci Spiral</option>
+                      <option value="merge">Merge Balls</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-slate-400 font-bold block mb-1">Seed Number</label>
+                    <input
+                      type="number"
+                      value={newShowcaseSeed}
+                      onChange={(e) => setNewShowcaseSeed(parseInt(e.target.value) || 0)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-xs text-white font-mono focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-slate-400 font-bold block mb-1">Video URL (MP4 / WebM)</label>
+                    <input
+                      type="url"
+                      placeholder="https://assets.mixkit.co/videos/preview/..."
+                      value={newShowcaseVideoUrl}
+                      onChange={(e) => setNewShowcaseVideoUrl(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-xs text-white font-mono placeholder-slate-600 focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-slate-400 font-bold block mb-1">Poster Image URL</label>
+                    <input
+                      type="url"
+                      placeholder="https://images.unsplash.com/..."
+                      value={newShowcasePosterUrl}
+                      onChange={(e) => setNewShowcasePosterUrl(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-xs text-white font-mono placeholder-slate-600 focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-slate-400 font-bold block mb-1">Audio Mix / Sound</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Numbered Impact ASMR"
+                      value={newShowcaseSound}
+                      onChange={(e) => setNewShowcaseSound(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-xs text-white placeholder-slate-600 focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!newShowcaseTitle.trim() || !newShowcaseVideoUrl.trim() || !newShowcasePosterUrl.trim()) {
+                        showToast('Please fill in title, video URL, and poster URL.');
+                        return;
+                      }
+                      const modeNames: Record<string, string> = {
+                        sequence_break: 'Sequence Break',
+                        color_lock: 'Color Lock',
+                        portal_rings: 'Portal Rings',
+                        accumulation: 'Accumulation',
+                        sand_fill: 'Sand Fill',
+                        pendulum_wave: 'Pendulum Wave',
+                        fibonacci_spiral: 'Fibonacci Spiral',
+                        merge: 'Merge Balls',
+                      };
+                      const updated = await showcaseService.addItem({
+                        title: newShowcaseTitle.trim(),
+                        modeId: newShowcaseMode,
+                        modeName: modeNames[newShowcaseMode] || newShowcaseMode,
+                        seed: newShowcaseSeed,
+                        videoUrl: newShowcaseVideoUrl.trim(),
+                        posterUrl: newShowcasePosterUrl.trim(),
+                        views: '1.2M',
+                        likes: '140K',
+                        sound: newShowcaseSound.trim() || 'Custom ASMR Mix',
+                      });
+                      setShowcaseList(updated);
+                      setNewShowcaseTitle('');
+                      setNewShowcaseVideoUrl('');
+                      setNewShowcasePosterUrl('');
+                      showToast('Showcase video added to live gallery!');
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase flex items-center gap-2 cursor-pointer transition-all shadow-lg shadow-purple-600/30"
+                  >
+                    <Plus className="w-4 h-4" /> Publish to Showcase
+                  </button>
+                </div>
+              </div>
+
+              {/* Showcase items grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {showcaseList.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl bg-[#0e121a] border border-white/10 overflow-hidden flex flex-col group"
+                  >
+                    <div className="relative aspect-[9/16] max-h-48 overflow-hidden bg-black/60">
+                      <img src={item.posterUrl} alt={item.title} className="w-full h-full object-cover" />
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-[10px] font-mono font-bold text-white border border-white/10">
+                        {item.modeName}
+                      </span>
+                      <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-purple-500/80 text-[10px] font-mono font-bold text-white">
+                        Seed #{item.seed}
+                      </span>
+                    </div>
+
+                    <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+                      <div>
+                        <h4 className="text-xs font-black text-white line-clamp-1">{item.title}</h4>
+                        <p className="text-[11px] text-slate-400 font-mono mt-0.5">{item.sound}</p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                        <span className="text-[10px] text-slate-500 font-mono">
+                          {item.views} views • {item.likes} likes
+                        </span>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (window.confirm(`Delete "${item.title}" from showcase?`)) {
+                              const updated = await showcaseService.removeItem(item.id);
+                              setShowcaseList(updated);
+                              showToast('Showcase entry deleted');
+                            }
+                          }}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10"
+                          title="Delete entry"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 9. SETTINGS TAB */}
           {activeTab === 'settings' && (
             <div className="space-y-6 max-w-2xl">
               <div className="p-6 rounded-3xl bg-[#0e121a] border border-white/10 space-y-4">
@@ -789,6 +1136,13 @@ export const AdminPanel: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* 9. TRANSLATIONS TAB */}
+          {activeTab === 'translations' && (
+            <div className="space-y-4">
+              <TranslationManager />
             </div>
           )}
         </main>
@@ -905,6 +1259,28 @@ export const AdminPanel: React.FC = () => {
                 <span>Revoke &amp; Delete Member</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Screenshot Lightbox Modal */}
+      {selectedScreenshot && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fadeIn"
+          onClick={() => setSelectedScreenshot(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] bg-[#0e121a] border border-white/20 rounded-2xl p-2 shadow-2xl overflow-hidden">
+            <button
+              onClick={() => setSelectedScreenshot(null)}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/60 text-white hover:bg-black/90 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={selectedScreenshot}
+              alt="Feedback Screenshot"
+              className="w-full h-auto max-h-[85vh] object-contain rounded-xl"
+            />
           </div>
         </div>
       )}

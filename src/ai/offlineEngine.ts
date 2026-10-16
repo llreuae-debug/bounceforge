@@ -15,14 +15,25 @@ export type HookStyle =
 
 export type SupportedLanguage =
   | 'en'
+  | 'ur'
   | 'ur_roman'
   | 'ur_script'
   | 'hi'
+  | 'hi_hinglish'
   | 'ar'
   | 'es'
+  | 'pt-BR'
   | 'pt'
+  | 'fr'
+  | 'de'
   | 'id'
-  | 'tr';
+  | 'tr'
+  | 'ru'
+  | 'bn'
+  | 'vi'
+  | 'ja'
+  | 'ko'
+  | 'zh-CN';
 
 export interface HookGenerationOptions {
   modeName: string;
@@ -647,7 +658,463 @@ export const OFFLINE_HOOK_TEMPLATES: Record<SupportedLanguage, Record<HookStyle,
       'kıl payı mesafeyle kurtuldu',
     ],
   },
+  fr: {
+    curiosity: [
+      'la balle va-t-elle s’échapper ??',
+      'attends le dernier anneau',
+      'la fin va vraiment te surprendre',
+      'comment a-t-elle trouvé la sortie ??',
+      'regarde les 5 dernières secondes',
+      'personne ne s’attendait à ce rebond',
+    ],
+    challenge: [
+      'interdit de cligner des yeux',
+      'devine la couleur gagnante',
+      'seuls 1% trouvent le bon vainqueur',
+      'devine avant la fin du chrono',
+      'tu vas la regarder deux fois',
+      'concentre-toi sur la bille dorée',
+    ],
+    prediction: [
+      'choisis ta couleur avant le départ',
+      'qui va remporter la victoire ?? 👇',
+      'écris ton favori en commentaire',
+      'qui soulève le trophée 🏆 ??',
+      'bleu ou rose : ton choix ??',
+      'quelle couleur va se remplir en premier ??',
+    ],
+    countdown: [
+      'évasion pile à 0.0s',
+      '60 secondes au compteur',
+      'sauvetage épique à la dernière seconde',
+      'le chrono tombe à zéro et ça passe',
+      'dernières secondes sous haute tension',
+      'zéro seconde restante 🔥',
+    ],
+    asmr: [
+      'mets un casque pour le son asmr',
+      'sons ultra satisfaisants et relaxants',
+      'harmoniques pures de carillon en cristal',
+      'découpe nette et croustillante',
+      'design sonore doux pour le cerveau',
+      'pluie de billes et de verre relaxante',
+    ],
+    funny: [
+      'la physique a abandonné la partie',
+      'la balle a dit non direct 💀',
+      'rejetée sans pitié par l’anneau',
+      'à un pixel de la liberté',
+      'la fin est un manque de respect total',
+      'la gravité a pris ça personnellement',
+    ],
+    suspense: [
+      'tellement proche que ça fait mal',
+      'a failli sortir 7 fois d’affilée',
+      'le dernier anneau tremble',
+      'le dernier anneau va-t-il se briser ??',
+      'le cœur bat à toute allure',
+      'à un cheveu de la victoire',
+    ],
+  },
+  de: {
+    curiosity: [
+      'kann der Ball entkommen??',
+      'warte auf den letzten Ring',
+      'das Ende wird dich umhauen',
+      'wie hat er die Lücke gefunden??',
+      'schau dir die letzten 5 Sekunden an',
+      'diesen Abpraller hat keiner kommen sehen',
+    ],
+    challenge: [
+      'blinzeln verboten',
+      'errate die Siegerfarbe vor dem Ende',
+      'nur 1% tippen richtig',
+      'errate es bevor der Timer abläuft',
+      'du wirst es garantiert zweimal schauen',
+      'behalte die goldene Kugel im Auge',
+    ],
+    prediction: [
+      'wähle deine Farbe vor dem Start',
+      'wer holt sich den Sieg?? 👇',
+      'schreib deinen Tipp in die Kommentare',
+      'wer gewinnt den Pokal 🏆??',
+      'blau oder pink: für wen bist du??',
+      'welcher Ring füllt sich zuerst??',
+    ],
+    countdown: [
+      'Entkommung exakt bei 0.0s',
+      '60 Sekunden auf der Uhr',
+      'epischer Clutch in letzter Sekunde',
+      'Timer auf Null und die Kugel fällt',
+      'letzte 3 Sekunden Nervenkitzel',
+      'null Sekunden übrig 🔥',
+    ],
+    asmr: [
+      'Kopfhörer auf für volles ASMR',
+      'beruhigende und befriedigende Klänge',
+      'kristallklare Glasharmonien',
+      'weiches und befriedigendes Sounddesign',
+      'sanfter Regen aus Murmeln und Tönen',
+      'pure auditive Zufriedenheit',
+    ],
+    funny: [
+      'die Physik hat hier aufgegeben',
+      'der Ball wollte einfach nicht raus 💀',
+      'eiskalt von der Lücke abgewiesen',
+      'nur ein Pixel fehlte zur Freiheit',
+      'dieses Ende war einfach frech',
+      'die Schwerkraft hat persönliche Rache genommen',
+    ],
+    suspense: [
+      'so knapp dass der Atem stockt',
+      'fast 7 Mal hintereinander entkommen',
+      'der letzte Ring wackelt bedenklich',
+      'wird der letzte Ring zerbrechen??',
+      'der Herzschlag steigt mit jeder Sekunde',
+      'um Haaresbreite am Ziel vorbei',
+    ],
+  },
+  ru: {
+    curiosity: [
+      'сможет ли мяч сбежать??',
+      'дождись последнего кольца',
+      'концовка тебя точно удивит',
+      'как он нашел выход??',
+      'смотри последние 5 секунд',
+      'никто не ожидал такого отскока',
+    ],
+    challenge: [
+      'попробуй не моргать',
+      'угадай цвет победителя',
+      'только 1% угадывает правильно',
+      'угадай до окончания таймера',
+      'ты пересмотришь это дважды',
+      'следи за золотым шаром',
+    ],
+    prediction: [
+      'выбери свой цвет до старта',
+      'какой цвет победит?? 👇',
+      'напиши своего фаворита в комменты',
+      'кто заберет кубок 🏆??',
+      'синий или розовый: за кого ты??',
+      'какой заполнится первым??',
+    ],
+    countdown: [
+      'побег ровно на 0.0 секунде',
+      '60 секунд на таймере',
+      'эпичный клатч на последней секунде',
+      'таймер на ноль и шарик вылетает',
+      'последние 3 секунды адреналина',
+      'ноль секунд осталось 🔥',
+    ],
+    asmr: [
+      'надень наушники для максимального asmr',
+      'успокаивающие и залипательные звуки',
+      'кристальный звон чистейшего стекла',
+      'мягкий хрустящий рез мыла',
+      'идеальный релакс для мозга',
+      'мелодичный перезвон мраморных шаров',
+    ],
+    funny: [
+      'физика здесь просто сдалась',
+      'шарик наотрез отказался выходить 💀',
+      'проем отшил его без шансов',
+      'всего один пиксель до свободы',
+      'финал был максимально дерзким',
+      'у гравитации тут личные счеты',
+    ],
+    suspense: [
+      'настолько близко что дыхание перехватило',
+      'чуть не вылетел 7 раз подряд',
+      'последнее кольцо уже дрожит',
+      'разобьется ли последнее кольцо??',
+      'пульс зашкаливает с каждой секундой',
+      'буквально в миллиметре от победы',
+    ],
+  },
+  bn: {
+    curiosity: [
+      'বলটা কি পালাতে পারবে??',
+      'শেষ রিং পর্যন্ত অপেক্ষা করো',
+      'শেষটা দেখলে চমকে যাবে',
+      'পথ কীভাবে খুঁজে পেল??',
+      'শেষ ৫ সেকেন্ড মনোযোগ দিয়ে দেখো',
+      'এই বাউন্স কেউ ভাবেনি',
+    ],
+    challenge: [
+      'চোখের পলক না ফেলে দেখে দেখাও',
+      'বিজয়ী রঙ অনুমান করো',
+      'মাত্র ১% মানুষ সঠিক উত্তর দিতে পারে',
+      'সময় শেষ হওয়ার আগেই বলো',
+      'ভিডিওটা দুবার দেখতে বাধ্য হবে',
+    ],
+    prediction: [
+      'শুরু হওয়ার আগেই নিজের রঙ বেছে নাও',
+      'কে জিতবে বলে মনে হয়?? 👇',
+      'কমেন্টে তোমার পছন্দের রঙ লেখো',
+      'ট্রফি কার হাতে উঠবে 🏆??',
+      'লাল নাকি নীল: কার পক্ষে তুমি??',
+    ],
+    countdown: [
+      'ঠিক ০.০ সেকেন্ডে মুক্তি',
+      '৬০ সেকেন্ডের কাউন্টডাউন শুরু',
+      'শেষ সেকেন্ডের রুদ্ধশ্বাস মুহূর্ত',
+      'টাইমার শূন্য হতেই বল মুক্ত',
+      'শেষ ৩ সেকেন্ডের চরম উত্তেজনা',
+    ],
+    asmr: [
+      'সেরা asmr অনুভূতির জন্য হেডফোন পরুন',
+      'মন শান্ত করা আরামদায়ক শব্দ',
+      'স্ফটিক কাঁচের মিষ্টি প্রতিধ্বনি',
+      'অত্যন্ত তৃপ্তিদায়ক সাউন্ড ডিজাইন',
+    ],
+    funny: [
+      'পদার্থবিজ্ঞান এখানে হার মেনেছে',
+      'বলটা স্পষ্ট বের হতে অস্বীকার করল 💀',
+      'মাত্র একটা পিক্সেলের জন্য পারল না',
+      'শেষ মুহূর্তটা চরম ধোঁকা দিল',
+    ],
+    suspense: [
+      'এত কাছে যে নিঃশ্বাস বন্ধ হয়ে আসছিল',
+      '৭ বার বের হতে হতে রক্ষা পেল',
+      'শেষ রিংটা কাঁপছে',
+      'চুলের ব্যবধানে বেঁচে গেল',
+    ],
+  },
+  vi: {
+    curiosity: [
+      'liệu quả bóng có thoát được không??',
+      'hãy chờ đến vòng cuối cùng',
+      'cái kết sẽ khiến bạn bất ngờ đấy',
+      'làm sao nó tìm ra lối thoát được nhỉ??',
+      'hãy xem 5 giây cuối cùng',
+      'không ai ngờ tới cú nảy này',
+    ],
+    challenge: [
+      'thử thách không chớp mắt',
+      'đoán màu chiến thắng trước khi hết giờ',
+      'chỉ 1% người xem đoán đúng',
+      'đoán trước khi đồng hồ điểm số 0',
+      'chắc chắn bạn sẽ xem lại lần thứ hai',
+    ],
+    prediction: [
+      'chọn màu của bạn trước khi bắt đầu',
+      'ai sẽ giành cúp 🏆?? 👇',
+      'để lại màu bạn chọn dưới bình luận',
+      'xanh hay hồng: bạn theo phe nào??',
+    ],
+    countdown: [
+      'thoát hiểm đúng 0.0s',
+      '60 giây đếm ngược bắt đầu',
+      'pha clutch mãn nhãn ở giây cuối cùng',
+      'hết giờ là bóng rơi chuẩn xác',
+    ],
+    asmr: [
+      'đeo tai nghe để cảm nhận âm thanh asmr',
+      'âm thanh thư giãn và cực kỳ thỏa mãn',
+      'tiếng chuông pha lê ngân vang',
+      'thiết kế âm thanh xoa dịu tâm trí',
+    ],
+    funny: [
+      'vật lý cũng phải đầu hàng ở đây',
+      'quả bóng kiên quyết từ chối ra ngoài 💀',
+      'chỉ thiếu đúng một pixel nữa thôi',
+      'kết cục không thể nào cay đắng hơn',
+    ],
+    suspense: [
+      'nghẹt thở đến từng tích tắc',
+      'suýt thoát ra ngoài 7 lần liên tiếp',
+      'vòng tròn cuối cùng đang rung lắc',
+      'chỉ cách nhau đúng một sợi tóc',
+    ],
+  },
+  ja: {
+    curiosity: [
+      'このボールは脱出できるかな??',
+      '最後のリングまで見ててね',
+      '結末に絶対びっくりするよ',
+      'どうやって脱出口を見つけたの??',
+      'ラスト5秒に注目してね',
+      '誰もこのバウンスは予想できなかった',
+    ],
+    challenge: [
+      'まばたき禁止チャレンジ',
+      '勝つ色を予想してみてね',
+      '正解できるのはたったの1%だけ',
+      'タイマーが0になる前に当ててみて',
+      '絶対2回見ちゃうはず',
+    ],
+    prediction: [
+      '始まる前に自分の推し色を選んでね',
+      'トロフィーを手にするのは誰 🏆?? 👇',
+      'コメント欄に応援する色を書いてね',
+      'シアン vs ピンク: どっちが勝つ??',
+    ],
+    countdown: [
+      'ピッタリ0.0秒で劇的脱出',
+      '60秒カウントダウンスタート',
+      'ラスト1秒の超劇的クラッチ',
+      'タイマーがゼロになった瞬間に落下',
+    ],
+    asmr: [
+      'イヤホン装着で最高のASMR体験を',
+      '心地よくて癒される極上の音',
+      '透き通るクリスタルガラスのハーモニー',
+      '脳がとろけるような心地よいサウンド',
+    ],
+    funny: [
+      '物理法則がここで仕事を放棄した件',
+      'ボールが出口を全力拒否してる 💀',
+      'あと1ピクセルだったのに届かない',
+      '最後の裏切りがひどすぎる',
+    ],
+    suspense: [
+      '息を呑むほどギリギリの攻防',
+      '7回連続で脱出しかけた奇跡',
+      '最後のリングが激しく揺れている',
+      '紙一重の差で助かった',
+    ],
+  },
+  ko: {
+    curiosity: [
+      '과연 공이 탈출할 수 있을까요??',
+      '마지막 링까지 꼭 지켜보세요',
+      '결말 보면 진짜 깜짝 놀랄걸요',
+      '어떻게 탈출구를 찾았을까요??',
+      '마지막 5초가 하이라이트입니다',
+      '이 바운스는 아무도 예상 못 했음',
+    ],
+    challenge: [
+      '눈 깜빡이면 놓치는 챌린지',
+      '시작 전에 우승 색상을 맞춰보세요',
+      '오직 상위 1%만 정답을 맞힙니다',
+      '타이머 끝나기 전에 댓글 달기',
+      '무조건 두 번 보게 될 영상',
+    ],
+    prediction: [
+      '시작 전 응원할 색상을 골라주세요',
+      '오늘의 트로피 주인공은 🏆?? 👇',
+      '댓글에 내 원픽 색상 남겨보기',
+      '블루 vs 핑크: 당신의 선택은??',
+    ],
+    countdown: [
+      '정확히 0.0초에 기적적인 탈출',
+      '60초 카운트다운 스타트',
+      '마지막 1초 극적인 클러치 성공',
+      '타이머 0초 되자마자 쏙 빠져나감',
+    ],
+    asmr: [
+      '이어폰 끼고 들어야 제맛인 ASMR',
+      '마음이 편안해지는 극강의 힐링 사운드',
+      '맑고 청아한 크리스탈 글래스 울림',
+      '뇌가 말랑해지는 쾌감 사운드',
+    ],
+    funny: [
+      '물리학 법칙이 파업 선언함',
+      '공이 나가기 싫다고 버티는 중 💀',
+      '딱 1픽셀 모자라서 못 나감',
+      '마지막에 대놓고 농락당함',
+    ],
+    suspense: [
+      '숨 멎을 듯 아슬아슬한 순간',
+      '탈출할 뻔한 순간만 무려 7번',
+      '마지막 링이 위태롭게 흔들리는 중',
+      '종이 한 장 차이로 성공함',
+    ],
+  },
+  'zh-CN': {
+    curiosity: [
+      '这个球真的能逃出去吗？？',
+      '一定要看到最后一个环',
+      '结局绝对让你目瞪口呆',
+      '它是怎么找到出口的？？',
+      '注意最后 5 秒钟',
+      '谁也没想到会有这记反弹',
+    ],
+    challenge: [
+      '挑战全程不眨眼',
+      '猜猜哪个颜色的球能赢',
+      '只有 1% 的人能猜对答案',
+      '在倒计时结束前留下你的预言',
+      '你绝对会忍不住看第二遍',
+    ],
+    prediction: [
+      '开局先选好你的专属颜色',
+      '奖杯最终花落谁家 🏆？？👇',
+      '在评论区留下你支持的颜色',
+      '青色还是粉色：你站哪一边？？',
+    ],
+    countdown: [
+      '恰好在 0.0 秒极限逃生',
+      '60 秒紧张倒计时开始',
+      '最后一秒的史诗级绝杀',
+      '倒计时归零瞬间应声落地',
+    ],
+    asmr: [
+      '请戴上耳机享受极致 ASMR 听觉盛宴',
+      '治愈解压极度舒适的物理音效',
+      '清脆空灵的水晶音律',
+      '瞬间舒缓压力的白噪音设计',
+    ],
+    funny: [
+      '物理定律在这里彻底摆烂了',
+      '小球当场表示坚决不出门 💀',
+      '就差这 1 像素死活过不去',
+      '最后的反转简直让人哭笑不得',
+    ],
+    suspense: [
+      '紧张到让人屏住呼吸',
+      '连续 7 次与逃生擦肩而过',
+      '最后一个环已经开始摇摇欲坠',
+      '毫厘之间的绝地求生',
+    ],
+  },
+  hi_hinglish: {
+    curiosity: [
+      'kya ye ball sach me nikal payegi??',
+      'last ring tak zaroor dekhna',
+      'ending dekh kar hosh ud jayenge',
+      'isne rasta kaise dhundha??',
+      'aakhri 5 seconds miss mat karna',
+    ],
+    challenge: [
+      'bina palke jhapkye dekh ke dikhao',
+      'winner guess karke comment karo',
+      'sirf 1% log sahi answer de pate hain',
+      'timer khatam hone se pehle batao',
+    ],
+    prediction: [
+      'start hone se pehle apna color chuno',
+      'kaun jeetega aaj ka match?? 👇',
+      'apna favorite color comment karo',
+      'trophy kisko milegi 🏆??',
+    ],
+    countdown: [
+      'exact 0.0 second par escape',
+      '60 seconds ka countdown shuru',
+      'aakhri second me clutch kar liya',
+    ],
+    asmr: [
+      'headphones lagao best asmr feel ke liye',
+      'ekdum satisfying aur relaxing sound',
+      'crystal glass ping harmonics',
+    ],
+    funny: [
+      'physics ne yahan hath khade kar diye',
+      'ball ne seedha mana kar diya 💀',
+      'sirf 1 pixel se reh gaya yaar',
+    ],
+    suspense: [
+      'itna close tha ki saans ruk gayi',
+      '7 baar nikalte nikalte bacha',
+      'aakhri ring hil raha hai zor se',
+    ],
+  },
 };
+
+// Aliases for locale routing
+(OFFLINE_HOOK_TEMPLATES as any)['ur'] = OFFLINE_HOOK_TEMPLATES['ur_script'];
+(OFFLINE_HOOK_TEMPLATES as any)['pt-BR'] = OFFLINE_HOOK_TEMPLATES['pt'];
 
 /**
  * Generate 6 varied offline hooks tailored to the simulation

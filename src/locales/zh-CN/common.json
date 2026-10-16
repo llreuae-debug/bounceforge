@@ -1,0 +1,72 @@
+{
+  "brand": "BounceForge",
+  "tagline": "240Hz 爆款弹球物理工作台",
+  "nav": {
+    "modes": "模拟模式",
+    "engine": "物理与音频",
+    "faq": "常见问题",
+    "pricing": "会员定价",
+    "blog": "官方博客",
+    "diagnostics": "性能诊断",
+    "showcase": "作品展厅",
+    "about": "关于我们",
+    "feedback": "意见反馈",
+    "login": "登录",
+    "signup": "注册",
+    "studio": "创作工作室",
+    "openStudio": "免费启动工作室",
+    "backToStudio": "返回工作室",
+    "backToTop": "回到顶部 ↑",
+    "logout": "退出登录",
+    "settings": "设置选项",
+    "account": "我的账户",
+    "admin": "管理控制台"
+  },
+  "actions": {
+    "save": "Save",
+    "load": "Load",
+    "share": "Share",
+    "export": "Export 4K",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "add": "Add",
+    "reset": "Reset",
+    "search": "Search...",
+    "filter": "Filter",
+    "copy": "Copy",
+    "copied": "Copied to clipboard!",
+    "download": "Download",
+    "preview": "Preview",
+    "refresh": "Refresh",
+    "duplicate": "Duplicate",
+    "rename": "Rename"
+  },
+  "ui": {
+    "loading": "Loading BounceForge...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Notice",
+    "approx": "approx.",
+    "poweredBy": "Public Domain & Synthesized Audio",
+    "rights": "© 2026 BOUNCEFORGE. All rights reserved.",
+    "guestMode": "访客体验模式",
+    "loginToKeep": "log in to keep these on all ur devices"
+  },
+  "hotkeys": {
+    "title": "STUDIO HOTKEYS",
+    "space": "Play/Pause",
+    "r": "Restart",
+    "n": "Next Seed",
+    "e": "Export 4K",
+    "hint": "Press ? for keyboard shortcut sheet"
+  },
+  "language": {
+    "switcher": "Language",
+    "switchPrompt": "本页面支持{language} → 点击切换",
+    "dismiss": "Dismiss"
+  }
+}

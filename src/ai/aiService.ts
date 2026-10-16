@@ -251,6 +251,7 @@ export class AiService {
     seed?: number;
     resolution?: string;
     variationIndex?: number;
+    language?: string;
   }): Promise<SeoPack> {
     const offlinePack = generateSeoPack(params);
 
@@ -269,6 +270,7 @@ export class AiService {
           duration: params.duration || 60,
           seed: params.seed || 1337,
           resolution: params.resolution || '1080',
+          language: params.language || 'en',
         }),
         signal: controller.signal,
       });

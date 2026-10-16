@@ -347,4 +347,140 @@ export class AsmrEngine {
       }
     }
   }
+
+  /**
+   * Break effect sound matching the user break effect picker
+   */
+  playBreakEffectSound(effect: 'confetti' | 'glass_shatter' | 'shockwave' | 'sparks'): void {
+    if (!this.ctx) return;
+    this.resume();
+    const t = this.ctx.currentTime;
+    const dest = this.compressor!;
+
+    switch (effect) {
+      case 'confetti': {
+        // Festive air-pop and fluttering paper crackle
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(360, t);
+        osc.frequency.exponentialRampToValueAtTime(780, t + 0.06);
+        gain.gain.setValueAtTime(this.settings.destructionVolume * 0.8, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        osc.connect(gain);
+        gain.connect(dest);
+        osc.start(t);
+        osc.stop(t + 0.12);
+        break;
+      }
+      case 'glass_shatter': {
+        // Crisp high-frequency glass crack & shattering shards
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc1.type = 'sawtooth';
+        osc1.frequency.setValueAtTime(2850, t);
+        osc1.frequency.exponentialRampToValueAtTime(1400, t + 0.15);
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(4200, t);
+        osc2.frequency.exponentialRampToValueAtTime(1800, t + 0.2);
+        gain.gain.setValueAtTime(this.settings.destructionVolume * 0.85, t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(dest);
+        osc1.start(t);
+        osc2.start(t);
+        osc1.stop(t + 0.25);
+        osc2.stop(t + 0.25);
+        break;
+      }
+      case 'shockwave': {
+        // Deep resonant sub-bass boom
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(80, t);
+        osc.frequency.exponentialRampToValueAtTime(28, t + 0.45);
+        gain.gain.setValueAtTime(this.settings.destructionVolume * 0.95, t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+        osc.connect(gain);
+        gain.connect(dest);
+        osc.start(t);
+        osc.stop(t + 0.5);
+        break;
+      }
+      case 'sparks': {
+        // High-energy electrical sizzling arc snap
+        const len = this.ctx.sampleRate * 0.08;
+        const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.015));
+        }
+        const src = this.ctx.createBufferSource();
+        src.buffer = buf;
+        const hp = this.ctx.createBiquadFilter();
+        hp.type = 'highpass';
+        hp.frequency.setValueAtTime(2400, t);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(this.settings.destructionVolume * 0.9, t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+        src.connect(hp);
+        hp.connect(gain);
+        gain.connect(dest);
+        src.start(t);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Soft nope tone for wrong sequence break hit (soft downward blip)
+   */
+  playNopeTone(): void {
+    if (!this.ctx) return;
+    this.resume();
+    const t = this.ctx.currentTime;
+    const dest = this.compressor!;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(220, t);
+    osc.frequency.exponentialRampToValueAtTime(130, t + 0.1);
+    gain.gain.setValueAtTime(this.settings.impactVolume * 0.5, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    osc.connect(gain);
+    gain.connect(dest);
+    osc.start(t);
+    osc.stop(t + 0.12);
+  }
+
+  /**
+   * Radiant harmonic chord for color lock match
+   */
+  playChordMatch(): void {
+    if (!this.ctx) return;
+    this.resume();
+    const t = this.ctx.currentTime;
+    const dest = this.compressor!;
+
+    // Major Triad shimmer: C5 (523.25), E5 (659.25), G5 (783.99), C6 (1046.50)
+    const freqs = [523.25, 659.25, 783.99, 1046.5];
+    freqs.forEach((f, idx) => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, t + idx * 0.02);
+      gain.gain.setValueAtTime(this.settings.destructionVolume * 0.4, t + idx * 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+      osc.connect(gain);
+      gain.connect(dest);
+      osc.start(t + idx * 0.02);
+      osc.stop(t + 0.7);
+    });
+  }
 }
+

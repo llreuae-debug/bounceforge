@@ -1,0 +1,34 @@
+{
+  "console": "Admin Console",
+  "tabs": {
+    "dashboard": "Dashboard",
+    "members": "Members",
+    "pricing": "Pricing",
+    "coupons": "Coupons",
+    "affiliates": "Affiliates",
+    "content": "Blog CMS",
+    "feedback": "Feedback & Bugs",
+    "showcase": "Showcase CMS",
+    "translations": "Translation Manager",
+    "settings": "Settings",
+    "audit": "Audit Log"
+  },
+  "translationsManager": {
+    "title": "Global Translation Manager",
+    "subtitle": "Manage UI strings, reviews, and missing keys across all 16 supported languages",
+    "filterAll": "All Keys",
+    "filterMissing": "Missing",
+    "filterReview": "Needs Review",
+    "filterReviewed": "Reviewed",
+    "autoTranslate": "Auto-Translate Missing (AI)",
+    "markReviewed": "Mark Page Reviewed",
+    "exportJson": "Export JSON",
+    "importJson": "Import JSON",
+    "exportCsv": "Export CSV",
+    "statusReviewed": "Reviewed",
+    "statusNeedsReview": "Needs Review",
+    "statusMissing": "Missing",
+    "saveKey": "Save Translation",
+    "searchPlaceholder": "Search keys or translated values..."
+  }
+}

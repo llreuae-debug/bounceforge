@@ -19,7 +19,7 @@ export const AiHookSuggester: React.FC<AiHookSuggesterProps> = ({
   category,
   endingType = 'escape',
 }) => {
-  const { showToast } = useStudioStore();
+  const { showToast, overlays } = useStudioStore();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState<string[]>([]);
@@ -27,11 +27,18 @@ export const AiHookSuggester: React.FC<AiHookSuggesterProps> = ({
   const [showMyHooks, setShowMyHooks] = useState(false);
   const [myHooks, setMyHooks] = useState<string[]>([]);
 
-  // Controls
+  // Controls - sync with overlay video language
+  const defaultLang: SupportedLanguage = (overlays?.videoLanguage as SupportedLanguage) || 'en';
   const [selectedStyles, setSelectedStyles] = useState<HookStyle[]>(['curiosity', 'challenge']);
-  const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguage>('en');
+  const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguage>(defaultLang);
   const [emojiEnabled, setEmojiEnabled] = useState(true);
   const [casing, setCasing] = useState<'as_written' | 'lowercase' | 'uppercase'>('as_written');
+
+  useEffect(() => {
+    if (overlays?.videoLanguage) {
+      setSelectedLanguage(overlays.videoLanguage as SupportedLanguage);
+    }
+  }, [overlays?.videoLanguage]);
 
   const availableStyles: { id: HookStyle; label: string }[] = [
     { id: 'curiosity', label: 'curiosity' },
@@ -45,14 +52,23 @@ export const AiHookSuggester: React.FC<AiHookSuggesterProps> = ({
 
   const languages: { id: SupportedLanguage; label: string }[] = [
     { id: 'en', label: 'English' },
-    { id: 'ur_roman', label: 'Urdu (Roman)' },
     { id: 'ur_script', label: 'Urdu (اردو)' },
+    { id: 'ur_roman', label: 'Urdu (Roman Urdu)' },
     { id: 'hi', label: 'Hindi (हिन्दी)' },
+    { id: 'hi_hinglish', label: 'Hindi (Hinglish)' },
     { id: 'ar', label: 'Arabic (العربية)' },
-    { id: 'es', label: 'Spanish' },
-    { id: 'pt', label: 'Portuguese' },
-    { id: 'id', label: 'Indonesian' },
-    { id: 'tr', label: 'Turkish' },
+    { id: 'es', label: 'Español' },
+    { id: 'pt-BR', label: 'Português (Brasil)' },
+    { id: 'fr', label: 'Français' },
+    { id: 'de', label: 'Deutsch' },
+    { id: 'id', label: 'Bahasa Indonesia' },
+    { id: 'tr', label: 'Türkçe' },
+    { id: 'ru', label: 'Русский' },
+    { id: 'bn', label: 'বাংলা (Bengali)' },
+    { id: 'vi', label: 'Tiếng Việt' },
+    { id: 'ja', label: '日本語 (Japanese)' },
+    { id: 'ko', label: '한국어 (Korean)' },
+    { id: 'zh-CN', label: '简体中文 (Chinese)' },
   ];
 
   useEffect(() => {

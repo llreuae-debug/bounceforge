@@ -1,4 +1,7 @@
 import { getSafeArena, PlatformType, isInsideSafeBox } from './safeArea';
+import { SupportedLanguage, isRTL } from '../i18n/config';
+import { getScriptFontFamily, ensureFontLoaded } from '../i18n/fonts';
+import { getOverlayStrings } from './overlayLocalization';
 
 export interface OverlaySettings {
   showTitle: boolean;
@@ -6,6 +9,23 @@ export interface OverlaySettings {
   titleFontSize: number;
   titleColor: string;
   titleY: number; // percentage from top (between 12% and 22%, default 17)
+  titleBold?: boolean;
+  titleOutline?: boolean;
+
+  // Bottom caption (kept inside safe area)
+  showBottomCaption?: boolean;
+  bottomCaptionText?: string;
+  bottomCaptionSize?: number;
+  bottomCaptionColor?: string;
+  bottomCaptionBold?: boolean;
+  bottomCaptionOutline?: boolean;
+
+  // Center text (optional text in the middle of the arena e.g. @handle or a question)
+  showCenterText?: boolean;
+  centerText?: string;
+  centerTextSize?: number;
+  centerTextOpacity?: number;
+  centerTextColor?: string;
 
   showCounter: boolean;
   counterType: 'rings' | 'balls' | 'bounces' | 'timer' | 'percent';
@@ -29,6 +49,9 @@ export interface OverlaySettings {
   showPartSeries?: boolean;
   partNumber?: number;
 
+  // Video text language (independent of UI language)
+  videoLanguage?: SupportedLanguage;
+
   // Safe zones & generic mockup (Preview only, NEVER in video export)
   showSafeZone: boolean;
   showPlatformMockup: boolean;
@@ -41,6 +64,21 @@ export const DEFAULT_OVERLAYS: OverlaySettings = {
   titleFontSize: 42,
   titleColor: '#ffffff',
   titleY: 17, // 17% of height (between 12% and 22% safe area)
+  titleBold: true,
+  titleOutline: true,
+
+  showBottomCaption: false,
+  bottomCaptionText: 'wait for the ending 😱',
+  bottomCaptionSize: 34,
+  bottomCaptionColor: '#ffffff',
+  bottomCaptionBold: true,
+  bottomCaptionOutline: true,
+
+  showCenterText: false,
+  centerText: '@bounceforge',
+  centerTextSize: 38,
+  centerTextOpacity: 0.35,
+  centerTextColor: '#ffffff',
 
   showCounter: true,
   counterType: 'rings',
@@ -63,6 +101,8 @@ export const DEFAULT_OVERLAYS: OverlaySettings = {
   predictionDuration: 2.0,
   showPartSeries: false,
   partNumber: 1,
+
+  videoLanguage: 'en',
 
   showSafeZone: false,
   showPlatformMockup: false,
@@ -91,6 +131,16 @@ export function drawOverlays(
 ): void {
   ctx.save();
 
+  const videoLang = settings.videoLanguage || 'en';
+  const overlayStrings = getOverlayStrings(videoLang);
+  const scriptFont = getScriptFontFamily(videoLang);
+  const isLangRtl = isRTL(videoLang);
+
+  // Proactively ensure font is loaded
+  if (typeof document !== 'undefined') {
+    ensureFontLoaded(videoLang).catch(() => {});
+  }
+
   const arena = getSafeArena(width, height, settings.safeZonePlatform);
   const scale = width / 1080;
 
@@ -110,7 +160,8 @@ export function drawOverlays(
 
   // 2. Hook Title (Between 12% and 22% of frame height, centered, auto-shrinks to fit in safe box)
   let titleBox: { x: number; y: number; width: number; height: number } | null = null;
-  if (settings.showTitle && settings.titleText) {
+  const rawTitle = settings.titleText || overlayStrings.defaultHook;
+  if (settings.showTitle && rawTitle) {
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -120,20 +171,18 @@ export function drawOverlays(
     const titlePosY = (height * clampedTitleYPct) / 100;
     const maxTitleW = arena.layout.titleMaxW;
 
-    const isRtl = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(settings.titleText);
+    const isRtl = isLangRtl || /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(rawTitle);
     ctx.direction = isRtl ? 'rtl' : 'ltr';
 
     let fontSize = Math.round((settings.titleFontSize || 42) * scale);
-    const fontStack =
-      '"Noto Nastaliq Urdu", "Geeza Pro", "Arabic Typesetting", "Noto Sans Devanagari", "Kohinoor Devanagari", "Helvetica Neue", Helvetica, Arial, sans-serif';
-    ctx.font = `bold ${fontSize}px ${fontStack}`;
+    ctx.font = `bold ${fontSize}px ${scriptFont}`;
 
     // Measure text and shrink if needed to fit maxTitleW
-    let textWidth = ctx.measureText(settings.titleText).width;
-    while (textWidth > maxTitleW && fontSize > 18 * scale) {
+    let textWidth = ctx.measureText(rawTitle).width;
+    while (textWidth > maxTitleW && fontSize > 16 * scale) {
       fontSize -= 2 * scale;
-      ctx.font = `bold ${Math.round(fontSize)}px ${fontStack}`;
-      textWidth = ctx.measureText(settings.titleText).width;
+      ctx.font = `bold ${Math.round(fontSize)}px ${scriptFont}`;
+      textWidth = ctx.measureText(rawTitle).width;
     }
 
     // Drop shadow for legibility
@@ -141,7 +190,7 @@ export function drawOverlays(
     ctx.shadowBlur = Math.round(12 * scale);
     ctx.fillStyle = settings.titleColor;
 
-    ctx.fillText(settings.titleText, width / 2, titlePosY);
+    ctx.fillText(rawTitle, width / 2, titlePosY);
     ctx.restore();
 
     titleBox = {
@@ -152,27 +201,32 @@ export function drawOverlays(
     };
   }
 
-  // Part Series Badge (Inside safe box, top-left)
+  // Part Series Badge (Inside safe box, mirrored to top-right in RTL)
   if (settings.showPartSeries) {
     ctx.save();
-    const partText = `PART ${settings.partNumber || 1}`;
-    ctx.font = `bold ${Math.round(20 * scale)}px Helvetica, Arial, sans-serif`;
-    ctx.textAlign = 'left';
+    const partText = overlayStrings.part(settings.partNumber || 1);
+    ctx.font = `bold ${Math.round(20 * scale)}px ${scriptFont}`;
+    ctx.textAlign = isLangRtl ? 'right' : 'left';
     ctx.textBaseline = 'middle';
     const txtW = ctx.measureText(partText).width;
-    const pillX = arena.safeBox.x + 16 * scale;
+    const pillW = txtW + 24 * scale;
+    const pillH = 28 * scale;
+    const pillX = isLangRtl
+      ? arena.safeBox.x + arena.safeBox.width - pillW - 16 * scale
+      : arena.safeBox.x + 16 * scale;
     const pillY = arena.safeBox.y + 36 * scale;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
     ctx.strokeStyle = '#ff007f';
     ctx.lineWidth = 2 * scale;
     ctx.beginPath();
-    ctx.roundRect ? ctx.roundRect(pillX, pillY - 14 * scale, txtW + 20 * scale, 28 * scale, 14 * scale) : ctx.rect(pillX, pillY - 14 * scale, txtW + 20 * scale, 28 * scale);
+    ctx.roundRect ? ctx.roundRect(pillX, pillY - 14 * scale, pillW, pillH, 14 * scale) : ctx.rect(pillX, pillY - 14 * scale, pillW, pillH);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#ff007f';
-    ctx.fillText(partText, pillX + 10 * scale, pillY);
+    const textTargetX = isLangRtl ? pillX + pillW - 12 * scale : pillX + 12 * scale;
+    ctx.fillText(partText, textTargetX, pillY);
     ctx.restore();
   }
 
@@ -196,13 +250,13 @@ export function drawOverlays(
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `bold ${Math.round(32 * scale)}px Helvetica, Arial, sans-serif`;
+    ctx.font = `bold ${Math.round(30 * scale)}px ${scriptFont}`;
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('PICK UR COLOR 👇', width / 2, cardY + 45 * scale);
+    ctx.fillText(overlayStrings.pickColor, width / 2, cardY + 45 * scale);
 
-    ctx.font = `bold ${Math.round(18 * scale)}px Helvetica, Arial, sans-serif`;
+    ctx.font = `bold ${Math.round(18 * scale)}px ${scriptFont}`;
     ctx.fillStyle = '#00f0ff';
-    ctx.fillText('comment before 0:02 to predict the winner', width / 2, cardY + 90 * scale);
+    ctx.fillText(overlayStrings.predictPrompt, width / 2, cardY + 90 * scale);
     ctx.restore();
   }
 
@@ -212,7 +266,7 @@ export function drawOverlays(
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const counterFontSize = Math.round((settings.counterFontSize || 36) * scale);
-    ctx.font = `bold ${counterFontSize}px Helvetica, Arial, sans-serif`;
+    ctx.font = `bold ${counterFontSize}px ${scriptFont}`;
     ctx.fillStyle = settings.counterColor;
     ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
     ctx.shadowBlur = Math.round(8 * scale);
@@ -224,13 +278,15 @@ export function drawOverlays(
     } else {
       switch (settings.counterType) {
         case 'rings':
-          counterText = `${customLabel ? customLabel.toUpperCase() : 'RINGS LEFT'}: ${stats.ringsLeft}`;
+          counterText = customLabel
+            ? `${customLabel.toUpperCase()}: ${stats.ringsLeft}`
+            : overlayStrings.ringsLeft(stats.ringsLeft);
           break;
         case 'balls':
-          counterText = `${customLabel ? customLabel.toUpperCase() : 'BALLS'}: ${stats.ballsCount}`;
+          counterText = `${customLabel ? customLabel.toUpperCase() : overlayStrings.balls}: ${stats.ballsCount}`;
           break;
         case 'bounces':
-          counterText = `${customLabel ? customLabel.toUpperCase() : 'BOUNCES'}: ${stats.bounces}`;
+          counterText = `${customLabel ? customLabel.toUpperCase() : overlayStrings.bounces}: ${stats.bounces}`;
           break;
         case 'timer': {
           const mins = Math.floor(stats.elapsedTime / 60);
@@ -251,7 +307,66 @@ export function drawOverlays(
     ctx.restore();
   }
 
+  // 3b. Center Text (Optional text in middle of arena e.g. @handle or question, separate from watermark)
+  if (settings.showCenterText && settings.centerText) {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.globalAlpha = settings.centerTextOpacity ?? 0.35;
+    const centerFontSize = Math.round((settings.centerTextSize || 38) * scale);
+    ctx.font = `900 ${centerFontSize}px ${scriptFont}`;
+    ctx.fillStyle = settings.centerTextColor || '#ffffff';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+    ctx.shadowBlur = Math.round(10 * scale);
+    ctx.fillText(settings.centerText, arena.centerX, arena.centerY);
+    ctx.restore();
+  }
+
+  // 3c. Bottom Caption (Kept strictly inside safe area)
+  let bottomCaptionBox: { x: number; y: number; width: number; height: number } | null = null;
+  const rawCaption = settings.bottomCaptionText || overlayStrings.defaultBottomCaption;
+  if (settings.showBottomCaption && rawCaption) {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Position just above the watermark or bottom safe area margin
+    const bottomPosY = arena.layout.watermarkBottomY - arena.layout.watermarkW / 4 - 32 * scale;
+    const maxCaptionW = arena.safeBox.width;
+
+    let fontSize = Math.round((settings.bottomCaptionSize || 34) * scale);
+    const weight = settings.bottomCaptionBold !== false ? 'bold' : 'normal';
+    ctx.font = `${weight} ${fontSize}px ${scriptFont}`;
+
+    let textWidth = ctx.measureText(rawCaption).width;
+    while (textWidth > maxCaptionW && fontSize > 16 * scale) {
+      fontSize -= 2 * scale;
+      ctx.font = `${weight} ${fontSize}px ${scriptFont}`;
+      textWidth = ctx.measureText(rawCaption).width;
+    }
+
+    if (settings.bottomCaptionOutline !== false) {
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+      ctx.shadowBlur = Math.round(12 * scale);
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = Math.round(4 * scale);
+      ctx.strokeText(rawCaption, width / 2, bottomPosY);
+    }
+
+    ctx.fillStyle = settings.bottomCaptionColor || '#ffffff';
+    ctx.fillText(rawCaption, width / 2, bottomPosY);
+    ctx.restore();
+
+    bottomCaptionBox = {
+      x: width / 2 - textWidth / 2,
+      y: bottomPosY - fontSize / 2,
+      width: textWidth,
+      height: fontSize,
+    };
+  }
+
   // 4. Watermark (Centered, bottom edge at 23% from frame bottom, width 30% of frame, 60% opacity)
+
   let watermarkBox: { x: number; y: number; width: number; height: number } | null = null;
   if (settings.showWatermark) {
     watermarkBox = drawFlatWatermark(ctx, width, height, arena, settings.watermarkOpacity);
@@ -269,19 +384,24 @@ export function drawOverlays(
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `bold ${Math.round(44 * scale)}px Helvetica, Arial, sans-serif`;
+    ctx.font = `bold ${Math.round(44 * scale)}px ${scriptFont}`;
     ctx.fillStyle = '#ffdf00';
     ctx.shadowColor = 'rgba(255, 223, 0, 0.6)';
     ctx.shadowBlur = Math.round(20 * scale);
 
-    const winnerName = stats.winner ? `${stats.winner} WINS` : settings.endCardText.replace('🏆', '').trim();
+    const winnerName = stats.winner
+      ? overlayStrings.winner(stats.winner)
+      : (settings.endCardText || overlayStrings.escaped).replace('🏆', '').trim();
     ctx.fillText(winnerName, arena.centerX, arena.centerY + 8 * scale);
 
     // CTA Line inside safe area
     ctx.shadowBlur = 0;
-    ctx.font = `bold ${Math.round(20 * scale)}px Helvetica, Arial, sans-serif`;
+    ctx.font = `bold ${Math.round(20 * scale)}px ${scriptFont}`;
     ctx.fillStyle = '#00f0ff';
-    const ctaText = settings.endCardCta || 'follow for part 2 • comment ur color';
+    const ctaText =
+      settings.endCardCta && settings.endCardCta !== 'follow for part 2 • comment ur color'
+        ? settings.endCardCta
+        : overlayStrings.followCta;
     ctx.fillText(ctaText, arena.centerX, arena.centerY + 58 * scale);
     ctx.restore();
   }

@@ -1,0 +1,36 @@
+{
+  "top": {
+    "projectName": "پروجیکٹ کا نام",
+    "guestBadge": "مہمان موڈ (30 سیکنڈ، 720p)",
+    "saveTooltip": "لوکل محفوظ کریں",
+    "shareTooltip": "سیڈ لنک کاپی کریں",
+    "surpriseTooltip": "رینڈم موڈ اور میوزک سے سرپرائز کریں",
+    "exportTooltip": "ہائی ریزولوشن ویڈیو ایکسپورٹ کریں"
+  },
+  "hud": {
+    "speed": "رفتار",
+    "bounceBoost": "باؤنس بوسٹ",
+    "energy": "{percent}% بوسٹ",
+    "safeArea": "سیف ایریا",
+    "mute": "آواز بند کریں",
+    "unmute": "آواز کھولیں"
+  },
+  "canvas": {
+    "next": "اگلا: {target}",
+    "ringsLeft": "{count, plural, one {# رنگ باقی} other {# رنگز باقی}}",
+    "cleared": "{current} / {total} کلیئر ہو گئے",
+    "escapeOpen": "راستہ کھل گیا!",
+    "winner": "فاتح: {name}",
+    "freezeStack": "{count} جمی ہوئی گیندیں"
+  },
+  "restartModal": {
+    "title": "سمیلیشن دوبارہ شروع کریں؟",
+    "desc": "اس سے فزکس ٹائم 0.00 پر چلا جائے گا لیکن سیڈ #{seed} اور ترتیبات محفوظ رہیں گی۔",
+    "confirm": "دوبارہ شروع کریں",
+    "cancel": "جاری رکھیں"
+  },
+  "shortcutsModal": {
+    "title": "کی بورڈ شارٹ کٹس",
+    "close": "بند کریں"
+  }
+}

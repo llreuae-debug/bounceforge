@@ -21,11 +21,24 @@ export interface Ball {
   trail: Vector2D[];
   isAlive: boolean;
   bounces: number;
+  rotation?: number;
+  angularVelocity?: number;
+  bounceBoostEnabled?: boolean;
+  bounceBoostRate?: number;
+  bounceBoostMax?: number;
+  currentBounceBoost?: number;
+  initialRestitution?: number;
+  customEmoji?: string;
+  customImageDataUrl?: string;
+  customTexture?: any;
   tier?: number;
   name?: string;
   score?: number;
   tag?: string;
+  label?: string;
 }
+
+export type BreakEffectType = 'confetti' | 'glass_shatter' | 'shockwave' | 'sparks';
 
 export interface ArcRing {
   id: number;
@@ -42,6 +55,7 @@ export interface ArcRing {
   isShattered: boolean;
   shatterTime?: number;
   shatterOnEscape?: boolean;
+  breakEffects?: BreakEffectType[];
   segments?: {
     startAngle: number;
     endAngle: number;
@@ -97,12 +111,14 @@ export interface Particle {
   vy: number;
   color: string;
   size: number;
+  width?: number;
+  height?: number;
   alpha: number;
   maxLife: number;
   life: number;
   rotation?: number;
   angularVelocity?: number;
-  type?: 'spark' | 'shard' | 'sand' | 'dust';
+  type?: 'spark' | 'shard' | 'sand' | 'dust' | 'confetti';
 }
 
 export interface Shockwave {
@@ -137,6 +153,7 @@ export interface PhysicsWorldConfig {
   restitution: number;
   antiStallMinSpeed: number;
   antiStallImpulse: number;
+  maxSpeedCap?: number;
 }
 
 export interface SimulationStats {
@@ -148,5 +165,7 @@ export interface SimulationStats {
   fps: number;
   isFinished: boolean;
   winner?: string;
+  bounceBoostEnergy?: number; // 0 to 1 energy meter
   customCounters?: Record<string, string | number>;
 }
+

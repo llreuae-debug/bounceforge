@@ -1,0 +1,72 @@
+{
+  "brand": "BounceForge",
+  "tagline": "Studio vật lý bóng viral 240Hz",
+  "nav": {
+    "modes": "Chế độ",
+    "engine": "Engine & Audio",
+    "faq": "FAQ",
+    "pricing": "Gói cước",
+    "blog": "Blog",
+    "diagnostics": "Diagnostics",
+    "showcase": "Showcase",
+    "about": "About",
+    "feedback": "Feedback",
+    "login": "Log in",
+    "signup": "Sign up",
+    "studio": "Studio",
+    "openStudio": "Mở Studio Miễn Phí",
+    "backToStudio": "Back to Studio",
+    "backToTop": "Back to Top ↑",
+    "logout": "Log out",
+    "settings": "Settings",
+    "account": "My Account",
+    "admin": "Admin Console"
+  },
+  "actions": {
+    "save": "Save",
+    "load": "Load",
+    "share": "Share",
+    "export": "Xuất 4K",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "add": "Add",
+    "reset": "Reset",
+    "search": "Search...",
+    "filter": "Filter",
+    "copy": "Copy",
+    "copied": "Copied to clipboard!",
+    "download": "Download",
+    "preview": "Preview",
+    "refresh": "Refresh",
+    "duplicate": "Duplicate",
+    "rename": "Rename"
+  },
+  "ui": {
+    "loading": "Loading BounceForge...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Notice",
+    "approx": "approx.",
+    "poweredBy": "Public Domain & Synthesized Audio",
+    "rights": "© 2026 BOUNCEFORGE. All rights reserved.",
+    "guestMode": "Chế độ Khách",
+    "loginToKeep": "log in to keep these on all ur devices"
+  },
+  "hotkeys": {
+    "title": "STUDIO HOTKEYS",
+    "space": "Play/Pause",
+    "r": "Restart",
+    "n": "Next Seed",
+    "e": "Export 4K",
+    "hint": "Press ? for keyboard shortcut sheet"
+  },
+  "language": {
+    "switcher": "Language",
+    "switchPrompt": "Trang này có sẵn bằng {language} → Chuyển đổi",
+    "dismiss": "Dismiss"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "brand": "BounceForge",
+  "tagline": "Estudio de física de bolas viral a 240Hz",
+  "nav": {
+    "modes": "Modos",
+    "engine": "Motor y Audio",
+    "faq": "Preguntas",
+    "pricing": "Precios",
+    "blog": "Blog",
+    "diagnostics": "Diagnóstico",
+    "showcase": "Galería",
+    "about": "Acerca de",
+    "feedback": "Feedback",
+    "login": "Entrar",
+    "signup": "Registrarse",
+    "studio": "Estudio",
+    "openStudio": "Abrir Estudio Gratis",
+    "backToStudio": "Volver al Estudio",
+    "backToTop": "Subir ↑",
+    "logout": "Salir",
+    "settings": "Ajustes",
+    "account": "Mi Cuenta",
+    "admin": "Consola Admin"
+  },
+  "actions": {
+    "save": "Guardar",
+    "load": "Cargar",
+    "share": "Compartir",
+    "export": "Exportar 4K",
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "add": "Añadir",
+    "reset": "Reiniciar",
+    "search": "Buscar...",
+    "filter": "Filtrar",
+    "copy": "Copiar",
+    "copied": "¡Copiado al portapapeles!",
+    "download": "Descargar",
+    "preview": "Vista previa",
+    "refresh": "Actualizar",
+    "duplicate": "Duplicar",
+    "rename": "Renombrar"
+  },
+  "ui": {
+    "loading": "Cargando BounceForge...",
+    "success": "Éxito",
+    "error": "Error",
+    "warning": "Aviso",
+    "approx": "aprox.",
+    "poweredBy": "Dominio público y audio sintetizado",
+    "rights": "© 2026 BOUNCEFORGE. Todos los derechos reservados.",
+    "guestMode": "Modo Invitado",
+    "loginToKeep": "Inicia sesión para guardar esto en todos tus dispositivos"
+  },
+  "hotkeys": {
+    "title": "ATAJOS DE TECLADO",
+    "space": "Pausa/Play",
+    "r": "Reiniciar",
+    "n": "Siguiente Seed",
+    "e": "Exportar 4K",
+    "hint": "Presiona ? para ver la hoja de atajos"
+  },
+  "language": {
+    "switcher": "Idioma",
+    "switchPrompt": "Esta página está disponible en {language} → Cambiar",
+    "dismiss": "Descartar"
+  }
+}

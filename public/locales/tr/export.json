@@ -1,0 +1,15 @@
+{
+  "title": "Export Deterministic Video",
+  "subtitle": "Hardware-accelerated client-side encoding up to 4K 60FPS",
+  "guestNotice": "Guest Mode: Exports capped at 30 seconds at 720p with BounceForge watermark. Sign up to unlock 4K and remove watermark.",
+  "upgradeCTA": "Unlock Creator Pro 4K",
+  "durationLabel": "Duration",
+  "resolutionLabel": "Resolution",
+  "fpsLabel": "Frame Rate",
+  "formatLabel": "Format",
+  "progress": "Rendering Frame {current} of {total} ({percent}%)",
+  "complete": "Export Complete! Your video is ready to download.",
+  "downloadBtn": "Download MP4",
+  "renderBtn": "Start Rendering",
+  "cancelBtn": "Cancel Export"
+}

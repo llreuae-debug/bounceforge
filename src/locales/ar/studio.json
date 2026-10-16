@@ -1,0 +1,36 @@
+{
+  "top": {
+    "projectName": "اسم المشروع",
+    "guestBadge": "وضع الزائر (30 ثانية، 720p)",
+    "saveTooltip": "حفظ المشروع محلياً",
+    "shareTooltip": "نسخ رابط البذرة",
+    "surpriseTooltip": "فاجئني بوضع وموسيقى عشوائية",
+    "exportTooltip": "تصدير الفيديو بدقة عالية"
+  },
+  "hud": {
+    "speed": "السرعة",
+    "bounceBoost": "تعزيز الارتداد",
+    "energy": "{percent}% تعزيز",
+    "safeArea": "المنطقة الآمنة",
+    "mute": "كتم الصوت",
+    "unmute": "تشغيل الصوت"
+  },
+  "canvas": {
+    "next": "التالي: {target}",
+    "ringsLeft": "{count, plural, one {حلقة متبقية} other {# حلقات متبقية}}",
+    "cleared": "{current} / {total} تم اجتيازها",
+    "escapeOpen": "فُتح المخرج!",
+    "winner": "الفائز: {name}",
+    "freezeStack": "{count} كرات متجمدة"
+  },
+  "restartModal": {
+    "title": "Restart Simulation?",
+    "desc": "This will reset physics time to 0.00s while preserving seed #{seed} and your current settings.",
+    "confirm": "Restart Simulation",
+    "cancel": "Keep Playing"
+  },
+  "shortcutsModal": {
+    "title": "Keyboard Shortcuts",
+    "close": "Close Shortcuts"
+  }
+}

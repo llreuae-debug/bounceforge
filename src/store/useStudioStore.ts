@@ -14,6 +14,13 @@ import { QualityMode, QualityTier } from '../platform/quality';
 import { DeviceCapabilities } from '../platform/capabilities';
 import { getHapticsEnabled, setHapticsEnabled as setHapticsStorage } from '../platform/haptics';
 import { AiService, DEFAULT_AI_SETTINGS } from '../ai/aiService';
+import {
+  presetService,
+  SavedPreset,
+  BallPhysicsSettings,
+  WallControlsSettings,
+  CustomBallConfig,
+} from '../presets/presetService';
 
 export interface ToastState {
   id: number;
@@ -54,7 +61,12 @@ export type StudioRoute =
   | 'refunds'
   | 'checkout_success'
   | 'checkout_cancelled'
+  | 'about'
+  | 'showcase'
+  | 'feedback'
+  | 'disclaimer'
   | '404';
+
 
 interface StudioState {
   currentRoute: StudioRoute;
@@ -68,6 +80,16 @@ interface StudioState {
   playbackSpeed: number;
   isMuted: boolean;
   targetDuration: number; // seconds the animation should complete in
+
+  // Ball Physics & Custom Ball
+  ballPhysics: BallPhysicsSettings;
+  wallControls: WallControlsSettings;
+  customBall: CustomBallConfig;
+  resolution: '1080' | '1440' | '4k' | 'square' | 'landscape';
+
+  // Presets
+  userPresets: SavedPreset[];
+  activePresetId: string | null;
 
   // Visuals & Overlays
   visuals: VisualSettings;
@@ -87,6 +109,7 @@ interface StudioState {
   isSeedFinderOpen: boolean;
   isShortcutsOpen: boolean;
   isSelfTestOpen: boolean;
+  isRestartConfirmOpen: boolean;
 
   // Platform & Quality
   qualityMode: QualityMode;
@@ -117,6 +140,20 @@ interface StudioState {
   setIsMuted: (muted: boolean) => void;
   setTargetDuration: (seconds: number) => void;
 
+  // Ball & Wall Setters
+  setBallPhysics: (updates: Partial<BallPhysicsSettings>) => void;
+  setWallControls: (updates: Partial<WallControlsSettings>) => void;
+  setCustomBall: (updates: Partial<CustomBallConfig>) => void;
+  setResolution: (res: '1080' | '1440' | '4k' | 'square' | 'landscape') => void;
+
+  // Preset Actions
+  loadUserPresets: (userId?: string | null) => Promise<void>;
+  saveCurrentAsPreset: (name: string, userId?: string | null) => Promise<SavedPreset>;
+  loadPreset: (preset: SavedPreset) => void;
+  deletePreset: (id: string, userId?: string | null) => Promise<void>;
+  duplicatePreset: (id: string, userId?: string | null) => Promise<void>;
+  renamePreset: (id: string, name: string, userId?: string | null) => Promise<void>;
+
   // Visuals & Overlays
   setVisuals: (visuals: Partial<VisualSettings>) => void;
   setOverlays: (overlays: Partial<OverlaySettings>) => void;
@@ -135,12 +172,14 @@ interface StudioState {
   setSeedFinderOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
   setSelfTestOpen: (open: boolean) => void;
+  setRestartConfirmOpen: (open: boolean) => void;
   isWhatsNewOpen: boolean;
   setWhatsNewOpen: (open: boolean) => void;
   isWhatNextOpen: boolean;
   setWhatNextOpen: (open: boolean) => void;
   isTrendsAdminOpen: boolean;
   setTrendsAdminOpen: (open: boolean) => void;
+
 
   // Toast & Undo
   toast: ToastState | null;
@@ -177,6 +216,37 @@ export const useStudioStore = create<StudioState>((set, get) => {
     playbackSpeed: 1.0,
     isMuted: false,
     targetDuration: DEFAULT_TARGET_DURATION,
+
+    // Ball Physics & Custom Ball
+    ballPhysics: {
+      speed: 1.0,
+      radius: 14,
+      gravity: 980,
+      restitution: 0.98,
+      color: '#38bdf8',
+      maxSpeedCap: 2600,
+      bounceBoostEnabled: false,
+      bounceBoostRate: 0.02,
+      bounceBoostMax: 1.5,
+    },
+
+    wallControls: {
+      ringCount: 3,
+      gapWidthDeg: 35,
+      breakEffects: ['glass_shatter', 'shockwave'],
+      spikesEnabled: false,
+      spikeCount: 16,
+      spikeLength: 28,
+    },
+
+    customBall: {
+      type: 'default',
+    },
+
+    resolution: '1080',
+    userPresets: [],
+    activePresetId: null,
+
     toast: null,
     undoSnapshot: null,
 
@@ -190,8 +260,17 @@ export const useStudioStore = create<StudioState>((set, get) => {
       themeId: 'neon_night',
       bloomEnabled: true,
       bloomIntensity: 1.25,
+      ballGlowEnabled: true,
+      ballGlowIntensity: 1.0,
+      wallGlowEnabled: true,
+      wallGlowIntensity: 1.0,
+      rainbowWallsMode: 'off',
+      trailEnabled: true,
       trailLength: 18,
       trailFade: 0.65,
+      trailHueShift: false,
+      reactiveBgEnabled: true,
+      reactiveBgIntensity: 0.5,
       screenShakeIntensity: 0.6,
       slowMotionEnd: true,
       chromaticFlash: true,
@@ -213,6 +292,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
       asmrLayer: true,
       stereoPanning: true,
     },
+
 
     asmrSettings: {
       masterVolume: 0.85,
@@ -307,6 +387,86 @@ export const useStudioStore = create<StudioState>((set, get) => {
       get().saveToIndexedDB();
     },
 
+    // Ball & Wall Setters
+    setBallPhysics: (updates) =>
+      set((s) => ({ ballPhysics: { ...s.ballPhysics, ...updates } })),
+    setWallControls: (updates) =>
+      set((s) => ({ wallControls: { ...s.wallControls, ...updates } })),
+    setCustomBall: (updates) =>
+      set((s) => ({ customBall: { ...s.customBall, ...updates } })),
+    setResolution: (res) => set({ resolution: res }),
+
+    // Preset Actions
+    loadUserPresets: async (userId) => {
+      const presets = await presetService.getPresets(userId);
+      set({ userPresets: presets });
+    },
+
+    saveCurrentAsPreset: async (name, userId) => {
+      const state = get();
+      const saved = await presetService.savePreset(
+        {
+          name,
+          modeId: state.currentModeId,
+          modeSettings: state.modeSettings,
+          seed: state.seed,
+          ballPhysics: state.ballPhysics,
+          wallControls: state.wallControls,
+          visuals: state.visuals,
+          overlays: state.overlays,
+          audioSettings: state.audioSettings,
+          asmrSettings: state.asmrSettings,
+          customBall: state.customBall,
+          targetDuration: state.targetDuration,
+          resolution: state.resolution,
+        },
+        userId
+      );
+      set((s) => ({
+        userPresets: [saved, ...s.userPresets],
+        activePresetId: saved.id,
+      }));
+      get().showToast(`Saved preset "${name}"!`);
+      return saved;
+    },
+
+    loadPreset: (preset) => {
+      set({
+        activePresetId: preset.id,
+        currentModeId: preset.modeId,
+        modeSettings: { ...preset.modeSettings },
+        seed: preset.seed,
+        ballPhysics: { ...preset.ballPhysics },
+        wallControls: { ...preset.wallControls },
+        visuals: { ...preset.visuals },
+        overlays: { ...preset.overlays },
+        audioSettings: { ...preset.audioSettings },
+        asmrSettings: { ...preset.asmrSettings },
+        customBall: { ...preset.customBall },
+        targetDuration: preset.targetDuration,
+        resolution: preset.resolution || '1080',
+      });
+      get().showToast(`Loaded preset "${preset.name}"!`);
+    },
+
+    deletePreset: async (id, userId) => {
+      const updated = await presetService.deletePreset(id, userId);
+      set({ userPresets: updated, activePresetId: null });
+      get().showToast('Preset deleted.');
+    },
+
+    duplicatePreset: async (id, userId) => {
+      const updated = await presetService.duplicatePreset(id, userId);
+      set({ userPresets: updated });
+      get().showToast('Preset duplicated.');
+    },
+
+    renamePreset: async (id, name, userId) => {
+      const updated = await presetService.updatePreset(id, { name }, userId);
+      set({ userPresets: updated });
+      get().showToast(`Preset renamed to "${name}".`);
+    },
+
     setVisuals: (newVis) => set((s) => ({ visuals: { ...s.visuals, ...newVis } })),
     setOverlays: (newOverlays) => set((s) => ({ overlays: { ...s.overlays, ...newOverlays } })),
 
@@ -324,9 +484,11 @@ export const useStudioStore = create<StudioState>((set, get) => {
     setSeedFinderOpen: (open) => set({ isSeedFinderOpen: open }),
     setShortcutsOpen: (open) => set({ isShortcutsOpen: open }),
     setSelfTestOpen: (open) => set({ isSelfTestOpen: open }),
+    setRestartConfirmOpen: (open) => set({ isRestartConfirmOpen: open }),
     setWhatsNewOpen: (open) => set({ isWhatsNewOpen: open }),
     setWhatNextOpen: (open) => set({ isWhatNextOpen: open }),
     setTrendsAdminOpen: (open) => set({ isTrendsAdminOpen: open }),
+
 
 
     setQualityMode: (mode) => set({ qualityMode: mode }),

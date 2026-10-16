@@ -16,6 +16,7 @@ import { PhysicsEventBus } from './eventBus';
 import { SpatialHashGrid } from './spatialHash';
 import { checkBallArcRingCollision, checkBallBallCollision, checkBallLineCollision } from './collision';
 import { getSafeArena, SafeArena, PlatformType } from '../render/safeArea';
+import type { BallPhysicsSettings, WallControlsSettings, CustomBallConfig } from '../presets/presetService';
 
 export class PhysicsWorld {
   public width: number;
@@ -121,6 +122,11 @@ export class PhysicsWorld {
       name: params.name,
       score: params.score ?? 0,
       tag: params.tag,
+      bounceBoostEnabled: params.bounceBoostEnabled ?? false,
+      bounceBoostRate: params.bounceBoostRate ?? 0.02,
+      bounceBoostMax: params.bounceBoostMax ?? 1.5,
+      initialRestitution: params.initialRestitution ?? params.restitution ?? this.config.restitution,
+      currentBounceBoost: 0,
     };
     this.balls.push(ball);
     return ball;
@@ -168,46 +174,103 @@ export class PhysicsWorld {
     }
   }
 
-  spawnRingShatter(ring: ArcRing): void {
-    const shardCount = 40;
-    const step = (Math.PI * 2) / shardCount;
-    for (let i = 0; i < shardCount; i++) {
-      if (this.particles.length >= this.maxParticles) break;
-      const angle = i * step + this.prng.range(-0.05, 0.05);
-      const px = ring.centerX + Math.cos(angle) * ring.radius;
-      const py = ring.centerY + Math.sin(angle) * ring.radius;
-      const outSpeed = 150 + this.prng.next() * 250;
-      const life = 1.0 + this.prng.next() * 0.8;
+  spawnRingShatter(ring: ArcRing, overrideEffects?: string[]): void {
+    const rawEffects = overrideEffects || ring.breakEffects || ['glass_shatter', 'shockwave'];
+    const effects = rawEffects.length > 0 ? rawEffects : ['none'];
 
-      this.particles.push({
-        x: px,
-        y: py,
-        vx: Math.cos(angle) * outSpeed,
-        vy: Math.sin(angle) * outSpeed,
-        color: ring.color,
-        size: ring.thickness * (0.6 + 0.4 * this.prng.next()),
-        alpha: 1,
-        maxLife: life,
-        life,
-        rotation: angle,
-        angularVelocity: this.prng.range(-5, 5),
-        type: 'shard',
-      });
+    // 1. Confetti effect: colorful fluttering paper ribbons
+    if (effects.includes('confetti')) {
+      const confettiColors = ['#ff007f', '#00f0ff', '#ffd600', '#00ff88', '#a855f7', '#ff5400', '#ffffff'];
+      const confettiCount = 50;
+      for (let i = 0; i < confettiCount; i++) {
+        if (this.particles.length >= this.maxParticles) break;
+        const angle = (i / confettiCount) * Math.PI * 2 + this.prng.range(-0.1, 0.1);
+        const px = ring.centerX + Math.cos(angle) * ring.radius;
+        const py = ring.centerY + Math.sin(angle) * ring.radius;
+        const outSpeed = 120 + this.prng.next() * 280;
+        const life = 1.4 + this.prng.next() * 1.2;
+
+        this.particles.push({
+          x: px,
+          y: py,
+          vx: Math.cos(angle) * outSpeed + this.prng.range(-40, 40),
+          vy: Math.sin(angle) * outSpeed - 80, // gentle upward burst
+          color: confettiColors[i % confettiColors.length],
+          size: 6 + this.prng.next() * 6,
+          width: 8 + this.prng.next() * 6,
+          height: 4 + this.prng.next() * 4,
+          alpha: 1,
+          maxLife: life,
+          life,
+          rotation: this.prng.next() * Math.PI * 2,
+          angularVelocity: this.prng.range(-8, 8),
+          type: 'confetti',
+        });
+      }
+      try {
+        AsmrEngine.getInstance().playBreakEffectSound('confetti');
+      } catch {}
     }
 
-    // Add radial shockwave
-    this.shockwaves.push({
-      x: ring.centerX,
-      y: ring.centerY,
-      radius: ring.radius * 0.8,
-      maxRadius: ring.radius * 1.5,
-      alpha: 0.9,
-      color: ring.color,
-    });
+    // 2. Glass shatter: sharp crystalline polygon shards
+    if (effects.includes('glass_shatter')) {
+      const shardCount = 40;
+      const step = (Math.PI * 2) / shardCount;
+      for (let i = 0; i < shardCount; i++) {
+        if (this.particles.length >= this.maxParticles) break;
+        const angle = i * step + this.prng.range(-0.05, 0.05);
+        const px = ring.centerX + Math.cos(angle) * ring.radius;
+        const py = ring.centerY + Math.sin(angle) * ring.radius;
+        const outSpeed = 160 + this.prng.next() * 260;
+        const life = 1.0 + this.prng.next() * 0.8;
+
+        this.particles.push({
+          x: px,
+          y: py,
+          vx: Math.cos(angle) * outSpeed,
+          vy: Math.sin(angle) * outSpeed,
+          color: ring.color,
+          size: ring.thickness * (0.6 + 0.4 * this.prng.next()),
+          alpha: 1,
+          maxLife: life,
+          life,
+          rotation: angle,
+          angularVelocity: this.prng.range(-5, 5),
+          type: 'shard',
+        });
+      }
+      try {
+        AsmrEngine.getInstance().playBreakEffectSound('glass_shatter');
+      } catch {}
+    }
+
+    // 3. Shockwave: expanding circular energy ring
+    if (effects.includes('shockwave')) {
+      this.shockwaves.push({
+        x: ring.centerX,
+        y: ring.centerY,
+        radius: ring.radius * 0.8,
+        maxRadius: ring.radius * 1.6,
+        alpha: 0.95,
+        color: ring.color,
+      });
+      try {
+        AsmrEngine.getInstance().playBreakEffectSound('shockwave');
+      } catch {}
+    }
+
+    // 4. Sparks: high-speed electric sparks
+    if (effects.includes('sparks')) {
+      this.spawnExplosion(ring.centerX, ring.centerY, '#ffd600', 45, 450);
+      try {
+        AsmrEngine.getInstance().playBreakEffectSound('sparks');
+      } catch {}
+    }
   }
 
   step(dt: number): void {
     const subDt = dt / this.config.substeps;
+    const maxSpeedCap = this.config.maxSpeedCap || 2600;
 
     for (let stepIdx = 0; stepIdx < this.config.substeps; stepIdx++) {
       this.time += subDt;
@@ -234,6 +297,11 @@ export class PhysicsWorld {
         const b = this.balls[i];
         if (!b.isAlive) continue;
 
+        // Initialize bounce boost defaults if needed
+        if (b.initialRestitution === undefined) {
+          b.initialRestitution = b.restitution;
+        }
+
         // Gravity & drag
         b.vx += this.config.gravity.x * b.gravity * subDt;
         b.vy += this.config.gravity.y * b.gravity * subDt;
@@ -241,11 +309,12 @@ export class PhysicsWorld {
         b.vx *= Math.max(0, 1 - b.airDrag * subDt);
         b.vy *= Math.max(0, 1 - b.airDrag * subDt);
 
-        // Clamp max speed
+        // Clamp max speed cap (so ball never tunnels or becomes unreadable)
+        const allowedMax = Math.min(b.maxSpeed, maxSpeedCap);
         const speed = Math.hypot(b.vx, b.vy);
-        if (speed > b.maxSpeed) {
-          b.vx = (b.vx / speed) * b.maxSpeed;
-          b.vy = (b.vy / speed) * b.maxSpeed;
+        if (speed > allowedMax) {
+          b.vx = (b.vx / speed) * allowedMax;
+          b.vy = (b.vy / speed) * allowedMax;
         }
 
         // Anti-stall: if ball is too slow, apply tiny seeded impulse
@@ -259,10 +328,13 @@ export class PhysicsWorld {
         b.x += b.vx * subDt;
         b.y += b.vy * subDt;
 
+        // Natural rolling rotation for custom image / emoji
+        b.rotation = (b.rotation || 0) + (b.vx / Math.max(1, b.radius)) * subDt;
+
         // Trail record (every few substeps)
         if (stepIdx === 0) {
           b.trail.unshift({ x: b.x, y: b.y });
-          if (b.trail.length > 25) {
+          if (b.trail.length > 35) {
             b.trail.pop();
           }
         }
@@ -275,6 +347,11 @@ export class PhysicsWorld {
           const res = checkBallArcRingCollision(b, ring, this.time);
           if (res.escaped) {
             this.escapes++;
+            // Reset bounce boost on escape!
+            if (b.bounceBoostEnabled && b.initialRestitution !== undefined) {
+              b.restitution = b.initialRestitution;
+              b.currentBounceBoost = 0;
+            }
             if (ring.shatterOnEscape) {
               ring.isShattered = true;
               this.spawnRingShatter(ring);
@@ -285,6 +362,15 @@ export class PhysicsWorld {
           } else if (res.collided) {
             b.bounces++;
             this.bounces++;
+
+            // Bounce boost: increase bounciness by set amount per wall hit (e.g. +2%)
+            if (b.bounceBoostEnabled) {
+              const rate = b.bounceBoostRate ?? 0.02;
+              const maxRest = b.bounceBoostMax ?? 1.5;
+              b.currentBounceBoost = (b.currentBounceBoost || 0) + rate;
+              b.restitution = Math.min(maxRest, (b.initialRestitution ?? 0.98) + b.currentBounceBoost);
+            }
+
             if (b.growthPerBounce > 0) {
               b.radius += b.growthPerBounce;
             }
@@ -292,6 +378,39 @@ export class PhysicsWorld {
               this.eventBus.emit(res.event);
             }
             this.spawnExplosion(res.event?.position.x ?? b.x, res.event?.position.y ?? b.y, b.color, 12, 180);
+          }
+        }
+
+        // Spikes collisions (inward pointing spikes on outer wall)
+        for (let s = 0; s < this.spikes.length; s++) {
+          const spike = this.spikes[s];
+          const tipX = spike.x + Math.cos(spike.angle) * spike.length;
+          const tipY = spike.y + Math.sin(spike.angle) * spike.length;
+          const dist = Math.hypot(b.x - tipX, b.y - tipY);
+
+          if (dist < b.radius + 8 && b.tag !== 'frozen') {
+            b.bounces++;
+            this.bounces++;
+            // Bounce back along normal from spike tip to ball
+            const nx = dist > 0.001 ? (b.x - tipX) / dist : 0;
+            const ny = dist > 0.001 ? (b.y - tipY) / dist : -1;
+            const dot = b.vx * nx + b.vy * ny;
+            if (dot < 0) {
+              b.vx = (b.vx - 2 * dot * nx) * b.restitution;
+              b.vy = (b.vy - 2 * dot * ny) * b.restitution;
+            }
+            // Red flash & spark burst on spike hit
+            this.spawnExplosion(tipX, tipY, '#ff0033', 18, 220);
+            this.eventBus.emit({
+              id: Math.floor(Math.random() * 1000000),
+              time: this.time,
+              type: 'spike',
+              position: { x: tipX, y: tipY },
+              velocity: { x: b.vx, y: b.vy },
+              impulse: 350,
+              ballId: b.id,
+              noteIndex: 0,
+            });
           }
         }
 
@@ -329,7 +448,7 @@ export class PhysicsWorld {
       for (let p = this.particles.length - 1; p >= 0; p--) {
         const part = this.particles[p];
         part.x += part.vx * subDt;
-        part.y += part.vy * subDt + 300 * subDt; // slight gravity
+        part.y += part.vy * subDt + (part.type === 'confetti' ? 120 : 300) * subDt; // gentle gravity
         if (part.angularVelocity && part.rotation !== undefined) {
           part.rotation += part.angularVelocity * subDt;
         }
@@ -358,6 +477,14 @@ export class PhysicsWorld {
       if (!this.rings[i].isShattered) ringsLeft++;
     }
 
+    // Calculate bounce boost energy meter from primary live ball
+    const liveBall = this.balls.find((b) => b.isAlive);
+    let boostEnergy = 0;
+    if (liveBall && liveBall.bounceBoostEnabled) {
+      const maxExtra = (liveBall.bounceBoostMax ?? 1.5) - (liveBall.initialRestitution ?? 0.98);
+      boostEnergy = maxExtra > 0 ? Math.min(1, (liveBall.currentBounceBoost || 0) / maxExtra) : 0;
+    }
+
     return {
       elapsedTime: this.time,
       bounces: this.bounces,
@@ -367,7 +494,116 @@ export class PhysicsWorld {
       fps: 60,
       isFinished: this.isFinished,
       winner: this.winner,
+      bounceBoostEnergy: boostEnergy,
       customCounters: this.customState,
     };
   }
+
+  getBounceBoostEnergy(): number {
+    const liveBall = this.balls.find((b) => b.isAlive);
+    if (!liveBall || !liveBall.bounceBoostEnabled) return 0;
+    const maxExtra = (liveBall.bounceBoostMax ?? 1.5) - (liveBall.initialRestitution ?? 0.98);
+    return maxExtra > 0 ? Math.min(100, Math.round(((liveBall.currentBounceBoost || 0) / maxExtra) * 100)) : 0;
+  }
+
+  resetBounceBoost(): void {
+    for (const b of this.balls) {
+      b.currentBounceBoost = 0;
+      b.restitution = b.initialRestitution ?? 0.98;
+    }
+  }
+
+  applyGlobalModifiers(
+    ballPhysics?: Partial<BallPhysicsSettings>,
+    wallControls?: Partial<WallControlsSettings>,
+    customBall?: Partial<CustomBallConfig>
+  ): void {
+    if (ballPhysics) {
+      if (ballPhysics.gravity !== undefined) {
+        this.gravity = { x: 0, y: ballPhysics.gravity * 800 };
+      }
+      if (ballPhysics.maxSpeedCap !== undefined) {
+        this.config.maxSpeedCap = ballPhysics.maxSpeedCap;
+      }
+      for (const b of this.balls) {
+        if (ballPhysics.restitution !== undefined) {
+          b.restitution = ballPhysics.restitution;
+          b.initialRestitution = ballPhysics.restitution;
+        }
+        if (ballPhysics.radius !== undefined) {
+          b.radius = ballPhysics.radius;
+        }
+        if (ballPhysics.color) {
+          b.color = ballPhysics.color;
+        }
+        if (ballPhysics.bounceBoostEnabled !== undefined) {
+          b.bounceBoostEnabled = ballPhysics.bounceBoostEnabled;
+        }
+        if (ballPhysics.bounceBoostRate !== undefined) {
+          b.bounceBoostRate = ballPhysics.bounceBoostRate;
+        }
+        if (ballPhysics.bounceBoostMax !== undefined) {
+          b.bounceBoostMax = ballPhysics.bounceBoostMax;
+        }
+      }
+    }
+
+    if (customBall) {
+      for (const b of this.balls) {
+        if (customBall.type === 'emoji' && customBall.emoji) {
+          b.customEmoji = customBall.emoji;
+          b.customImage = undefined;
+        } else if (customBall.type === 'image' && customBall.dataUrl) {
+          b.customImage = customBall.dataUrl;
+          b.customEmoji = undefined;
+        } else if (customBall.type === 'default') {
+          b.customEmoji = undefined;
+          b.customImage = undefined;
+        }
+      }
+    }
+
+    if (wallControls) {
+      if (wallControls.breakEffects) {
+        this.breakEffects = [...wallControls.breakEffects];
+      }
+      if (wallControls.spikesEnabled && this.spikes.length === 0 && this.rings.length > 0) {
+        const outerRing = this.rings[this.rings.length - 1];
+        const count = wallControls.spikeCount || 8;
+        const length = wallControls.spikeLength || 20;
+        for (let i = 0; i < count; i++) {
+          const angle = (i / count) * Math.PI * 2;
+          const sx = outerRing.centerX + Math.cos(angle) * (outerRing.radius - length / 2);
+          const sy = outerRing.centerY + Math.sin(angle) * (outerRing.radius - length / 2);
+          this.spikes.push({
+            x: sx,
+            y: sy,
+            radius: length / 2,
+            isDeadly: true,
+          });
+        }
+      }
+    }
+  }
+
+  triggerCollision(data: {
+    point: { x: number; y: number };
+    normal?: { x: number; y: number };
+    intensity?: number;
+    ringIndex?: number;
+    ballColor?: string;
+  }): void {
+    this.bounces++;
+    this.spawnExplosion(data.point.x, data.point.y, data.ballColor || '#CCFF00', 12, 180);
+    this.eventBus.emit({
+      type: 'ring',
+      time: this.time,
+      position: data.point,
+      velocity: { x: 0, y: 0 },
+      ringIndex: data.ringIndex ?? 0,
+      normal: data.normal || { x: 0, y: -1 },
+      intensity: data.intensity ?? 0.8,
+    } as any);
+  }
 }
+

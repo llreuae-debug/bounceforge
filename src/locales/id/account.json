@@ -1,0 +1,10 @@
+{
+  "title": "Account & Membership",
+  "profile": "Profile Information",
+  "plan": "Active Plan",
+  "preferences": "Preferences",
+  "language": "Interface Language",
+  "cloudPresets": "Synced Cloud Presets ({count})",
+  "dangerZone": "Danger Zone",
+  "deleteAccount": "Delete Account"
+}

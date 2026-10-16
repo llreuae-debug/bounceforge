@@ -1,0 +1,46 @@
+{
+  "hero": {
+    "badge": "SIMULADOR DETERMINISTA A 240Hz",
+    "title": "FÍSICA VIRAL HIPNÓTICA EN BUCLE",
+    "subtitle": "Crea escapes de bolas y acertijos cinéticos con audio ASMR procesal. Exporta hasta 4K 60FPS para TikTok, Shorts y Reels.",
+    "ctaStudio": "Entrar al Estudio Gratis",
+    "ctaPricing": "Ver Planes",
+    "ctaDemo": "Ver Galería"
+  },
+  "marquee": {
+    "physics": "240Hz DETERMINISTIC ENGINE",
+    "codecs": "4K 60FPS WEBM & MP4 WEBCODECS",
+    "asmr": "SPATIAL STEREO ASMR AUDIO",
+    "instruments": "12 SYNTHESIZED INSTRUMENTS",
+    "modes": "200+ VIRAL SIMULATION MODES",
+    "clientSide": "100% LOCAL GPU ENCODING"
+  },
+  "stats": {
+    "fps": "240Hz Engine",
+    "resolution": "4K 60FPS Export",
+    "retention": "98.4% Retention Score",
+    "modesCount": "200+ Modes"
+  },
+  "features": {
+    "title": "ENGINEERED FOR VIRAL RETENTION",
+    "subtitle": "Every bounce, chord, and particle is tuned to maximize watch-time algorithms.",
+    "f1Title": "Procedural Spatial Audio",
+    "f1Desc": "Synthesized physics sounds with stereo panning — zero copyrighted samples.",
+    "f2Title": "4K Deterministic Export",
+    "f2Desc": "Same seed = exact same frame-by-frame video on any browser.",
+    "f3Title": "Safe-Area Social Overlays",
+    "f3Desc": "Hooks, counters and branding fit cleanly inside TikTok, Reels and Shorts UI.",
+    "f4Title": "Auto-Seed Finder",
+    "f4Desc": "Headless search algorithms target exact 15s to 120s payoff escape moments."
+  },
+  "testimonials": {
+    "title": "CREATOR EXPERIENCES",
+    "t1": "Grew my Shorts channel from 0 to 450K subscribers in 2 months.",
+    "t2": "The ASMR synth audio triggers insane comment section engagement."
+  },
+  "ctaBanner": {
+    "title": "READY TO FORGE VIRAL CLIPS?",
+    "desc": "Jump straight into the studio as a guest or unlock Creator Pro for commercial licenses.",
+    "button": "Enter Studio Now"
+  }
+}

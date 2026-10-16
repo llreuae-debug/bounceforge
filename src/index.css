@@ -332,7 +332,76 @@ html {
 /* RTL layout support for non-Latin scripts (Urdu, Arabic) */
 [dir="rtl"], .dir-rtl {
   direction: rtl;
-  text-align: right;
+  text-align: start;
+}
+
+[dir="ltr"], .dir-ltr {
+  direction: ltr;
+  text-align: start;
+}
+
+/* Mirror directional icons in RTL but not media controls or logos */
+[dir="rtl"] .rtl-mirror,
+[dir="rtl"] svg.rtl-mirror {
+  transform: scaleX(-1);
+}
+
+/* Range input fills right-to-left in RTL */
+[dir="rtl"] input[type="range"] {
+  direction: rtl;
+}
+
+/* Unicode isolation for numbers, prices, seeds, emails, URLs */
+bdi,
+.bdi-isolate,
+.unicode-isolate {
+  unicode-bidi: isolate;
+  direction: ltr;
+  display: inline-block;
+  text-align: start;
+}
+
+/* Script-specific font stacks and line-heights */
+[data-script="ur"],
+[lang="ur"] {
+  font-family: "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Urdu Typesetting", Tahoma, sans-serif !important;
+  line-height: 2.05;
+}
+
+[data-script="ar"],
+[lang="ar"] {
+  font-family: "Noto Sans Arabic", "Segoe UI Arabic", Tahoma, sans-serif !important;
+  line-height: 1.7;
+}
+
+[data-script="hi"],
+[lang="hi"] {
+  font-family: "Noto Sans Devanagari", sans-serif !important;
+  line-height: 1.6;
+}
+
+[data-script="bn"],
+[lang="bn"] {
+  font-family: "Noto Sans Bengali", sans-serif !important;
+  line-height: 1.6;
+}
+
+[data-script="ja"],
+[lang="ja"] {
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif !important;
+  line-height: 1.65;
+}
+
+[data-script="ko"],
+[lang="ko"] {
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif !important;
+  line-height: 1.6;
+}
+
+[data-script="zh-CN"],
+[lang="zh-CN"] {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif !important;
+  line-height: 1.6;
 }
 
 /* Respect user's motion preference */

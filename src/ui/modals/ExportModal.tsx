@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
+import { useAuthStore } from '../../auth/useAuthStore';
 import { VideoExporter, ExportProgress, checkGpu4KCapability } from '../../export/videoExporter';
 import {
   X,
@@ -20,6 +21,7 @@ import {
   Layers,
   FileArchive,
   RotateCcw,
+  Lock,
 } from 'lucide-react';
 import { checkBatteryStatus, BatteryInfo } from '../../platform/battery';
 import { triggerHaptic } from '../../platform/haptics';
@@ -45,13 +47,20 @@ export const ExportModal: React.FC = () => {
     audioSettings,
     customNotes,
     targetDuration,
+    setTargetDuration,
+    ballPhysics,
+    wallControls,
+    customBall,
     capabilities,
     showToast,
     setWhatNextOpen,
     setTrendsAdminOpen,
   } = useStudioStore();
 
-  const [resolution, setResolution] = useState<'1080' | '1440' | '4k' | '4k_landscape'>('1080');
+  const { currentUser, openUpgradeModal, openAuthModal } = useAuthStore();
+  const isGuest = !currentUser;
+
+  const [resolution, setResolution] = useState<'720' | '1080' | '1440' | '4k' | 'square' | 'landscape'>('1080');
   const [fps, setFps] = useState<30 | 60>(60);
   const [duration, setDuration] = useState<number>(targetDuration);
   const [useDiskStreaming, setUseDiskStreaming] = useState<boolean>(true);
@@ -98,20 +107,25 @@ export const ExportModal: React.FC = () => {
 
   useEffect(() => {
     if (isExportOpen) {
-      setDuration(targetDuration);
       checkBatteryStatus().then(setBatteryInfo);
 
-      const isMobile = capabilities?.isTouch || window.innerWidth < 768;
-      const lowMem = capabilities?.deviceMemoryGB !== null && capabilities?.deviceMemoryGB !== undefined && capabilities.deviceMemoryGB < 4;
-      if (isMobile || lowMem) {
-        setResolution('1080');
-      } else if (capabilities?.supportedCodecs.h264_4k30 || capabilities?.supportedCodecs.h264_4k60) {
-        setResolution('4k');
+      if (isGuest) {
+        setResolution('720');
+        setDuration(Math.min(30, targetDuration));
       } else {
-        setResolution('1080');
+        setDuration(targetDuration);
+        const isMobile = capabilities?.isTouch || window.innerWidth < 768;
+        const lowMem = capabilities?.deviceMemoryGB !== null && capabilities?.deviceMemoryGB !== undefined && capabilities.deviceMemoryGB < 4;
+        if (isMobile || lowMem) {
+          setResolution('1080');
+        } else if (capabilities?.supportedCodecs.h264_4k30 || capabilities?.supportedCodecs.h264_4k60) {
+          setResolution('4k');
+        } else {
+          setResolution('1080');
+        }
       }
     }
-  }, [isExportOpen, targetDuration, capabilities]);
+  }, [isExportOpen, targetDuration, capabilities, isGuest]);
 
   if (!isExportOpen) return null;
 
@@ -149,16 +163,30 @@ export const ExportModal: React.FC = () => {
   const handleStartExport = async () => {
     let width = 1080;
     let height = 1920;
-    if (resolution === '1440') {
+    if (isGuest) {
+      width = 720;
+      height = 1280;
+    } else if (resolution === '720') {
+      width = 720;
+      height = 1280;
+    } else if (resolution === '1440') {
       width = 1440;
       height = 2560;
     } else if (resolution === '4k') {
       width = 2160;
       height = 3840;
-    } else if (resolution === '4k_landscape') {
-      width = 3840;
-      height = 2160;
+    } else if (resolution === 'square') {
+      width = 1080;
+      height = 1080;
+    } else if (resolution === 'landscape') {
+      width = 1920;
+      height = 1080;
     }
+
+    const effectiveDuration = isGuest ? Math.min(30, duration) : duration;
+    const effectiveOverlays = isGuest
+      ? { ...overlays, showWatermark: true, watermarkText: 'BounceForge' }
+      : overlays;
 
     const defaultFilename = `bounceforge_${currentModeId}_${seed}_${width}x${height}_${fps}fps.mp4`;
 
@@ -181,7 +209,7 @@ export const ExportModal: React.FC = () => {
     setIsExporting(true);
     setProgress({
       frame: 0,
-      totalFrames: duration * fps,
+      totalFrames: effectiveDuration * fps,
       percent: 0,
       stage: 'video',
       etaSeconds: 60,
@@ -199,13 +227,16 @@ export const ExportModal: React.FC = () => {
           width,
           height,
           fps,
-          duration,
+          duration: effectiveDuration,
           seed,
           modeId: currentModeId,
           modeSettings,
           visuals,
-          overlays,
+          overlays: effectiveOverlays,
           audioSettings,
+          ballPhysics,
+          wallControls,
+          customBall,
           customNotes,
           fileHandle,
         },
@@ -231,6 +262,7 @@ export const ExportModal: React.FC = () => {
         duration,
         seed,
         resolution: resolution === '4k' ? '4k' : '1080p',
+        language: overlays.videoLanguage || 'en',
       }).then(setCurrentSeoPack);
 
       triggerHaptic(20);
@@ -315,6 +347,7 @@ export const ExportModal: React.FC = () => {
           seed: variation.seed,
           resolution: '1080p',
           variationIndex: i,
+          language: overlays.videoLanguage || 'en',
         });
         const seoTxt = formatSeoPackAsText(itemSeo, currentModeId);
 
@@ -425,10 +458,86 @@ export const ExportModal: React.FC = () => {
                 </div>
               )}
 
-              {/* Platform Presets Required by Part 4 */}
+              {/* Guest Tier Notice */}
+              {isGuest && (
+                <div className="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-cyan-200">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-full bg-cyan-400 text-black font-extrabold text-[10px] uppercase">
+                      Guest Mode
+                    </span>
+                    <span className="text-[11px] text-slate-300">
+                      Free export up to 30s in 720p with BounceForge watermark.
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => openAuthModal('signup')}
+                    className="text-xs font-black text-[#CCFF00] hover:underline whitespace-nowrap"
+                  >
+                    sign up to unlock 4K →
+                  </button>
+                </div>
+              )}
+
+              {/* Recording Length: Slider + Quick Pills (10s to 120s) */}
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                    <span>Recording Length:</span>
+                    <span className="text-cyan-400 font-mono text-sm font-black">{duration}s</span>
+                  </label>
+                  {isGuest && (
+                    <span className="text-[10px] text-amber-400 font-mono font-bold uppercase tracking-wider">
+                      guest limit: 30s
+                    </span>
+                  )}
+                </div>
+
+                <input
+                  type="range"
+                  min={10}
+                  max={isGuest ? 30 : 120}
+                  step={1}
+                  value={duration}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setDuration(val);
+                    setTargetDuration(val);
+                  }}
+                  className="w-full accent-cyan-400 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                />
+
+                <div className="flex items-center gap-1.5">
+                  {[15, 30, 60, 90, 120].map((pillSec) => {
+                    const isLocked = isGuest && pillSec > 30;
+                    return (
+                      <button
+                        key={pillSec}
+                        onClick={() => {
+                          if (isLocked) {
+                            openUpgradeModal('Recording lengths up to 120 seconds');
+                            return;
+                          }
+                          setDuration(pillSec);
+                          setTargetDuration(pillSec);
+                        }}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                          duration === pillSec
+                            ? 'btn-3d-cyan text-black shadow-sm'
+                            : 'btn-3d-glass text-slate-300 hover:text-white'
+                        }`}
+                      >
+                        <span>{pillSec}s</span>
+                        {isLocked && <Lock className="w-2.5 h-2.5 text-amber-400 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Platform Presets */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
-                  Social Platform Presets (1080×1920 60fps)
+                  Social Platform Presets
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
@@ -462,61 +571,136 @@ export const ExportModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Resolution Picker */}
+              {/* Resolution Options: 1080x1920, 1440x2560, 2160x3840, 1080x1080, 1920x1080, 720x1280 */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
                   Resolution Options
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {/* 1080x1920 FHD (Default) */}
                   <button
-                    disabled={!canDo4K}
-                    onClick={() => canDo4K && setResolution('4k')}
-                    className={`p-2.5 rounded-2xl border text-center transition-all ${
-                      !canDo4K
-                        ? 'opacity-40 cursor-not-allowed bg-white/5 border-white/5 text-slate-500'
-                        : resolution === '4k'
-                        ? 'bg-purple-500/20 border-purple-400 text-purple-200 shadow-md shadow-purple-500/20'
-                        : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <span className="text-xs font-extrabold block">4K UHD (9:16)</span>
-                    <span className="text-[10px] text-slate-400 block">{canDo4K ? '2160 × 3840' : 'not supported'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setResolution('1080')}
+                    onClick={() => {
+                      if (isGuest) {
+                        openUpgradeModal('1080p FHD Export');
+                        return;
+                      }
+                      setResolution('1080');
+                    }}
                     className={`p-2.5 rounded-2xl border text-center transition-all ${
                       resolution === '1080'
                         ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
                         : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <span className="text-xs font-extrabold block">1080p FHD</span>
-                    <span className="text-[10px] text-slate-400 block">1080 × 1920</span>
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-xs font-extrabold">1080 × 1920</span>
+                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
+                    </div>
+                    <span className="text-[10px] text-slate-400 block">FHD (Default)</span>
                   </button>
 
+                  {/* 1440x2560 2K */}
                   <button
-                    onClick={() => setResolution('1440')}
+                    onClick={() => {
+                      if (isGuest) {
+                        openUpgradeModal('1440p 2K Export');
+                        return;
+                      }
+                      setResolution('1440');
+                    }}
                     className={`p-2.5 rounded-2xl border text-center transition-all ${
                       resolution === '1440'
                         ? 'bg-indigo-500/20 border-indigo-400 text-indigo-200'
                         : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <span className="text-xs font-extrabold block">1440p 2K</span>
-                    <span className="text-[10px] text-slate-400 block">1440 × 2560</span>
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-xs font-extrabold">1440 × 2560</span>
+                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
+                    </div>
+                    <span className="text-[10px] text-slate-400 block">2K QHD</span>
                   </button>
 
+                  {/* 2160x3840 4K UHD */}
                   <button
-                    onClick={() => setResolution('4k_landscape')}
+                    disabled={!canDo4K && !isGuest}
+                    onClick={() => {
+                      if (isGuest) {
+                        openUpgradeModal('4K UHD Video Export');
+                        return;
+                      }
+                      canDo4K && setResolution('4k');
+                    }}
                     className={`p-2.5 rounded-2xl border text-center transition-all ${
-                      resolution === '4k_landscape'
+                      !canDo4K && !isGuest
+                        ? 'opacity-40 cursor-not-allowed bg-white/5 border-white/5 text-slate-500'
+                        : resolution === '4k'
+                        ? 'bg-purple-500/20 border-purple-400 text-purple-200 shadow-md shadow-purple-500/20'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-xs font-extrabold">2160 × 3840</span>
+                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
+                    </div>
+                    <span className="text-[10px] text-slate-400 block">{canDo4K || isGuest ? '4K UHD' : 'unsupported'}</span>
+                  </button>
+
+                  {/* 1080x1080 Square */}
+                  <button
+                    onClick={() => {
+                      if (isGuest) {
+                        openUpgradeModal('Square 1:1 Video Export');
+                        return;
+                      }
+                      setResolution('square');
+                    }}
+                    className={`p-2.5 rounded-2xl border text-center transition-all ${
+                      resolution === 'square'
+                        ? 'bg-amber-500/20 border-amber-400 text-amber-200'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-xs font-extrabold">1080 × 1080</span>
+                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
+                    </div>
+                    <span className="text-[10px] text-slate-400 block">Square (1:1)</span>
+                  </button>
+
+                  {/* 1920x1080 Landscape */}
+                  <button
+                    onClick={() => {
+                      if (isGuest) {
+                        openUpgradeModal('Landscape 16:9 Video Export');
+                        return;
+                      }
+                      setResolution('landscape');
+                    }}
+                    className={`p-2.5 rounded-2xl border text-center transition-all ${
+                      resolution === 'landscape'
                         ? 'bg-pink-500/20 border-pink-400 text-pink-200'
                         : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <span className="text-xs font-extrabold block">Landscape 4K</span>
-                    <span className="text-[10px] text-slate-400 block">3840 × 2160</span>
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-xs font-extrabold">1920 × 1080</span>
+                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
+                    </div>
+                    <span className="text-[10px] text-slate-400 block">Landscape (16:9)</span>
+                  </button>
+
+                  {/* 720x1280 Free / Guest HD */}
+                  <button
+                    onClick={() => setResolution('720')}
+                    className={`p-2.5 rounded-2xl border text-center transition-all ${
+                      resolution === '720'
+                        ? 'bg-emerald-500/20 border-emerald-400 text-emerald-200'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <span className="text-xs font-extrabold block">720 × 1280</span>
+                    <span className="text-[10px] text-slate-400 block">{isGuest ? 'Free Guest' : 'Compact HD'}</span>
                   </button>
                 </div>
               </div>

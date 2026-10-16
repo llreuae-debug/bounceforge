@@ -49,21 +49,25 @@ import { EndlessFallMode } from './endlessFall';
 import { StackTheTowerMode } from './stackTheTower';
 import { BubblePopChainMode } from './bubblePopChain';
 import { TargetMode } from './target';
+import { SequenceBreakMode } from './sequenceBreak';
 import { ColorMatchMode } from './colorMatch';
+import { ColorLockMode } from './colorLock';
 import { LinesMode } from './lines';
 
 export const ALL_MODES: SimulationMode[] = [
-  // 10 Featured Game Modes (from Reference UI)
+  // 10 Featured Game Modes (from Reference UI & Spec)
   ClassicMode,
   AccumulationMode,
   InfiniteLoopMode, // Multiply
   LinesMode,
   PaintArenaMode, // Paint
-  TargetMode,
+  SequenceBreakMode, // Target / Sequence Break
   GrowTillItCracksMode, // Grow
   DestructionMode, // Shatter
+  ColorLockMode, // Color Lock / Color Match
+  PortalRingsMode, // Portal Rings with Wear
+  TargetMode,
   ColorMatchMode,
-  PortalRingsMode, // Portal
 
   // Additional 20 Engagement Drops & Advanced Modes
   CountdownEscapeMode,
@@ -111,13 +115,13 @@ export const ALL_MODES: SimulationMode[] = [
 export function getModeById(id: string): SimulationMode {
   // Support exact aliases matching viral reference names
   const cleanId = id.toLowerCase().replace(/[\s-]/g, '_');
+  if (cleanId === 'sequence_break' || cleanId === 'target' || cleanId === 'targets') return SequenceBreakMode;
+  if (cleanId === 'color_lock' || cleanId === 'color_match' || cleanId === 'colormatch') return ColorLockMode;
   if (cleanId === 'multiply' || cleanId === 'infinite_loop') return InfiniteLoopMode;
   if (cleanId === 'lines' || cleanId === 'line') return LinesMode;
   if (cleanId === 'paint' || cleanId === 'paint_arena') return PaintArenaMode;
-  if (cleanId === 'target' || cleanId === 'targets') return TargetMode;
   if (cleanId === 'grow' || cleanId === 'grow_till_it_cracks') return GrowTillItCracksMode;
   if (cleanId === 'shatter' || cleanId === 'destruction') return DestructionMode;
-  if (cleanId === 'color_match' || cleanId === 'colormatch') return ColorMatchMode;
   if (cleanId === 'portal' || cleanId === 'portal_rings') return PortalRingsMode;
   if (cleanId === 'classic') return ClassicMode;
   if (cleanId === 'accumulation') return AccumulationMode;
@@ -125,3 +129,4 @@ export function getModeById(id: string): SimulationMode {
   const mode = ALL_MODES.find((m) => m.id === id);
   return mode || ClassicMode;
 }
+

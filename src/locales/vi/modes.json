@@ -1,0 +1,47 @@
+{
+  "sequence_break": {
+    "name": "Sequence Break",
+    "desc": "Break numbered segments in strict numerical order. Wrong segments bounce with a nope tone until the exit opens."
+  },
+  "color_lock": {
+    "name": "Color Lock",
+    "desc": "Ball changes color on every bounce. Segments only shatter when hit by matching color."
+  },
+  "portal_rings": {
+    "name": "Portal Rings",
+    "desc": "Teleport between color-matched portals with wear limit counters that crack and shatter when exhausted."
+  },
+  "accumulation": {
+    "name": "Accumulation",
+    "desc": "Balls expire and freeze into solid obstacles with countdown timers, stacking until a ball escapes."
+  },
+  "classic": {
+    "name": "Classic Ring Escape",
+    "desc": "A bouncing ball navigates concentric rotating rings with narrow gaps."
+  },
+  "sand_fill": {
+    "name": "Sand Fill",
+    "desc": "Ball releases hundreds of colorful kinetic sand particles that fill the arena."
+  },
+  "pendulum_wave": {
+    "name": "Pendulum Wave",
+    "desc": "Harmonic kinetic pendulums oscillate in hypnotic mathematical phase shifts."
+  },
+  "merge": {
+    "name": "Merge Balls",
+    "desc": "Identical bouncing balls collide to merge into larger tiers with explosive particle rewards."
+  },
+  "obstacle_course": {
+    "name": "Obstacle Course",
+    "desc": "Pillars, spinning bumpers and gravity hazards challenge the ball trajectory."
+  },
+  "black_hole": {
+    "name": "Black Hole",
+    "desc": "Intense gravitational singularity bends the ball orbital path."
+  },
+  "presets": {
+    "chill": "Chill",
+    "viral": "Viral",
+    "insane": "Insane"
+  }
+}

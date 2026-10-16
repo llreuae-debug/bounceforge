@@ -1,0 +1,72 @@
+{
+  "brand": "BounceForge",
+  "tagline": "240Hz バイラル・ボール物理スタジオ",
+  "nav": {
+    "modes": "モード",
+    "engine": "エンジン＆音響",
+    "faq": "よくある質問",
+    "pricing": "料金プラン",
+    "blog": "ブログ",
+    "diagnostics": "診断",
+    "showcase": "ギャラリー",
+    "about": "概要",
+    "feedback": "フィードバック",
+    "login": "ログイン",
+    "signup": "新規登録",
+    "studio": "スタジオ",
+    "openStudio": "無料でスタジオ起動",
+    "backToStudio": "スタジオに戻る",
+    "backToTop": "トップへ戻る ↑",
+    "logout": "ログアウト",
+    "settings": "設定",
+    "account": "アカウント",
+    "admin": "管理コンソール"
+  },
+  "actions": {
+    "save": "保存",
+    "load": "読み込み",
+    "share": "共有",
+    "export": "4Kエクスポート",
+    "close": "閉じる",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "delete": "削除",
+    "edit": "編集",
+    "create": "作成",
+    "add": "追加",
+    "reset": "リセット",
+    "search": "検索...",
+    "filter": "フィルター",
+    "copy": "コピー",
+    "copied": "クリップボードにコピーしました！",
+    "download": "ダウンロード",
+    "preview": "プレビュー",
+    "refresh": "更新",
+    "duplicate": "複製",
+    "rename": "名前を変更"
+  },
+  "ui": {
+    "loading": "Loading BounceForge...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Notice",
+    "approx": "approx.",
+    "poweredBy": "Public Domain & Synthesized Audio",
+    "rights": "© 2026 BOUNCEFORGE. All rights reserved.",
+    "guestMode": "ゲストモード",
+    "loginToKeep": "log in to keep these on all ur devices"
+  },
+  "hotkeys": {
+    "title": "STUDIO HOTKEYS",
+    "space": "Play/Pause",
+    "r": "Restart",
+    "n": "Next Seed",
+    "e": "Export 4K",
+    "hint": "Press ? for keyboard shortcut sheet"
+  },
+  "language": {
+    "switcher": "Language",
+    "switchPrompt": "このページは{language}で利用可能です → 切り替える",
+    "dismiss": "Dismiss"
+  }
+}

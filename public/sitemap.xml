@@ -1,50 +1,199 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- Main landing page per language -->
+  <!-- en, ur, hi, ar, es, pt-BR, fr, de, id, tr, ru, bn, vi, ja, ko, zh-CN -->
   <url>
-    <loc>https://bounceforge.app/</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://bounceforge.app/en</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bounceforge.app/en" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bounceforge.app/en" />
+    <xhtml:link rel="alternate" hreflang="ur" href="https://bounceforge.app/ur" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://bounceforge.app/hi" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://bounceforge.app/ar" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://bounceforge.app/es" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://bounceforge.app/pt-BR" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://bounceforge.app/fr" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://bounceforge.app/de" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://bounceforge.app/id" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://bounceforge.app/tr" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://bounceforge.app/ru" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://bounceforge.app/bn" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://bounceforge.app/vi" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://bounceforge.app/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://bounceforge.app/ko" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://bounceforge.app/zh-CN" />
   </url>
   <url>
-    <loc>https://bounceforge.app/studio</loc>
-    <lastmod>2026-10-15</lastmod>
+    <loc>https://bounceforge.app/ur</loc>
+    <lastmod>2026-10-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://bounceforge.app/settings</loc>
-    <lastmod>2026-10-15</lastmod>
+    <loc>https://bounceforge.app/hi</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/ar</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/es</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/pt-BR</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/fr</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/de</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/id</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/tr</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/ru</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/bn</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/vi</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/ja</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/ko</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/zh-CN</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Studio routes -->
+  <url>
+    <loc>https://bounceforge.app/en/studio</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bounceforge.app/en/studio" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bounceforge.app/en/studio" />
+    <xhtml:link rel="alternate" hreflang="ur" href="https://bounceforge.app/ur/studio" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://bounceforge.app/hi/studio" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://bounceforge.app/ar/studio" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://bounceforge.app/es/studio" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://bounceforge.app/pt-BR/studio" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://bounceforge.app/fr/studio" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://bounceforge.app/de/studio" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://bounceforge.app/id/studio" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://bounceforge.app/tr/studio" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://bounceforge.app/ru/studio" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://bounceforge.app/bn/studio" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://bounceforge.app/vi/studio" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://bounceforge.app/ja/studio" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://bounceforge.app/ko/studio" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://bounceforge.app/zh-CN/studio" />
+  </url>
+
+  <!-- Pricing routes -->
+  <url>
+    <loc>https://bounceforge.app/en/pricing</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bounceforge.app/en/pricing" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bounceforge.app/en/pricing" />
+    <xhtml:link rel="alternate" hreflang="ur" href="https://bounceforge.app/ur/pricing" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://bounceforge.app/hi/pricing" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://bounceforge.app/ar/pricing" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://bounceforge.app/es/pricing" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://bounceforge.app/pt-BR/pricing" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://bounceforge.app/fr/pricing" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://bounceforge.app/de/pricing" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://bounceforge.app/id/pricing" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://bounceforge.app/tr/pricing" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://bounceforge.app/ru/pricing" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://bounceforge.app/bn/pricing" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://bounceforge.app/vi/pricing" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://bounceforge.app/ja/pricing" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://bounceforge.app/ko/pricing" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://bounceforge.app/zh-CN/pricing" />
+  </url>
+
+  <!-- FAQ, Terms, Privacy routes -->
+  <url>
+    <loc>https://bounceforge.app/en/faq</loc>
+    <lastmod>2026-10-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://bounceforge.app/diagnostics</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://bounceforge.app/faq</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bounceforge.app/terms</loc>
-    <lastmod>2026-10-15</lastmod>
+    <loc>https://bounceforge.app/en/terms</loc>
+    <lastmod>2026-10-17</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://bounceforge.app/privacy</loc>
-    <lastmod>2026-10-15</lastmod>
+    <loc>https://bounceforge.app/en/privacy</loc>
+    <lastmod>2026-10-17</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://bounceforge.app/contact</loc>
-    <lastmod>2026-10-15</lastmod>
+    <loc>https://bounceforge.app/en/refunds</loc>
+    <lastmod>2026-10-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://bounceforge.app/en/contact</loc>
+    <lastmod>2026-10-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

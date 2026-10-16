@@ -1,0 +1,23 @@
+{
+  "welcome": {
+    "subject": "Welcome to BounceForge!",
+    "greeting": "Hey creator!",
+    "body": "Your physics studio is unlocked and ready to forge viral clips."
+  },
+  "receipt": {
+    "subject": "Receipt for your BounceForge membership",
+    "body": "Thanks for supporting BounceForge. Your receipt details are below."
+  },
+  "renewal": {
+    "subject": "Your Creator Pro subscription has renewed",
+    "body": "Your commercial license and 4K export features remain active."
+  },
+  "failed": {
+    "subject": "Action required: Payment failed",
+    "body": "We could not process your renewal payment. Please update your payment method to maintain access."
+  },
+  "expiring": {
+    "subject": "Your BounceForge plan is expiring soon",
+    "body": "Renew now to keep your commercial monetization rights and cloud presets."
+  }
+}

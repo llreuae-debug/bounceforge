@@ -1,0 +1,72 @@
+{
+  "brand": "BounceForge",
+  "tagline": "240Hz 바이럴 볼 피직스 스튜디오",
+  "nav": {
+    "modes": "모드",
+    "engine": "엔진 & 오디오",
+    "faq": "자주 묻는 질문",
+    "pricing": "요금제",
+    "blog": "블로그",
+    "diagnostics": "진단",
+    "showcase": "쇼케이스",
+    "about": "소개",
+    "feedback": "피드백",
+    "login": "로그인",
+    "signup": "회원가입",
+    "studio": "스튜디오",
+    "openStudio": "무료로 스튜디오 시작",
+    "backToStudio": "스튜디오로 돌아가기",
+    "backToTop": "맨 위로 ↑",
+    "logout": "로그아웃",
+    "settings": "설정",
+    "account": "내 계정",
+    "admin": "관리자 콘솔"
+  },
+  "actions": {
+    "save": "Save",
+    "load": "Load",
+    "share": "Share",
+    "export": "Export 4K",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "add": "Add",
+    "reset": "Reset",
+    "search": "Search...",
+    "filter": "Filter",
+    "copy": "Copy",
+    "copied": "Copied to clipboard!",
+    "download": "Download",
+    "preview": "Preview",
+    "refresh": "Refresh",
+    "duplicate": "Duplicate",
+    "rename": "Rename"
+  },
+  "ui": {
+    "loading": "Loading BounceForge...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Notice",
+    "approx": "approx.",
+    "poweredBy": "Public Domain & Synthesized Audio",
+    "rights": "© 2026 BOUNCEFORGE. All rights reserved.",
+    "guestMode": "게스트 모드",
+    "loginToKeep": "log in to keep these on all ur devices"
+  },
+  "hotkeys": {
+    "title": "STUDIO HOTKEYS",
+    "space": "Play/Pause",
+    "r": "Restart",
+    "n": "Next Seed",
+    "e": "Export 4K",
+    "hint": "Press ? for keyboard shortcut sheet"
+  },
+  "language": {
+    "switcher": "Language",
+    "switchPrompt": "이 페이지는 {language}로 볼 수 있습니다 → 전환",
+    "dismiss": "Dismiss"
+  }
+}

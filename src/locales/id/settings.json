@@ -1,0 +1,86 @@
+{
+  "searchPlaceholder": "Search controls across all sections...",
+  "sections": {
+    "mode": "Simulation Mode",
+    "ball": "Ball Physics",
+    "walls": "Wall Controls",
+    "visuals": "Visual Aesthetics",
+    "sound": "Sound & ASMR",
+    "overlays": "Captions & Overlays",
+    "recording": "Recording & Format",
+    "presets": "Saved Presets"
+  },
+  "ballControls": {
+    "speed": "Speed / Velocity",
+    "size": "Ball Radius",
+    "gravity": "Gravity Strength",
+    "color": "Ball Color",
+    "bounciness": "Bounciness (Restitution)",
+    "bounceBoost": "Bounce Boost (+% per hit)",
+    "bounceBoostCap": "Max Boost Cap",
+    "maxSpeedCap": "Max Speed Cap (Anti-Tunneling)"
+  },
+  "wallControls": {
+    "ringLayers": "Ring Layers",
+    "gapWidth": "Gap Width (Degrees)",
+    "breakEffects": "Break Effect (Multi-select)",
+    "effectConfetti": "Confetti",
+    "effectGlass": "Glass Shatter",
+    "effectShockwave": "Shockwave",
+    "effectSparks": "Sparks",
+    "effectNone": "None",
+    "spikes": "Inward Spikes",
+    "spikeCount": "Spike Count",
+    "spikeLength": "Spike Length"
+  },
+  "visualControls": {
+    "rainbowWalls": "Rainbow Walls",
+    "rainbowFlow": "Gradient Flow",
+    "rainbowFlash": "Hit Flash",
+    "ballGlow": "Ball Glow",
+    "wallGlow": "Wall Glow",
+    "glowIntensity": "Glow Intensity",
+    "trail": "Motion Trail",
+    "trailLength": "Trail Length",
+    "hueShift": "Hue Shift Trail",
+    "reactiveBg": "Reactive Bounce Pulse",
+    "pulseIntensity": "Pulse Intensity"
+  },
+  "customBall": {
+    "title": "Custom Ball Appearance",
+    "typeDefault": "Solid Color",
+    "typeImage": "Image Upload",
+    "typeEmoji": "Emoji",
+    "uploadLabel": "Upload PNG, JPG, WebP or SVG (max 5 MB)",
+    "uploadHint": "only use images u own or have rights to",
+    "cropTitle": "Crop & Center",
+    "zoom": "Zoom",
+    "pickEmoji": "Pick an Emoji"
+  },
+  "overlays": {
+    "topCaption": "Top Caption (Hook)",
+    "bottomCaption": "Bottom Caption",
+    "centerText": "Center Text (@handle or question)",
+    "fontSize": "Size",
+    "color": "Color",
+    "bold": "Bold",
+    "outline": "Outline / Shadow",
+    "opacity": "Opacity",
+    "videoLang": "Video Text Language",
+    "videoLangHint": "Language used inside exported video hooks and counters"
+  },
+  "recording": {
+    "duration": "Recording Duration",
+    "resolution": "Video Aspect Ratio & Resolution",
+    "quickPills": "Quick Length:"
+  },
+  "presets": {
+    "saveCurrent": "Save Setup as Preset",
+    "namePlaceholder": "Preset name...",
+    "noPresets": "No presets saved yet.",
+    "load": "Load",
+    "exportJson": "Export JSON",
+    "importJson": "Import JSON",
+    "share": "Share Link"
+  }
+}

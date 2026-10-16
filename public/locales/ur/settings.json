@@ -1,0 +1,86 @@
+{
+  "searchPlaceholder": "تمام سیکشنز میں سرچ کریں...",
+  "sections": {
+    "mode": "سمیلیشن موڈ",
+    "ball": "گیند کی فزکس",
+    "walls": "دیوار کی ترتیبات",
+    "visuals": "بصری اثرات",
+    "sound": "آواز اور ASMR",
+    "overlays": "کیپشنز اور اوورلیز",
+    "recording": "ریکارڈنگ اور سائز",
+    "presets": "محفوظ شدہ پری سیٹس"
+  },
+  "ballControls": {
+    "speed": "رفتار / ویلوسٹی",
+    "size": "گیند کا سائز",
+    "gravity": "کشش ثقل (گریوٹی)",
+    "color": "گیند کا رنگ",
+    "bounciness": "اچھال (ریسٹیٹیوشن)",
+    "bounceBoost": "باؤنس بوسٹ (ہر ہٹ پر اضافہ)",
+    "bounceBoostCap": "زیادہ سے زیادہ حد",
+    "maxSpeedCap": "زیادہ سے زیادہ رفتار کی حد"
+  },
+  "wallControls": {
+    "ringLayers": "رنگز کی تہیں",
+    "gapWidth": "راستے کی چوڑائی",
+    "breakEffects": "ٹوٹنے کا اثر",
+    "effectConfetti": "کنفیٹی",
+    "effectGlass": "شیشے کے ٹکڑے",
+    "effectShockwave": "شاک ویو",
+    "effectSparks": "چنگاریاں",
+    "effectNone": "کوئی نہیں",
+    "spikes": "اندرونی کانٹے",
+    "spikeCount": "کانٹوں کی تعداد",
+    "spikeLength": "کانٹوں کی لمبائی"
+  },
+  "visualControls": {
+    "rainbowWalls": "قوس قزح دیواریں",
+    "rainbowFlow": "گریڈینٹ فلو",
+    "rainbowFlash": "ہٹ فلیش",
+    "ballGlow": "گیند کی چمک",
+    "wallGlow": "دیوار کی چمک",
+    "glowIntensity": "چمک کی شدت",
+    "trail": "موشن ٹریل",
+    "trailLength": "ٹریل کی لمبائی",
+    "hueShift": "رنگ بدلتی ٹریل",
+    "reactiveBg": "اچھال پر پس منظر کا پلس",
+    "pulseIntensity": "پلس کی شدت"
+  },
+  "customBall": {
+    "title": "اپنی مرضی کی گیند",
+    "typeDefault": "سادہ رنگ",
+    "typeImage": "تصویر اپ لوڈ کریں",
+    "typeEmoji": "ایموجی",
+    "uploadLabel": "تصویر اپ لوڈ کریں (زیادہ سے زیادہ 5 MB)",
+    "uploadHint": "صرف وہی تصاویر استعمال کریں جن کے حقوق آپ کے پاس ہیں",
+    "cropTitle": "کراپ اور سینٹر",
+    "zoom": "زوم",
+    "pickEmoji": "ایموجی منتخب کریں"
+  },
+  "overlays": {
+    "topCaption": "اوپری کیپشن (ہک)",
+    "bottomCaption": "نیچلی کیپشن",
+    "centerText": "درمیانی ٹیکسٹ (@ہینڈل یا سوال)",
+    "fontSize": "سائز",
+    "color": "رنگ",
+    "bold": "بولڈ",
+    "outline": "آؤٹ لائن / شیڈو",
+    "opacity": "شفافیت",
+    "videoLang": "ویڈیو ٹیکسٹ کی زبان",
+    "videoLangHint": "ویڈیو کے اندر استعمال ہونے والے ہکس اور کاؤنٹرز کی زبان"
+  },
+  "recording": {
+    "duration": "ریکارڈنگ کا دورانیہ",
+    "resolution": "ویڈیو سائز اور ریزولوشن",
+    "quickPills": "فوری دورانیہ:"
+  },
+  "presets": {
+    "saveCurrent": "موجودہ سیٹ اپ بطور پری سیٹ محفوظ کریں",
+    "namePlaceholder": "پری سیٹ کا نام...",
+    "noPresets": "ابھی کوئی پری سیٹ محفوظ نہیں ہے۔",
+    "load": "لوڈ کریں",
+    "exportJson": "JSON ایکسپورٹ",
+    "importJson": "JSON امپورٹ",
+    "share": "شیئر لنک"
+  }
+}

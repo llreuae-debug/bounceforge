@@ -1,0 +1,45 @@
+{
+  "title": "SIMPLE, POWERFUL PLANS FOR CREATORS",
+  "subtitle": "Create unlimited viral physics clips with full commercial rights.",
+  "billingMonthly": "Monthly",
+  "billingAnnual": "Annual (Save 35%)",
+  "planFree": {
+    "name": "Guest / Free",
+    "price": "$0",
+    "desc": "Try out the studio and export test clips",
+    "feature1": "All 200+ physics modes",
+    "feature2": "Up to 30s recording length",
+    "feature3": "720p HD resolution",
+    "feature4": "Includes BounceForge watermark",
+    "cta": "Current Plan"
+  },
+  "planGamer": {
+    "name": "Gamer Pack",
+    "price": "$29",
+    "period": "lifetime pass",
+    "desc": "For casual creators and simulation enthusiasts",
+    "feature1": "1080p full HD export",
+    "feature2": "Up to 60s video length",
+    "feature3": "No watermark",
+    "feature4": "Personal use license",
+    "feature5": "MIDI Piano Roll editor",
+    "cta": "Get Gamer Pack"
+  },
+  "planPro": {
+    "name": "Creator Pro",
+    "price": "$19",
+    "annualPrice": "$149",
+    "period": "/month",
+    "annualPeriod": "/year",
+    "badge": "MOST POPULAR",
+    "desc": "For serious TikTok, YouTube Shorts & Reels creators",
+    "feature1": "4K Ultra HD (2160x3840) export",
+    "feature2": "Up to 120s video length",
+    "feature3": "Full commercial monetization license",
+    "feature4": "AI Hook & SEO generation suite",
+    "feature5": "Multi-device synced cloud presets",
+    "feature6": "Auto-Seed Finder algorithm",
+    "cta": "Get Creator Pro"
+  },
+  "guarantee": "30-day money-back guarantee. Cancel anytime with 1 click."
+}

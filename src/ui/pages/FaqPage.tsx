@@ -25,60 +25,60 @@ interface FaqItem {
 
 const FAQS: FaqItem[] = [
   {
-    id: 'what-is-bounceforge',
-    category: 'general',
-    question: 'What is BounceForge?',
-    answer:
-      'BounceForge is a browser-based generative physics studio designed specifically for short-form video creators. It simulates oddly satisfying ball physics (like concentric rings, spiral vortices, and web battles) synchronized with musical melodies and binaural ASMR audio, rendered directly in your browser up to 4K 60fps.',
-  },
-  {
     id: 'commercial-monetization',
     category: 'commercial',
-    question: 'Can I monetize videos created with BounceForge on YouTube, TikTok, and Instagram?',
+    question: 'Can I monetize videos commercially, and which plans allow it?',
     answer:
-      'Yes, 100%! All video and audio files exported from BounceForge are 100% royalty-free. The included classical melodies (Für Elise, Canon in D, Ode to Joy, etc.) are in the Public Domain, and the procedural ASMR synthesizers generate synthetic waveforms in real time. You own all commercial monetization rights for your creations.',
+      'Yes! Both the Creator Pro ($19/mo or $149/yr) and Gamer Pack ($29 one-time lifetime) plans grant complete, unrestricted commercial exploitation rights. You can monetize your exported videos on YouTube AdSense, TikTok Creator Rewards, Instagram Reels, Facebook, brand sponsorships, and client deliverables with zero watermark and zero royalties owed. The free Guest Tier is intended for personal evaluation and non-commercial testing, and includes a fixed BounceForge corner watermark.',
   },
   {
-    id: 'export-quality-offline',
+    id: 'mobile-support',
+    category: 'general',
+    question: 'Is BounceForge fully supported on mobile phones and tablets?',
+    answer:
+      'Yes! BounceForge includes a tailored mobile interface with responsive touch controls, haptic vibration feedback, and battery-conservation safeguards. It runs natively on iOS Safari (iOS 16.4+) and Android Chrome. The dynamic quality engine automatically adjusts shadow tiers to ensure a continuous 60 FPS viewport even on mid-tier mobile hardware.',
+  },
+  {
+    id: 'keyboard-shortcuts',
+    category: 'general',
+    question: 'What keyboard shortcuts are available in the studio?',
+    answer:
+      'BounceForge offers hotkeys for rapid video creation: Space (Toggle Play / Pause), R (Restart current simulation from 0.00s with confirmation), Shift+R (Reset current mode to defaults), ? or Shift+/ (Open shortcuts cheat sheet), N (Randomize seed and generate new layout), E (Open 4K Video Exporter), M (Mute / Unmute audio), and Esc (Dismiss active modal).',
+  },
+  {
+    id: 'export-formats',
     category: 'export',
-    question: 'How does the 4K offline video export work without lag?',
+    question: 'What video export formats and resolutions are supported?',
     answer:
-      'Unlike screen recording tools that lag under heavy CPU load, BounceForge uses hardware-accelerated WebCodecs and mp4-muxer. The physics engine steps frame-by-frame deterministically at 240Hz, drawing every frame to an offscreen canvas and encoding an exact 60fps video. The audio is synthesized offline via OfflineAudioContext at 48kHz stereo.',
+      'Exports are encoded entirely client-side with W3C WebCodecs. Supported formats include MP4 (H.264 video with AAC stereo audio) configured for native Apple QuickTime and Windows Media Player playback, as well as WebM (VP9 / Opus). Available resolutions include 1080×1920 (FHD 9:16 default), 1440×2560 (2K QHD), 2160×3840 (4K UHD), 1080×1080 (Square 1:1), 1920×1080 (Landscape 16:9), and 720×1280 (HD free guest tier), rendered at true 60 FPS or 30 FPS.',
   },
   {
-    id: 'auto-seed-finder',
-    category: 'physics',
-    question: 'What is the Auto-Seed Finder and how does it guarantee viral finish times?',
+    id: 'refund-policy',
+    category: 'commercial',
+    question: 'What is your refund policy?',
     answer:
-      'View retention on TikTok and YouTube Shorts depends on precise video lengths (e.g. 59.0 to 60.0 seconds). The Auto-Seed Finder spins up a headless Web Worker that runs physics simulations at thousands of frames per second across consecutive seeds. It automatically tests and returns seeds where the ball escapes within your chosen viral duration window.',
-  },
-  {
-    id: 'deterministic-physics',
-    category: 'physics',
-    question: 'Are simulations completely deterministic?',
-    answer:
-      'Yes! BounceForge uses the Mulberry32 Pseudo-Random Number Generator and substepped Verlet numerical integration. Given the same simulation mode, settings, and integer seed, the ball positions, bounce vectors, collision counts, and musical notes will be identical bit-for-bit on every device and every render.',
-  },
-  {
-    id: 'custom-midi-melodies',
-    category: 'audio',
-    question: 'Can I compose my own melodies or import MIDI files?',
-    answer:
-      'Absolutely. BounceForge features an interactive 4-octave piano roll MIDI editor. You can click on the grid to create or edit melodic notes, adjust octave shifts, choose musical scales (Pentatonic, Dorian, Harmonic Minor, Synthwave), or import standard .mid files directly from your computer.',
+      'We offer a 14-day hassle-free money-back guarantee. If BounceForge does not run smoothly on your specific computer or GPU architecture, or if you encounter insurmountable technical export limitations, simply contact our support team at support@bounceforge.com or submit a note on the Feedback page within 14 days of purchase for a prompt refund.',
   },
   {
     id: 'privacy-client-side',
     category: 'general',
-    question: 'Is my project data uploaded to any external server?',
+    question: 'How is user privacy protected and where are videos processed?',
     answer:
-      'No. BounceForge is 100% client-side. All physics calculations, audio synthesis, video muxing, and project saving happen directly in your browser using Web Workers and IndexedDB. Nothing leaves your device.',
+      'BounceForge operates under a strict privacy-first architecture: 100% of the physics simulation, audio synthesis, and video rendering takes place locally inside your browser memory. Your videos, custom image ball textures, and project presets are never uploaded to remote cloud rendering farms. Guest presets are stored in your device’s local IndexedDB, and logged-in accounts sync configurations securely via encrypted profile databases.',
   },
   {
-    id: 'supported-devices',
+    id: 'what-is-bounceforge',
     category: 'general',
-    question: 'Which devices and browsers are supported?',
+    question: 'What makes BounceForge simulations deterministic?',
     answer:
-      'BounceForge works on modern desktop and mobile browsers including Chrome, Edge, Safari (macOS & iOS 16.4+), and Firefox. For optimal 4K WebCodecs video encoding, Chromium-based browsers (Chrome, Edge, Brave) and Safari 16.4+ are recommended.',
+      'Every simulation relies on a 32-bit Mulberry32 PRNG seed and fixed 240Hz sub-stepped numerical integration. Entering the exact same seed (e.g. #74218) will produce identical collision timings, trajectory rebounds, particle bursts, and musical melody notes on every browser and every computer worldwide.',
+  },
+  {
+    id: 'auto-seed-finder',
+    category: 'physics',
+    question: 'How does the Auto-Seed Finder target viral video lengths?',
+    answer:
+      'Short-form retention depends on exact video payoff timings (e.g. escaping the ring at exactly 59.5 seconds). The Auto-Seed Finder runs a headless Web Worker that steps physics simulations at thousands of frames per second, testing consecutive seeds until it finds one where the ball escapes within your specified target duration window.',
   },
 ];
 

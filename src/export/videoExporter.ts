@@ -7,6 +7,8 @@ import { AudioSettings, NoteItem } from '../audio/types';
 import { renderOfflineAudio } from '../audio/offlineRender';
 import { withTargetDuration } from '../engine/duration';
 import { requestWakeLock, releaseWakeLock } from '../platform/wakeLock';
+import { ensureFontLoaded } from '../i18n/fonts';
+import type { BallPhysicsSettings, WallControlsSettings, CustomBallConfig } from '../presets/presetService';
 
 export interface ExportConfig {
   width: number;
@@ -19,6 +21,9 @@ export interface ExportConfig {
   visuals: VisualSettings;
   overlays: OverlaySettings;
   audioSettings: AudioSettings;
+  ballPhysics?: Partial<BallPhysicsSettings>;
+  wallControls?: Partial<WallControlsSettings>;
+  customBall?: Partial<CustomBallConfig>;
   customNotes?: NoteItem[];
   bitrate?: number;
   fileHandle?: any; // FileSystemFileHandle for Chrome/Edge direct streaming
@@ -104,6 +109,9 @@ export class VideoExporter {
       console.warn(`Adjusting 4K dimensions (requested ${width}x${height})`);
     }
 
+    // Preload video language font to prevent fallback boxes in exported frames
+    await ensureFontLoaded(overlays?.videoLanguage || 'en');
+
     const totalFrames = Math.ceil(duration * fps);
     const dt = 1 / fps;
     const finishSettings = withTargetDuration(modeSettings, duration);
@@ -121,8 +129,9 @@ export class VideoExporter {
 
     // Initialize 2D Simulation
     const mode = getModeById(modeId);
-    const world = new PhysicsWorld(1080, 1920, seed);
+    const world = new PhysicsWorld(width, height, seed);
     mode.setup(world, modeSettings, seed);
+    world.applyGlobalModifiers(config.ballPhysics, config.wallControls, config.customBall);
     const renderer = new WorldRenderer();
     if (mode.onCollision) {
       const onCol = mode.onCollision;

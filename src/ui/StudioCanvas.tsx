@@ -18,9 +18,12 @@ import {
   MousePointer,
   Plus,
   Disc,
+  Zap,
+  HelpCircle,
 } from 'lucide-react';
 import { AdaptiveQualityManager } from '../platform/quality';
 import { triggerHaptic } from '../platform/haptics';
+import { RestartConfirmModal } from './modals/RestartConfirmModal';
 
 export const StudioCanvas: React.FC = () => {
   const {
@@ -52,6 +55,11 @@ export const StudioCanvas: React.FC = () => {
     audioUnlocked,
     setAudioUnlocked,
     showToast,
+    ballPhysics,
+    wallControls,
+    customBall,
+    setShortcutsOpen,
+    setRestartConfirmOpen,
   } = useStudioStore();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -68,12 +76,14 @@ export const StudioCanvas: React.FC = () => {
   const [interactMode, setInteractMode] = useState<'play' | 'spawn' | 'bumper'>('play');
   const [simTime, setSimTime] = useState<number>(0);
   const [isComplete, setIsComplete] = useState<boolean>(false);
+  const [bounceBoostEnergy, setBounceBoostEnergy] = useState<number>(0);
 
   // Initialize or Reset Physics Simulation
   const initSimulation = () => {
     const mode = getModeById(currentModeId);
     const world = new PhysicsWorld(1080, 1920, seed);
     mode.setup(world, modeSettings, seed);
+    world.applyGlobalModifiers(ballPhysics, wallControls, customBall);
 
     // Audio Engine initialization and event bus binding
     const audio = AudioEngine.getInstance();
@@ -101,7 +111,7 @@ export const StudioCanvas: React.FC = () => {
   useEffect(() => {
     initSimulation();
     setSeedInput(seed.toString());
-  }, [currentModeId, seed, modeSettings, targetDuration]);
+  }, [currentModeId, seed, modeSettings, targetDuration, ballPhysics, wallControls, customBall]);
 
   // Pressing play after the animation completed replays it from the start
   useEffect(() => {
@@ -200,7 +210,11 @@ export const StudioCanvas: React.FC = () => {
         return;
       }
 
-      if (e.code === 'Space') {
+      if (e.key === '?' || (e.shiftKey && e.code === 'Slash')) {
+        e.preventDefault();
+        triggerHaptic(10);
+        setShortcutsOpen(true);
+      } else if (e.code === 'Space') {
         e.preventDefault();
         triggerHaptic(10);
         togglePlay();
@@ -210,7 +224,7 @@ export const StudioCanvas: React.FC = () => {
         if (e.shiftKey) {
           resetModeToDefault();
         } else {
-          initSimulation();
+          setRestartConfirmOpen(true);
         }
       } else if (e.code === 'KeyN') {
         e.preventDefault();
@@ -273,11 +287,14 @@ export const StudioCanvas: React.FC = () => {
           triggerHaptic(20);
         }
 
-        // Throttle React state update for scrubber
+        // Throttle React state update for scrubber and HUD
         localTimer += deltaSec;
         if (localTimer > 0.1 && !done) {
           localTimer = 0;
           setSimTime(world.time);
+          if (world.getBounceBoostEnergy) {
+            setBounceBoostEnergy(world.getBounceBoostEnergy());
+          }
         }
       }
 
@@ -490,6 +507,14 @@ export const StudioCanvas: React.FC = () => {
             quality: {currentQualityTier} ({qualityMode === 'auto' ? 'auto' : 'manual'})
           </div>
 
+          {/* Bounce Boost Energy Meter HUD */}
+          {ballPhysics.bounceBoost && (
+            <div className="absolute top-10 left-3 z-30 px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md border border-amber-400/40 text-[10px] font-mono text-amber-300 flex items-center gap-1.5 shadow-md pointer-events-none">
+              <Zap className="w-3 h-3 text-amber-400 fill-amber-400 animate-pulse" />
+              <span>boost: {Math.round(bounceBoostEnergy)}%</span>
+            </div>
+          )}
+
           {/* Pulsing "tap for asmr" pill on the preview until audio starts */}
           {!audioUnlocked && (
             <button
@@ -585,7 +610,7 @@ export const StudioCanvas: React.FC = () => {
           </button>
 
           <button
-            onClick={initSimulation}
+            onClick={() => setRestartConfirmOpen(true)}
             className="btn-3d-glass w-10 h-10 rounded-xl text-slate-300 hover:text-white flex items-center justify-center transition-all"
             title="Restart Simulation (R)"
           >
@@ -615,11 +640,11 @@ export const StudioCanvas: React.FC = () => {
 
         {/* Speed Multiplier Pill */}
         <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
-          {[0.5, 1.0, 1.5, 2.0].map((spd) => (
+          {[0.25, 0.5, 1.0, 2.0, 4.0, 8.0].map((spd) => (
             <button
               key={spd}
               onClick={() => setPlaybackSpeed(spd)}
-              className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all ${
+              className={`px-2 py-1 text-[10.5px] font-bold rounded-lg transition-all ${
                 playbackSpeed === spd
                   ? 'btn-3d-cyan text-black shadow-sm'
                   : 'btn-3d-glass text-slate-400 hover:text-white'
@@ -663,8 +688,18 @@ export const StudioCanvas: React.FC = () => {
           >
             <Shield className="w-4 h-4" />
           </button>
+
+          <button
+            onClick={() => setShortcutsOpen(true)}
+            className="btn-3d-glass p-2 rounded-xl text-slate-400 hover:text-white transition-all"
+            title="Keyboard Shortcuts (?)"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      <RestartConfirmModal onConfirm={initSimulation} />
     </div>
   );
 };

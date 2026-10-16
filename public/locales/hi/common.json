@@ -1,0 +1,72 @@
+{
+  "brand": "BounceForge",
+  "tagline": "240Hz वायरल बॉल फिजिक्स स्टूडियो",
+  "nav": {
+    "modes": "मोड्स",
+    "engine": "इंजन और ऑडियो",
+    "faq": "सवाल-जवाब",
+    "pricing": "प्लान्स",
+    "blog": "ब्लॉग",
+    "diagnostics": "डायग्नोस्टिक्स",
+    "showcase": "शोकेस",
+    "about": "हमारे बारे में",
+    "feedback": "फीडबैक",
+    "login": "लॉग इन",
+    "signup": "साइन अप",
+    "studio": "स्टूडियो",
+    "openStudio": "मुफ्त में स्टूडियो खोलें",
+    "backToStudio": "स्टूडियो पर वापस जाएं",
+    "backToTop": "ऊपर जाएं ↑",
+    "logout": "लॉग आउट",
+    "settings": "सेटिंग्स",
+    "account": "मेरा खाता",
+    "admin": "एडमिन पैनल"
+  },
+  "actions": {
+    "save": "सेव करें",
+    "load": "लोड करें",
+    "share": "शेयर करें",
+    "export": "4K एक्सपोर्ट",
+    "close": "बंद करें",
+    "cancel": "रद्द करें",
+    "confirm": "पुष्टि करें",
+    "delete": "डिलीट करें",
+    "edit": "एडिट करें",
+    "create": "नया बनाएं",
+    "add": "जोड़ें",
+    "reset": "रीसेट",
+    "search": "खोजें...",
+    "filter": "फ़िल्टर",
+    "copy": "कॉपी करें",
+    "copied": "क्लिपबोर्ड पर कॉपी हो गया!",
+    "download": "डाउनलोड",
+    "preview": "पूर्वावलोकन",
+    "refresh": "रिफ्रेश",
+    "duplicate": "डुप्लिकेट",
+    "rename": "नाम बदलें"
+  },
+  "ui": {
+    "loading": "बाउंसफोर्ज लोड हो रहा है...",
+    "success": "सफलता",
+    "error": "त्रुटि",
+    "warning": "सूचना",
+    "approx": "लगभग",
+    "poweredBy": "पब्लिक डोमेन और सिंथेसाइज्ड ऑडियो",
+    "rights": "© 2026 बाउंसफोर्ज। सर्वाधिकार सुरक्षित।",
+    "guestMode": "गेस्ट मोड",
+    "loginToKeep": "अपनी सभी डिवाइसेज पर सुरक्षित रखने के लिए लॉग इन करें"
+  },
+  "hotkeys": {
+    "title": "STUDIO HOTKEYS",
+    "space": "Play/Pause",
+    "r": "Restart",
+    "n": "Next Seed",
+    "e": "Export 4K",
+    "hint": "Press ? for keyboard shortcut sheet"
+  },
+  "language": {
+    "switcher": "Language",
+    "switchPrompt": "This page is available in {language} → Switch",
+    "dismiss": "Dismiss"
+  }
+}

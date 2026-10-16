@@ -31,6 +31,7 @@ import { useAuthStore } from '../auth/useAuthStore';
 import { WhatsNewModal } from './modals/WhatsNewModal';
 import { WhatNextModal } from './modals/WhatNextModal';
 import { TrendsAdminModal } from './modals/TrendsAdminModal';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 
 export const Header: React.FC = () => {
   const {
@@ -137,6 +138,22 @@ export const Header: React.FC = () => {
             >
               Engine &amp; Audio
             </a>
+            <button
+              onClick={() => setRoute('showcase')}
+              className={`hover:text-white transition-colors cursor-pointer ${
+                currentRoute === 'showcase' ? 'text-[#00F0FF] font-extrabold' : ''
+              }`}
+            >
+              Showcase
+            </button>
+            <button
+              onClick={() => setRoute('about')}
+              className={`hover:text-white transition-colors cursor-pointer ${
+                currentRoute === 'about' ? 'text-[#CCFF00] font-extrabold' : ''
+              }`}
+            >
+              About
+            </button>
             <a
               href="#faq"
               onClick={(e) => handleAnchor(e, 'faq')}
@@ -305,6 +322,9 @@ export const Header: React.FC = () => {
             </button>
           </div>
         )}
+
+        {/* Global Multi-Language Switcher */}
+        <LanguageSwitcher variant="header" className="hidden sm:inline-block" />
 
         {/* User Account Avatar / Auth Section */}
         {isAuthenticated && currentUser ? (
@@ -501,6 +521,9 @@ export const Header: React.FC = () => {
               </button>
             </div>
           )}
+
+          {/* Mobile Language Switcher */}
+          <LanguageSwitcher variant="mobile" className="pt-3 border-t border-white/10" />
         </div>
       )}
     </header>

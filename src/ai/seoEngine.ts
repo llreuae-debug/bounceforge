@@ -115,10 +115,33 @@ export function generateSeoPack(params: {
   seed?: number;
   resolution?: string;
   variationIndex?: number;
+  language?: string;
 }): SeoPack {
-  const { modeName, modeId, hookText, seed = 1337, resolution = '1080p', variationIndex = 0 } = params;
+  const { modeName, modeId, hookText, seed = 1337, resolution = '1080p', variationIndex = 0, language = 'en' } = params;
   const cleanHook = hookText.trim().replace(/[?!.]+$/, '');
   const onscreen = checkOnScreenKeyword(hookText);
+
+  // Localized hashtag dictionary (mixing local and global tags per Part 8)
+  const LOCAL_TAGS: Record<string, string[]> = {
+    ur: ['#اردو', '#وائرل', '#ریلز', '#فزکس', '#تسلی_بخش'],
+    hi: ['#वायरल', '#शॉर्ट्स', '#भौतिकी', '#हिंदी', '#रिलैक्सिंग'],
+    ar: ['#اكسبلور', '#عرب_تيك_توك', '#فيزياء', '#ريلز', '#ممتع'],
+    es: ['#parati', '#fisica', '#simulacion', '#viral', '#españa', '#mexico'],
+    'pt-BR': ['#fy', '#fypbrasil', '#fisica', '#viralbrasil', '#jogos'],
+    pt: ['#fy', '#fypbrasil', '#fisica', '#viralbrasil', '#jogos'],
+    fr: ['#pourtoi', '#physique', '#satisfaisant', '#viralfrance'],
+    de: ['#fy', '#foryoupage', '#physik', '#deutschland', '#beruhigend'],
+    id: ['#fyp', '#indonesia', '#fisika', '#seru', '#santai'],
+    tr: ['#kesfet', '#kesfetteyiz', '#fizik', '#rahatlatici', '#turkiye'],
+    ru: ['#рек', '#рекомендации', '#физика', '#залипательно', '#шортс'],
+    bn: ['#ভাইরাল', '#বাংলাদেশ', '#শর্টস', '#আরামদায়ক'],
+    vi: ['#fyp', '#xuhuong', '#vatly', '#thugian', '#vietnam'],
+    ja: ['#おすすめ', '#バズれ', '#物理', '#癒し', '#爽快'],
+    ko: ['#추천', '#떡상', '#물리', '#힐링', '#쇼츠'],
+    'zh-CN': ['#热门', '#解压', '#物理模拟', '#治愈', '#抖音'],
+  };
+
+  const localTags = LOCAL_TAGS[language] || [];
 
   // Hashtag sets
   const tiktokHashtags = [
@@ -128,6 +151,7 @@ export function generateSeoPack(params: {
     '#physics',
     `#${modeId.replace(/[^a-z0-9]/g, '')}`,
     '#oddlysatisfying',
+    ...localTags.slice(0, 3),
   ];
 
   const reelsHashtags = [
@@ -136,6 +160,7 @@ export function generateSeoPack(params: {
     '#physicssimulation',
     '#relaxingvideos',
     '#sounddesign',
+    ...localTags.slice(0, 3),
   ];
 
   const shortsTagsList = [
@@ -148,6 +173,7 @@ export function generateSeoPack(params: {
     'bounceforge 4k',
     'relaxing sounds',
     modeName.toLowerCase(),
+    ...(LOCAL_TAGS[language] ? LOCAL_TAGS[language].map((t) => t.replace('#', '')) : []),
   ];
 
   // Variations to avoid batch duplication

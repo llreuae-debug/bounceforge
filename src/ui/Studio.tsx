@@ -8,6 +8,7 @@ import { ShortcutsModal } from './modals/ShortcutsModal';
 import { useStudioStore } from '../store/useStudioStore';
 import { ALL_MODES } from '../modes/registry';
 import { triggerHaptic } from '../platform/haptics';
+import { useI18n } from '../i18n';
 
 // Lazy-load heavy export pipelines and interactive editors for fast 3s initial load
 const ExportModal = React.lazy(() =>
@@ -43,6 +44,7 @@ export const Studio: React.FC = () => {
     setMode,
     setExportOpen,
   } = useStudioStore();
+  const { isRTL } = useI18n();
 
   const [windowWidth, setWindowWidth] = useState<number>(
     typeof window !== 'undefined' ? window.innerWidth : 1280
@@ -180,7 +182,7 @@ export const Studio: React.FC = () => {
         </div>
       ) : (
         /* DESKTOP & TABLET LANDSCAPE: 3 columns with collapsible panels & max-w-2400 */
-        <main className="flex-1 flex overflow-hidden max-w-[2400px] mx-auto w-full relative">
+        <main className={`flex-1 flex overflow-hidden max-w-[2400px] mx-auto w-full relative ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
           {/* Left: Mode Gallery with collapse toggle */}
           {!collapseLeft && (
             <div className="relative">

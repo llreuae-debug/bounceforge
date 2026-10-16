@@ -83,24 +83,36 @@ export function getSafeArena(
     height: height - topPx - bottomPx,
   };
 
-  // Center horizontally
-  const centerX = width / 2;
+  // Universal layout calculator adapting for vertical (9:16), square (1:1), and landscape (16:9)
+  const isLandscape = width > height;
+  const isSquare = Math.abs(width - height) < 30;
 
-  // Center vertically at 44.8% of frame height (middle of safe box, slightly above frame center)
-  const centerY = height * 0.448;
+  let centerX = width / 2;
+  let centerY = height * 0.448;
+  let diameter = Math.round(width - 2 * rightPx);
+  let radius = diameter / 2;
+  let titleY = height * 0.17;
+  let titleMaxW = safeBox.width;
+  let watermarkBottomY = height * (1 - 0.23);
+  let watermarkW = width * 0.30;
 
-  // Diameter = frame width - 2 * right margin (13%), keeping both sides clear of TikTok/Shorts action buttons
-  // 1080p => 800px, 4K => 1600px
-  const diameter = Math.round(width - 2 * rightPx);
-  const radius = diameter / 2;
-
-  // Layout positions
-  const titleY = height * 0.17; // between 12% and 22%
-  const titleMaxW = safeBox.width;
-
-  // Watermark: bottom edge at 23% from frame bottom (y = 77% of height)
-  const watermarkBottomY = height * (1 - 0.23);
-  const watermarkW = width * 0.30;
+  if (isSquare) {
+    centerY = height * 0.47;
+    const maxAvailable = Math.min(safeBox.width, safeBox.height);
+    diameter = Math.round(maxAvailable * 0.74);
+    radius = diameter / 2;
+    titleY = height * 0.11;
+    watermarkBottomY = height * 0.93;
+    watermarkW = width * 0.26;
+  } else if (isLandscape) {
+    centerY = height * 0.50;
+    const maxAvailable = height - topPx - bottomPx;
+    diameter = Math.round(maxAvailable * 0.82);
+    radius = diameter / 2;
+    titleY = height * 0.09;
+    watermarkBottomY = height * 0.93;
+    watermarkW = height * 0.30;
+  }
 
   // Live Counter: centered between arena bottom and watermark top
   const arenaBottomY = centerY + radius;
@@ -113,6 +125,7 @@ export function getSafeArena(
     radius,
     diameter,
     safeBox,
+
     margins: {
       topPx,
       bottomPx,

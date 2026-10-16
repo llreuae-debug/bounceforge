@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { UserProfile, UserSession } from './types';
 import { authService } from './authService';
+import { presetService } from '../presets/presetService';
 
 interface AuthState {
   currentUser: UserProfile | null;
@@ -102,6 +103,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const { session, isNewUser } = await authService.signInWithGoogle();
+      await presetService.migrateGuestWorkToAccount(session.user.id);
       set({
         currentUser: session.user,
         sessionToken: session.token,
@@ -121,6 +123,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const session = await authService.signInWithEmail(email, pass);
+      await presetService.migrateGuestWorkToAccount(session.user.id);
       set({
         currentUser: session.user,
         sessionToken: session.token,
@@ -140,6 +143,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const { session } = await authService.signUpWithEmail(email, pass, name, referralCode);
+      await presetService.migrateGuestWorkToAccount(session.user.id);
       set({
         currentUser: session.user,
         sessionToken: session.token,

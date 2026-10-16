@@ -7,8 +7,28 @@ export interface VisualSettings {
   themeId: string;
   bloomEnabled: boolean;
   bloomIntensity: number;
+
+  // Separate glow toggles + intensity: ball glow, wall glow
+  ballGlowEnabled: boolean;
+  ballGlowIntensity: number;
+  wallGlowEnabled: boolean;
+  wallGlowIntensity: number;
+
+  // Rainbow walls with 2 styles:
+  // - flow: smooth gradient that slowly rotates around the ring
+  // - flash: wall changes color briefly on every hit
+  rainbowWallsMode: 'off' | 'flow' | 'flash';
+
+  // Trail: on/off, length, and "hue shift" (trail color cycles through the rainbow over time)
+  trailEnabled: boolean;
   trailLength: number;
   trailFade: number;
+  trailHueShift: boolean;
+
+  // Reactive background: background brightness/color pulses gently on every bounce
+  reactiveBgEnabled: boolean;
+  reactiveBgIntensity: number;
+
   screenShakeIntensity: number;
   slowMotionEnd: boolean;
   chromaticFlash: boolean;
@@ -18,6 +38,9 @@ export interface VisualSettings {
 export class WorldRenderer {
   private screenShake: number = 0;
   private flashAlpha: number = 0;
+  private reactiveBgPulse: number = 0;
+  private lastBouncesCount: number = 0;
+  private imageCache: Map<string, HTMLImageElement> = new Map();
 
   constructor() {}
 
@@ -40,6 +63,12 @@ export class WorldRenderer {
   ): void {
     const theme = THEMES[visuals.themeId] || THEMES.neon_night;
 
+    // Detect bounce increase to trigger reactive background pulse
+    if (world.bounces > this.lastBouncesCount) {
+      this.reactiveBgPulse = 1.0;
+      this.lastBouncesCount = world.bounces;
+    }
+
     // Scale from world coordinates (1080x1920) to output canvas resolution
     const scaleX = renderWidth / world.width;
     const scaleY = renderHeight / world.height;
@@ -58,20 +87,20 @@ export class WorldRenderer {
     // Scale to output
     ctx.scale(scaleX, scaleY);
 
-    // 1. Draw Background
-    this.drawBackground(ctx, world.width, world.height, theme);
+    // 1. Draw Background (with reactive background pulse)
+    this.drawBackground(ctx, world.width, world.height, theme, visuals, isExport);
 
     // 2. Custom Mode Background / Trails Render
     if (world.customState?.onRenderBg) {
       world.customState.onRenderBg(ctx, world);
     }
 
-    // 3. Draw Trails
-    if (visuals.trailLength > 0) {
+    // 3. Draw Trails (with on/off and hue shift)
+    if (visuals.trailEnabled !== false && visuals.trailLength > 0) {
       this.drawTrails(ctx, world, visuals, theme);
     }
 
-    // 4. Draw Rings
+    // 4. Draw Rings (with flow and flash rainbow styles)
     this.drawRings(ctx, world, visuals, theme);
 
     // 5. Draw Lines / Obstacles
@@ -83,10 +112,10 @@ export class WorldRenderer {
     // 7. Draw Shockwaves
     this.drawShockwaves(ctx, world);
 
-    // 8. Draw Balls with Glow
+    // 8. Draw Balls with Glow & Custom Emoji/Image
     this.drawBalls(ctx, world, visuals, theme);
 
-    // 9. Draw Particles (Sparks & Shards)
+    // 9. Draw Particles (Sparks, Shards, and Confetti)
     this.drawParticles(ctx, world);
 
     // 10. Custom Mode Foreground Render (Webs, Paint, Sand, Dominoes, Leaderboards)
@@ -108,13 +137,36 @@ export class WorldRenderer {
     ctx.restore();
   }
 
-  private drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, theme: ThemeConfig): void {
+  private drawBackground(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    theme: ThemeConfig,
+    visuals: VisualSettings,
+    isExport: boolean
+  ): void {
+    // Reactive background pulse decay
+    let pulseIntensity = 0;
+    if (visuals.reactiveBgEnabled) {
+      pulseIntensity = this.reactiveBgPulse * (visuals.reactiveBgIntensity ?? 0.5);
+      this.reactiveBgPulse *= 0.85; // smooth decay
+    }
+
     const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 50, w / 2, h / 2, h * 0.7);
-    bgGrad.addColorStop(0, theme.backgroundSecondary || '#111424');
-    bgGrad.addColorStop(1, theme.background);
+    if (pulseIntensity > 0.01) {
+      // Glow pulse in center
+      const boostColor = `rgba(0, 240, 255, ${pulseIntensity * 0.25})`;
+      bgGrad.addColorStop(0, boostColor);
+      bgGrad.addColorStop(0.3, theme.backgroundSecondary || '#111424');
+      bgGrad.addColorStop(1, theme.background);
+    } else {
+      bgGrad.addColorStop(0, theme.backgroundSecondary || '#111424');
+      bgGrad.addColorStop(1, theme.background);
+    }
 
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
+
 
     // Subtle starfield or grid for themes
     if (theme.id === 'galaxy') {
@@ -152,7 +204,14 @@ export class WorldRenderer {
         const p2 = b.trail[i + 1];
         const alpha = (1 - i / maxLen) * visuals.trailFade;
 
-        ctx.strokeStyle = b.color;
+        // Hue shift: trail color cycles through the rainbow over time
+        if (visuals.trailHueShift) {
+          const hue = (world.time * 120 + (i / maxLen) * 360) % 360;
+          ctx.strokeStyle = `hsl(${hue}, 100%, 65%)`;
+        } else {
+          ctx.strokeStyle = b.color;
+        }
+
         ctx.globalAlpha = alpha;
         ctx.lineWidth = b.radius * (1 - (i / maxLen) * 0.7);
         ctx.lineCap = 'round';
@@ -178,7 +237,17 @@ export class WorldRenderer {
       if (ring.isShattered) continue;
 
       let ringColor = ring.color;
-      if (visuals.ringColorMode === 'rainbow') {
+
+      // Rainbow walls mode: flow or flash
+      if (visuals.rainbowWallsMode === 'flow') {
+        const hue = (r * 40 + (ring.angle * 180) / Math.PI + world.time * 90) % 360;
+        ringColor = `hsl(${hue}, 100%, 62%)`;
+      } else if (visuals.rainbowWallsMode === 'flash') {
+        if (this.reactiveBgPulse > 0.15) {
+          const flashHue = (r * 60 + world.time * 220) % 360;
+          ringColor = `hsl(${flashHue}, 100%, 75%)`;
+        }
+      } else if (visuals.ringColorMode === 'rainbow') {
         const hue = (r * 35 + world.time * 60) % 360;
         ringColor = `hsl(${hue}, 95%, 60%)`;
       } else if (visuals.ringColorMode === 'index') {
@@ -189,9 +258,12 @@ export class WorldRenderer {
       ctx.strokeStyle = ringColor;
       ctx.lineCap = 'round';
 
-      if (visuals.bloomEnabled) {
+      // Wall glow control
+      if (visuals.wallGlowEnabled !== false && (visuals.bloomEnabled || visuals.wallGlowIntensity > 0)) {
         ctx.shadowColor = ringColor;
-        ctx.shadowBlur = 15 * visuals.bloomIntensity;
+        ctx.shadowBlur = 18 * (visuals.wallGlowIntensity ?? visuals.bloomIntensity ?? 1.0);
+      } else {
+        ctx.shadowBlur = 0;
       }
 
       // Draw arc segments between gaps
@@ -239,7 +311,7 @@ export class WorldRenderer {
       ctx.fill();
     }
 
-    // Spikes
+    // Spikes (inward-pointing or mode obstacles)
     for (const spike of world.spikes) {
       ctx.fillStyle = spike.color;
       const endX = spike.x + Math.cos(spike.angle) * spike.length;
@@ -284,22 +356,63 @@ export class WorldRenderer {
     for (const b of world.balls) {
       if (!b.isAlive) continue;
 
-      if (visuals.bloomEnabled) {
+      // Ball glow control
+      if (visuals.ballGlowEnabled !== false && (visuals.bloomEnabled || visuals.ballGlowIntensity > 0)) {
         ctx.shadowColor = b.glowColor || b.color;
-        ctx.shadowBlur = 20 * visuals.bloomIntensity;
+        ctx.shadowBlur = 20 * (visuals.ballGlowIntensity ?? visuals.bloomIntensity ?? 1.0);
+      } else {
+        ctx.shadowBlur = 0;
       }
 
-      // Ball body
-      ctx.fillStyle = b.color;
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-      ctx.fill();
+      // 1. Custom Emoji Ball (scales with b.radius and spins with b.rotation)
+      if (b.customEmoji) {
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.rotation || 0);
+        ctx.font = `${Math.round(b.radius * 1.7)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(b.customEmoji, 0, 0);
+        ctx.restore();
+      }
+      // 2. Custom Uploaded Image Ball (circular cropped, scales with b.radius and spins with b.rotation)
+      else if (b.customImageDataUrl) {
+        let img = this.imageCache.get(b.customImageDataUrl);
+        if (!img) {
+          img = new Image();
+          img.src = b.customImageDataUrl;
+          this.imageCache.set(b.customImageDataUrl, img);
+        }
+        if (img.complete && img.naturalWidth > 0) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.translate(b.x, b.y);
+          ctx.rotate(b.rotation || 0);
+          ctx.drawImage(img, -b.radius, -b.radius, b.radius * 2, b.radius * 2);
+          ctx.restore();
+        } else {
+          // Fallback while image loads
+          ctx.fillStyle = b.color;
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      // 3. Default Ball Body
+      else {
+        ctx.fillStyle = b.color;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        ctx.fill();
 
-      // Inner highlight sparkle
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.beginPath();
-      ctx.arc(b.x - b.radius * 0.3, b.y - b.radius * 0.3, b.radius * 0.25, 0, Math.PI * 2);
-      ctx.fill();
+        // Inner highlight sparkle
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.arc(b.x - b.radius * 0.3, b.y - b.radius * 0.3, b.radius * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       // Tier label for merge mode or name/label for contestants
       if (b.tier !== undefined || b.name || b.label) {
@@ -315,7 +428,6 @@ export class WorldRenderer {
       }
     }
     ctx.restore();
-
   }
 
   private drawParticles(ctx: CanvasRenderingContext2D, world: PhysicsWorld): void {
@@ -325,7 +437,15 @@ export class WorldRenderer {
       ctx.globalAlpha = p.alpha;
       ctx.fillStyle = p.color;
 
-      if (p.type === 'shard' && p.rotation !== undefined) {
+      if (p.type === 'confetti') {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation || 0);
+        const pw = p.width || 8;
+        const ph = p.height || 4;
+        ctx.fillRect(-pw / 2, -ph / 2, pw, ph);
+        ctx.restore();
+      } else if (p.type === 'shard' && p.rotation !== undefined) {
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rotation);

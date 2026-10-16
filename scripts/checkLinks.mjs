@@ -99,6 +99,10 @@ async function runAudit() {
     '/admin',
     '/checkout/success',
     '/checkout/cancelled',
+    '/about',
+    '/showcase',
+    '/feedback',
+    '/disclaimer',
     '/404',
   ];
 

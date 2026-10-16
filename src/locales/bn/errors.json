@@ -1,0 +1,8 @@
+{
+  "notFoundTitle": "404 - Arena Not Found",
+  "notFoundDesc": "The simulation ring you were looking for escaped beyond the perimeter.",
+  "backHome": "Return to Studio",
+  "exportFailed": "Video export encountered a GPU encoding error. Try lowering resolution to 1080p.",
+  "imageSizeLimit": "Image file exceeds 5 MB limit. Please choose a smaller file.",
+  "rateLimited": "AI generation rate limit reached. Using offline fallback pack."
+}

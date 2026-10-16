@@ -18,6 +18,7 @@ import {
   Radio,
   ExternalLink,
 } from 'lucide-react';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 
 export const Footer: React.FC = () => {
   const { setRoute, setMode } = useStudioStore();
@@ -332,9 +333,38 @@ export const Footer: React.FC = () => {
             <span>© 2026 BOUNCEFORGE. All rights reserved.</span>
             <span className="text-neutral-700">•</span>
             <span className="text-neutral-400">Public Domain &amp; Synthesized Audio</span>
+            <span className="text-neutral-700">•</span>
+            <LanguageSwitcher variant="footer" />
           </div>
 
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+            <button
+              onClick={() => {
+                setRoute('about');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer text-[#CCFF00]"
+            >
+              About
+            </button>
+            <button
+              onClick={() => {
+                setRoute('showcase');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer text-[#00F0FF]"
+            >
+              Showcase
+            </button>
+            <button
+              onClick={() => {
+                setRoute('feedback');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer text-[#FF2E93]"
+            >
+              Feedback
+            </button>
             <button
               onClick={() => {
                 setRoute('faq');
@@ -361,6 +391,15 @@ export const Footer: React.FC = () => {
               className="hover:text-white transition-colors cursor-pointer"
             >
               Privacy
+            </button>
+            <button
+              onClick={() => {
+                setRoute('disclaimer');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Disclaimer
             </button>
             <button
               onClick={() => {

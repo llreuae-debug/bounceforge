@@ -13,6 +13,10 @@ import { AffiliateTermsPage } from './ui/pages/AffiliateTermsPage';
 import { RefundPolicyPage } from './ui/pages/RefundPolicyPage';
 import { CheckoutSuccessPage } from './ui/pages/CheckoutSuccessPage';
 import { CheckoutCancelPage } from './ui/pages/CheckoutCancelPage';
+import { AboutPage } from './ui/pages/AboutPage';
+import { ShowcasePage } from './ui/pages/ShowcasePage';
+import { FeedbackPage } from './ui/pages/FeedbackPage';
+import { DisclaimerPage } from './ui/pages/DisclaimerPage';
 import { BackgroundSimulator3D } from './render3d/background3d';
 
 // Code-split heavy routes so Landing, FAQ, Terms load immediately without 3D simulation or Admin bundles
@@ -27,27 +31,47 @@ import { GlobalToast } from './ui/components/GlobalToast';
 import { AuthModal } from './ui/modals/AuthModal';
 import { OnboardingModal } from './ui/modals/OnboardingModal';
 import { UpgradeModal } from './ui/modals/UpgradeModal';
+import { ALL_LANGUAGE_CODES, SupportedLanguage, DEFAULT_LANGUAGE } from './i18n/config';
+import { setLanguage } from './i18n';
+import { LanguageSuggestionBanner } from './ui/components/LanguageSuggestionBanner';
+import { SeoHead } from './i18n/SeoHead';
 
-const pathToRoute = (pathname: string): StudioRoute => {
-  const clean = pathname.replace(/\/$/, '') || '/';
-  if (clean === '/') return 'landing';
-  if (clean === '/studio') return 'studio';
-  if (clean === '/settings') return 'settings';
-  if (clean === '/diagnostics') return 'diagnostics';
-  if (clean === '/faq') return 'faq';
-  if (clean === '/terms') return 'terms';
-  if (clean === '/privacy') return 'privacy';
-  if (clean === '/contact') return 'contact';
-  if (clean === '/pricing') return 'pricing';
-  if (clean === '/account') return 'account';
-  if (clean === '/admin') return 'admin';
-  if (clean === '/blog') return 'blog';
-  if (clean.startsWith('/blog/')) return 'article';
-  if (clean === '/affiliate-terms') return 'affiliate_terms';
-  if (clean === '/refunds') return 'refunds';
-  if (clean === '/checkout/success') return 'checkout_success';
-  if (clean === '/checkout/cancelled') return 'checkout_cancelled';
-  return '404';
+const ALL_LANG_SET = new Set<string>(ALL_LANGUAGE_CODES);
+
+export const parsePathWithLocale = (
+  pathname: string
+): { lang: SupportedLanguage | null; route: StudioRoute } => {
+  const segments = pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+  let lang: SupportedLanguage | null = null;
+
+  if (segments.length > 0 && ALL_LANG_SET.has(segments[0])) {
+    lang = segments[0] as SupportedLanguage;
+    segments.shift();
+  }
+
+  const clean = '/' + segments.join('/');
+  if (clean === '/' || clean === '') return { lang, route: 'landing' };
+  if (clean === '/studio') return { lang, route: 'studio' };
+  if (clean === '/settings') return { lang, route: 'settings' };
+  if (clean === '/diagnostics') return { lang, route: 'diagnostics' };
+  if (clean === '/about') return { lang, route: 'about' };
+  if (clean === '/showcase') return { lang, route: 'showcase' };
+  if (clean === '/feedback') return { lang, route: 'feedback' };
+  if (clean === '/disclaimer') return { lang, route: 'disclaimer' };
+  if (clean === '/faq') return { lang, route: 'faq' };
+  if (clean === '/terms') return { lang, route: 'terms' };
+  if (clean === '/privacy') return { lang, route: 'privacy' };
+  if (clean === '/contact') return { lang, route: 'contact' };
+  if (clean === '/pricing') return { lang, route: 'pricing' };
+  if (clean === '/account') return { lang, route: 'account' };
+  if (clean === '/admin') return { lang, route: 'admin' };
+  if (clean === '/blog') return { lang, route: 'blog' };
+  if (clean.startsWith('/blog/')) return { lang, route: 'article' };
+  if (clean === '/affiliate-terms') return { lang, route: 'affiliate_terms' };
+  if (clean === '/refunds') return { lang, route: 'refunds' };
+  if (clean === '/checkout/success') return { lang, route: 'checkout_success' };
+  if (clean === '/checkout/cancelled') return { lang, route: 'checkout_cancelled' };
+  return { lang, route: '404' };
 };
 
 export const App: React.FC = () => {
@@ -109,12 +133,32 @@ export const App: React.FC = () => {
 
   // Route Synchronization on mount, popstate and hash navigation
   useEffect(() => {
+    const { lang, route: parsedRoute } = parsePathWithLocale(window.location.pathname);
+    if (lang) {
+      setLanguage(lang);
+    } else {
+      // First visit: (1) URL (already checked), (2) saved preference, (3) browser language, else English
+      const saved = localStorage.getItem('bounceforge_lang') as SupportedLanguage | null;
+      if (saved && ALL_LANG_SET.has(saved)) {
+        setLanguage(saved);
+      } else if (typeof navigator !== 'undefined') {
+        const browser = (navigator.language || '').toLowerCase();
+        let matched: SupportedLanguage = DEFAULT_LANGUAGE;
+        if (browser.startsWith('pt')) matched = 'pt-BR';
+        else if (browser.startsWith('zh')) matched = 'zh-CN';
+        else {
+          const code = browser.slice(0, 2) as SupportedLanguage;
+          if (ALL_LANG_SET.has(code)) matched = code;
+        }
+        setLanguage(matched);
+      }
+    }
+
     const loaded = loadFromUrlHash();
     if (loaded) {
       setRoute('studio', false);
     } else {
-      const initialRoute = pathToRoute(window.location.pathname);
-      setRoute(initialRoute, false);
+      setRoute(parsedRoute, false);
     }
 
     if (window.location.hash) {
@@ -128,8 +172,11 @@ export const App: React.FC = () => {
     }
 
     const handlePop = () => {
-      const route = pathToRoute(window.location.pathname);
-      setRoute(route, false);
+      const { lang: popLang, route: popRoute } = parsePathWithLocale(window.location.pathname);
+      if (popLang) {
+        setLanguage(popLang);
+      }
+      setRoute(popRoute, false);
       if (window.location.hash) {
         const anchor = window.location.hash.slice(1);
         setTimeout(() => {
@@ -154,6 +201,12 @@ export const App: React.FC = () => {
 
   return (
     <div className="relative min-h-screen bg-[#050608] text-slate-100 overflow-x-hidden">
+      {/* Dynamic Multi-Language Meta, Titles, og:locale, canonical & hreflang */}
+      <SeoHead route={currentRoute} />
+
+      {/* Dismissible Browser Language Suggestion Banner */}
+      <LanguageSuggestionBanner />
+
       {/* 3D Lightweight Background Simulator */}
       <canvas
         ref={bgCanvasRef}
@@ -190,6 +243,10 @@ export const App: React.FC = () => {
           {currentRoute === 'checkout_success' && <CheckoutSuccessPage />}
           {currentRoute === 'checkout_cancelled' && <CheckoutCancelPage />}
           {currentRoute === 'diagnostics' && <DiagnosticsPage />}
+          {currentRoute === 'about' && <AboutPage />}
+          {currentRoute === 'showcase' && <ShowcasePage />}
+          {currentRoute === 'feedback' && <FeedbackPage />}
+          {currentRoute === 'disclaimer' && <DisclaimerPage />}
           {currentRoute === 'faq' && <FaqPage />}
           {currentRoute === 'terms' && <TermsPage />}
           {currentRoute === 'privacy' && <PrivacyPage />}

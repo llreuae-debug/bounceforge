@@ -1,0 +1,36 @@
+{
+  "top": {
+    "projectName": "Project Name",
+    "guestBadge": "Guest Mode (30s 720p)",
+    "saveTooltip": "Save setup locally",
+    "shareTooltip": "Copy deterministic seed link",
+    "surpriseTooltip": "Surprise me with random mode and melody",
+    "exportTooltip": "Export high-resolution video"
+  },
+  "hud": {
+    "speed": "Speed",
+    "bounceBoost": "BOUNCE BOOST",
+    "energy": "{percent}% BOOST",
+    "safeArea": "Safe Area",
+    "mute": "Mute Audio",
+    "unmute": "Unmute Audio"
+  },
+  "canvas": {
+    "next": "NEXT: {target}",
+    "ringsLeft": "{count, plural, one {# Ring Left} other {# Rings Left}}",
+    "cleared": "{current} / {total} CLEARED",
+    "escapeOpen": "ESCAPE OPEN!",
+    "winner": "WINNER: {name}",
+    "freezeStack": "{count} FROZEN BALLS"
+  },
+  "restartModal": {
+    "title": "Restart Simulation?",
+    "desc": "This will reset physics time to 0.00s while preserving seed #{seed} and your current settings.",
+    "confirm": "Restart Simulation",
+    "cancel": "Keep Playing"
+  },
+  "shortcutsModal": {
+    "title": "Keyboard Shortcuts",
+    "close": "Close Shortcuts"
+  }
+}
