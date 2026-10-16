@@ -91,6 +91,14 @@ async function runAudit() {
     '/terms',
     '/privacy',
     '/contact',
+    '/pricing',
+    '/blog',
+    '/refunds',
+    '/affiliate-terms',
+    '/account',
+    '/admin',
+    '/checkout/success',
+    '/checkout/cancelled',
     '/404',
   ];
 

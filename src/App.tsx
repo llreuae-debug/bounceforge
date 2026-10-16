@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useStudioStore, StudioRoute } from './store/useStudioStore';
+import { useAuthStore } from './auth/useAuthStore';
+import { affiliateService } from './affiliates/affiliateService';
 import { LandingPage } from './ui/LandingPage';
 import { Studio } from './ui/Studio';
 import { Header } from './ui/Header';
@@ -9,8 +11,20 @@ import { TermsPage } from './ui/pages/TermsPage';
 import { PrivacyPage } from './ui/pages/PrivacyPage';
 import { ContactPage } from './ui/pages/ContactPage';
 import { NotFoundPage } from './ui/pages/NotFoundPage';
+import { PricingPage } from './ui/pages/PricingPage';
+import { AccountPage } from './ui/pages/AccountPage';
+import { AdminPanel } from './ui/admin/AdminPanel';
+import { BlogPage } from './ui/pages/BlogPage';
+import { ArticlePage } from './ui/pages/ArticlePage';
+import { AffiliateTermsPage } from './ui/pages/AffiliateTermsPage';
+import { RefundPolicyPage } from './ui/pages/RefundPolicyPage';
+import { CheckoutSuccessPage } from './ui/pages/CheckoutSuccessPage';
+import { CheckoutCancelPage } from './ui/pages/CheckoutCancelPage';
 import { BackgroundSimulator3D } from './render3d/background3d';
 import { GlobalToast } from './ui/components/GlobalToast';
+import { AuthModal } from './ui/modals/AuthModal';
+import { OnboardingModal } from './ui/modals/OnboardingModal';
+import { UpgradeModal } from './ui/modals/UpgradeModal';
 
 const pathToRoute = (pathname: string): StudioRoute => {
   const clean = pathname.replace(/\/$/, '') || '/';
@@ -22,13 +36,54 @@ const pathToRoute = (pathname: string): StudioRoute => {
   if (clean === '/terms') return 'terms';
   if (clean === '/privacy') return 'privacy';
   if (clean === '/contact') return 'contact';
+  if (clean === '/pricing') return 'pricing';
+  if (clean === '/account') return 'account';
+  if (clean === '/admin') return 'admin';
+  if (clean === '/blog') return 'blog';
+  if (clean.startsWith('/blog/')) return 'article';
+  if (clean === '/affiliate-terms') return 'affiliate_terms';
+  if (clean === '/refunds') return 'refunds';
+  if (clean === '/checkout/success') return 'checkout_success';
+  if (clean === '/checkout/cancelled') return 'checkout_cancelled';
   return '404';
 };
 
 export const App: React.FC = () => {
   const { currentRoute, setRoute, loadFromUrlHash, isExportOpen } = useStudioStore();
+  const { initAuth, openAuthModal } = useAuthStore();
   const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const bgSimRef = useRef<BackgroundSimulator3D | null>(null);
+
+  // Initialize Auth & Referral Cookie on Mount
+  useEffect(() => {
+    initAuth();
+
+    // Check referral link format /r/code
+    const path = window.location.pathname;
+    if (path.startsWith('/r/')) {
+      const code = path.replace('/r/', '').replace(/\/$/, '');
+      if (code) {
+        affiliateService.trackClick(code);
+        // Clean URL and go to pricing
+        window.history.replaceState({}, '', '/pricing');
+        setRoute('pricing', false);
+        return;
+      }
+    }
+
+    if (path === '/login') {
+      openAuthModal('login');
+      window.history.replaceState({}, '', '/');
+      setRoute('landing', false);
+      return;
+    }
+    if (path === '/signup') {
+      openAuthModal('signup');
+      window.history.replaceState({}, '', '/');
+      setRoute('landing', false);
+      return;
+    }
+  }, [initAuth, openAuthModal, setRoute]);
 
   // Initialize App-Wide Lightweight 3D Background
   useEffect(() => {
@@ -89,7 +144,11 @@ export const App: React.FC = () => {
   }, [loadFromUrlHash, setRoute]);
 
   const bgOpacity =
-    currentRoute === 'landing' ? 'opacity-55' : currentRoute === 'studio' ? 'opacity-20' : 'opacity-35';
+    currentRoute === 'landing' || currentRoute === 'pricing'
+      ? 'opacity-55'
+      : currentRoute === 'studio'
+      ? 'opacity-20'
+      : 'opacity-35';
 
   return (
     <div className="relative min-h-screen bg-[#050608] text-slate-100 overflow-x-hidden">
@@ -109,6 +168,15 @@ export const App: React.FC = () => {
             <LandingPage />
           </>
         )}
+        {currentRoute === 'pricing' && <PricingPage />}
+        {currentRoute === 'account' && <AccountPage />}
+        {currentRoute === 'admin' && <AdminPanel />}
+        {currentRoute === 'blog' && <BlogPage />}
+        {currentRoute === 'article' && <ArticlePage />}
+        {currentRoute === 'affiliate_terms' && <AffiliateTermsPage />}
+        {currentRoute === 'refunds' && <RefundPolicyPage />}
+        {currentRoute === 'checkout_success' && <CheckoutSuccessPage />}
+        {currentRoute === 'checkout_cancelled' && <CheckoutCancelPage />}
         {currentRoute === 'diagnostics' && <DiagnosticsPage />}
         {currentRoute === 'faq' && <FaqPage />}
         {currentRoute === 'terms' && <TermsPage />}
@@ -116,6 +184,11 @@ export const App: React.FC = () => {
         {currentRoute === 'contact' && <ContactPage />}
         {currentRoute === '404' && <NotFoundPage />}
       </div>
+
+      {/* Modals */}
+      <AuthModal />
+      <OnboardingModal />
+      <UpgradeModal />
 
       {/* App-Wide Fixed Centered Toast System */}
       <GlobalToast />

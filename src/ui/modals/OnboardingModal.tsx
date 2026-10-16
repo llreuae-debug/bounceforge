@@ -1,110 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import { Sparkles, ArrowRight, Zap, Music, Video, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { useAuthStore } from '../../auth/useAuthStore';
+import { useStudioStore } from '../../store/useStudioStore';
+import { Sparkles, ArrowRight, Video, Flame, Music, Smile } from 'lucide-react';
 
 export const OnboardingModal: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState(0);
+  const { isOnboardingOpen, closeOnboarding, currentUser, updateCurrentUser } = useAuthStore();
+  const { setRoute, showToast } = useStudioStore();
 
-  useEffect(() => {
-    const seen = localStorage.getItem('bounceforge_onboarded');
-    if (!seen) {
-      setIsOpen(true);
+  const [creatorGoal, setCreatorGoal] = useState<'tiktok' | 'reels' | 'shorts' | 'fun' | 'business'>('tiktok');
+  const [name, setName] = useState(currentUser?.fullName || '');
+
+  if (!isOnboardingOpen) return null;
+
+  const handleFinish = async () => {
+    if (currentUser) {
+      await updateCurrentUser({
+        fullName: name || currentUser.fullName,
+        creatorGoal,
+        onboardingCompleted: true,
+      });
     }
-  }, []);
-
-  if (!isOpen) return null;
-
-  const steps = [
-    {
-      badge: 'Step 1 of 3 • Modes & Physics',
-      title: 'Pick Any Viral Simulation',
-      desc: 'Browse 21 original physics modes on the left gallery. Nested rings, shatter cascades, web battles, and black holes.',
-      icon: Zap,
-      color: 'from-cyan-400 to-blue-500',
-    },
-    {
-      badge: 'Step 2 of 3 • Musical Sync & ASMR',
-      title: 'Every Bounce Plays a Note',
-      desc: 'Choose from 12 synthesized instruments and public-domain melodies. Edit notes on the live piano roll or import your own .mid files with procedural ASMR sound.',
-      icon: Music,
-      color: 'from-purple-400 to-pink-500',
-    },
-    {
-      badge: 'Step 3 of 3 • 4K Frame-Perfect Video',
-      title: 'Export for TikTok, Shorts & Reels',
-      desc: 'Our deterministic WebCodecs engine renders offline 9:16 vertical videos up to 4K 60fps with zero stutter, synchronized audio, and customizable viral overlays.',
-      icon: Video,
-      color: 'from-[#CCFF00] to-emerald-400',
-    },
-  ];
-
-  const current = steps[step];
-  const Icon = current.icon;
-
-  const handleNext = () => {
-    if (step < steps.length - 1) {
-      setStep(step + 1);
-    } else {
-      localStorage.setItem('bounceforge_onboarded', 'true');
-      setIsOpen(false);
-    }
-  };
-
-  const handleSkip = () => {
-    localStorage.setItem('bounceforge_onboarded', 'true');
-    setIsOpen(false);
+    closeOnboarding();
+    showToast('Studio profile configured! Let’s create.');
+    setRoute('studio');
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-lg bg-[#0d0d16] border border-white/15 rounded-3xl p-8 shadow-2xl space-y-6">
-        {/* Glow accent */}
-        <div className="absolute -top-12 -left-12 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-400">
-            {current.badge}
-          </span>
-          <button
-            onClick={handleSkip}
-            className="text-xs text-neutral-500 hover:text-neutral-300 font-bold transition-colors"
-          >
-            Skip Intro
-          </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none">
+      <div className="w-full max-w-lg bg-[#0e121a] border border-cyan-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-cyan-500/10 space-y-6">
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-mono font-bold text-cyan-400 uppercase tracking-widest">
+            <Sparkles className="w-3.5 h-3.5" />
+            CREATOR SETUP
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
+            Welcome to BounceForge!
+          </h2>
+          <p className="text-xs text-slate-300">
+            Tell us about your content goals so we can tune your default safe zones and rendering presets.
+          </p>
         </div>
 
-        <div className="flex items-start gap-4">
-          <div className={`p-4 rounded-2xl bg-gradient-to-tr ${current.color} shadow-lg shrink-0`}>
-            <Icon className="w-7 h-7 text-black stroke-[2.5]" />
-          </div>
+        <div className="space-y-4">
           <div className="space-y-1.5">
-            <h3 className="text-2xl font-black text-white tracking-tight">{current.title}</h3>
-            <p className="text-sm text-neutral-400 leading-relaxed">{current.desc}</p>
+            <label className="text-xs font-bold text-slate-300">Your Creator / Channel Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. NeonBounceLab"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-300">What are you creating?</label>
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { id: 'tiktok', label: 'TikTok Shorts', desc: 'Fast hook & buzzer beaters', icon: Flame },
+                { id: 'reels', label: 'Instagram Reels', desc: 'High-contrast aesthetic', icon: Video },
+                { id: 'shorts', label: 'YouTube Shorts', desc: 'High retention loop sequences', icon: Sparkles },
+                { id: 'fun', label: 'Just for Fun / Relax', desc: 'Satisfying 2D ASMR physics', icon: Smile },
+              ].map((item) => {
+                const Icon = item.icon;
+                const active = creatorGoal === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setCreatorGoal(item.id as any)}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      active
+                        ? 'border-cyan-400 bg-cyan-500/20 text-white shadow-lg shadow-cyan-500/10'
+                        : 'border-white/5 bg-white/[0.03] text-slate-400 hover:bg-white/[0.06] hover:text-white'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 mb-1.5 ${active ? 'text-cyan-400' : 'text-slate-500'}`} />
+                    <div className="text-xs font-bold text-white">{item.label}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">{item.desc}</div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Step dots */}
-        <div className="flex items-center justify-between pt-4 border-t border-white/10">
-          <div className="flex items-center gap-2">
-            {steps.map((_, i) => (
-              <span
-                key={i}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === step ? 'w-8 bg-[#CCFF00]' : 'w-2 bg-neutral-700'
-                }`}
-              />
-            ))}
-          </div>
-
-          <button
-            onClick={handleNext}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-[#CCFF00] hover:opacity-95 text-black font-extrabold text-xs uppercase tracking-wider shadow-lg flex items-center gap-2 transform hover:scale-105 transition-all"
-          >
-            <span>{step === steps.length - 1 ? "Let's Bounce! 🔥" : 'Next Step'}</span>
-            <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
-          </button>
-        </div>
+        <button
+          onClick={handleFinish}
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-xl shadow-cyan-500/20 cursor-pointer"
+        >
+          <span>Launch Into Studio</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

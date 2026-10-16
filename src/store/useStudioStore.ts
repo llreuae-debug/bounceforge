@@ -45,6 +45,15 @@ export type StudioRoute =
   | 'terms'
   | 'privacy'
   | 'contact'
+  | 'pricing'
+  | 'account'
+  | 'admin'
+  | 'blog'
+  | 'article'
+  | 'affiliate_terms'
+  | 'refunds'
+  | 'checkout_success'
+  | 'checkout_cancelled'
   | '404';
 
 interface StudioState {
@@ -244,6 +253,15 @@ export const useStudioStore = create<StudioState>((set, get) => {
           terms: '/terms',
           privacy: '/privacy',
           contact: '/contact',
+          pricing: '/pricing',
+          account: '/account',
+          admin: '/admin',
+          blog: '/blog',
+          article: '/blog/how-to-create-viral-bouncing-ball-videos',
+          affiliate_terms: '/affiliate-terms',
+          refunds: '/refunds',
+          checkout_success: '/checkout/success',
+          checkout_cancelled: '/checkout/cancelled',
           '404': '/404',
         };
         const targetPath = pathMap[route] || '/';

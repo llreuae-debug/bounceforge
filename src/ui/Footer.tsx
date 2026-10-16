@@ -364,6 +364,42 @@ export const Footer: React.FC = () => {
             </button>
             <button
               onClick={() => {
+                setRoute('refunds');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Refunds
+            </button>
+            <button
+              onClick={() => {
+                setRoute('affiliate_terms');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Affiliate Terms
+            </button>
+            <button
+              onClick={() => {
+                setRoute('pricing');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer text-[#00e599] font-bold"
+            >
+              Pricing
+            </button>
+            <button
+              onClick={() => {
+                setRoute('blog');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer text-purple-400"
+            >
+              Blog
+            </button>
+            <button
+              onClick={() => {
                 setRoute('contact');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}

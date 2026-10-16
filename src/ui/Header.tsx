@@ -18,7 +18,14 @@ import {
   ChevronRight,
   Volume2,
   VolumeX,
+  User,
+  Shield,
+  CreditCard,
+  DollarSign,
+  LogOut,
+  ChevronDown,
 } from 'lucide-react';
+import { useAuthStore } from '../auth/useAuthStore';
 
 import { WhatsNewModal } from './modals/WhatsNewModal';
 import { WhatNextModal } from './modals/WhatNextModal';
@@ -49,9 +56,10 @@ export const Header: React.FC = () => {
     showToast,
   } = useStudioStore();
 
-
+  const { currentUser, isAuthenticated, isAdmin, openAuthModal, logout } = useAuthStore();
   const [copied, setCopied] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleShare = () => {
     const url = getShareableUrl();
@@ -135,6 +143,22 @@ export const Header: React.FC = () => {
             >
               FAQ
             </a>
+            <button
+              onClick={() => setRoute('pricing')}
+              className={`hover:text-white transition-colors cursor-pointer ${
+                currentRoute === 'pricing' ? 'text-[#00e599] font-extrabold' : ''
+              }`}
+            >
+              Pricing
+            </button>
+            <button
+              onClick={() => setRoute('blog')}
+              className={`hover:text-white transition-colors cursor-pointer ${
+                currentRoute === 'blog' ? 'text-purple-400 font-extrabold' : ''
+              }`}
+            >
+              Blog
+            </button>
             <button
               onClick={() => setRoute('diagnostics')}
               className={`hover:text-white transition-colors cursor-pointer ${
@@ -277,6 +301,102 @@ export const Header: React.FC = () => {
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Launch Studio Free</span>
+            </button>
+          </div>
+        )}
+
+        {/* User Account Avatar / Auth Section */}
+        {isAuthenticated && currentUser ? (
+          <div className="relative">
+            <button
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="flex items-center gap-2 p-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+            >
+              <img
+                src={currentUser.avatarUrl}
+                alt={currentUser.fullName}
+                className="w-7 h-7 rounded-lg object-cover border border-white/20"
+              />
+              <span className="text-xs font-bold text-white hidden md:inline truncate max-w-24">
+                {currentUser.fullName.split(' ')[0]}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {userMenuOpen && (
+              <div
+                className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0e121a] border border-white/10 p-2 shadow-2xl z-50 animate-fadeIn space-y-1 text-xs select-none"
+                onClick={() => setUserMenuOpen(false)}
+              >
+                <div className="p-2 border-b border-white/5 space-y-0.5">
+                  <div className="font-bold text-white truncate">{currentUser.fullName}</div>
+                  <div className="text-[10px] text-slate-400 font-mono truncate">{currentUser.email}</div>
+                </div>
+
+                <button
+                  onClick={() => setRoute('account')}
+                  className="w-full flex items-center gap-2 p-2 rounded-xl text-left hover:bg-white/5 text-slate-200 cursor-pointer"
+                >
+                  <User className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>My Account</span>
+                </button>
+
+                <button
+                  onClick={() => setRoute('account')}
+                  className="w-full flex items-center gap-2 p-2 rounded-xl text-left hover:bg-white/5 text-slate-200 cursor-pointer"
+                >
+                  <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Plan &amp; Billing</span>
+                </button>
+
+                <button
+                  onClick={() => setRoute('account')}
+                  className="w-full flex items-center gap-2 p-2 rounded-xl text-left hover:bg-white/5 text-slate-200 cursor-pointer"
+                >
+                  <DollarSign className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Affiliate Program (30%)</span>
+                </button>
+
+                {isAdmin && (
+                  <button
+                    onClick={() => (window.location.href = '/admin')}
+                    className="w-full flex items-center gap-2 p-2 rounded-xl text-left bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-bold cursor-pointer"
+                  >
+                    <Shield className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Admin Console</span>
+                  </button>
+                )}
+
+                <div className="border-t border-white/5 pt-1">
+                  <button
+                    onClick={() => {
+                      logout();
+                      showToast('Signed out of session');
+                      setRoute('landing');
+                    }}
+                    className="w-full flex items-center gap-2 p-2 rounded-xl text-left hover:bg-rose-500/10 text-rose-400 cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => openAuthModal('login')}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+            >
+              Log In
+            </button>
+            <button
+              onClick={() => setRoute('pricing')}
+              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-cyan-500/20 cursor-pointer"
+            >
+              Pricing
             </button>
           </div>
         )}
