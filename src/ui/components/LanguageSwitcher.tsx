@@ -83,11 +83,11 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   }
 
   return (
-    <div ref={containerRef} className={`relative inline-block text-start ${className}`}>
+    <div ref={containerRef} className={`relative inline-block text-start shrink-0 ${className}`}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all text-xs cursor-pointer ${
+        className={`h-9 flex items-center gap-2 px-2.5 rounded-xl border transition-all text-xs cursor-pointer whitespace-nowrap shrink-0 ${
           variant === 'footer'
             ? 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-neutral-300 hover:text-white'
             : 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-200 hover:text-white'
@@ -97,7 +97,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       >
         <Globe className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
         <span className="font-bold">{activeMeta.name}</span>
-        <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (

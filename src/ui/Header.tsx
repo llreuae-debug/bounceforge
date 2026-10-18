@@ -96,51 +96,51 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="h-16 border-b border-white/10 bg-[#050507]/95 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 select-none">
+    <header className="h-16 border-b border-white/10 bg-[#050507]/95 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 select-none gap-2 sm:gap-3 overflow-x-auto no-scrollbar">
       {/* Left: Brand Identity & Mode Toggle */}
-      <div className="flex items-center gap-3.5">
+      <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
         <Logo
           concept="a"
           variant="horizontal"
           size="sm"
           onClick={() => setRoute('landing')}
-          className="cursor-pointer hover:opacity-90 transition-opacity"
+          className="cursor-pointer hover:opacity-90 transition-opacity shrink-0"
         />
 
-        <div className="h-5 w-[1px] bg-white/15 hidden md:block" />
+        <div className="h-5 w-[1px] bg-white/15 hidden md:block shrink-0" />
 
         {/* Studio Mode Controls */}
         {currentRoute === 'studio' ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <input
               type="text"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-cyan-400 px-2 py-0.5 text-xs font-bold text-slate-200 outline-none transition-colors w-32 sm:w-48 truncate"
+              className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-cyan-400 px-2 py-0.5 text-xs font-bold text-slate-200 outline-none transition-colors w-28 sm:w-40 md:w-48 truncate shrink-0"
               placeholder="Project Title"
               title="Click to rename project"
             />
           </div>
         ) : (
           /* Landing Navigation Links */
-          <nav className="hidden md:flex items-center gap-5 text-xs font-bold text-neutral-400 ml-2">
+          <nav className="hidden md:flex items-center gap-5 text-xs font-bold text-neutral-400 ml-2 shrink-0">
             <a
               href="#modes"
               onClick={(e) => handleAnchor(e, 'modes')}
-              className="hover:text-white transition-colors cursor-pointer"
+              className="hover:text-white transition-colors cursor-pointer whitespace-nowrap"
             >
               Modes
             </a>
             <a
               href="#features"
               onClick={(e) => handleAnchor(e, 'features')}
-              className="hover:text-white transition-colors cursor-pointer"
+              className="hover:text-white transition-colors cursor-pointer whitespace-nowrap"
             >
               Engine &amp; Audio
             </a>
             <button
               onClick={() => setRoute('showcase')}
-              className={`hover:text-white transition-colors cursor-pointer ${
+              className={`hover:text-white transition-colors cursor-pointer whitespace-nowrap ${
                 currentRoute === 'showcase' ? 'text-[#00F0FF] font-extrabold' : ''
               }`}
             >
@@ -148,7 +148,7 @@ export const Header: React.FC = () => {
             </button>
             <button
               onClick={() => setRoute('about')}
-              className={`hover:text-white transition-colors cursor-pointer ${
+              className={`hover:text-white transition-colors cursor-pointer whitespace-nowrap ${
                 currentRoute === 'about' ? 'text-[#CCFF00] font-extrabold' : ''
               }`}
             >
@@ -157,13 +157,13 @@ export const Header: React.FC = () => {
             <a
               href="#faq"
               onClick={(e) => handleAnchor(e, 'faq')}
-              className="hover:text-white transition-colors cursor-pointer"
+              className="hover:text-white transition-colors cursor-pointer whitespace-nowrap"
             >
               FAQ
             </a>
             <button
               onClick={() => setRoute('pricing')}
-              className={`hover:text-white transition-colors cursor-pointer ${
+              className={`hover:text-white transition-colors cursor-pointer whitespace-nowrap ${
                 currentRoute === 'pricing' ? 'text-[#00e599] font-extrabold' : ''
               }`}
             >
@@ -171,7 +171,7 @@ export const Header: React.FC = () => {
             </button>
             <button
               onClick={() => setRoute('blog')}
-              className={`hover:text-white transition-colors cursor-pointer ${
+              className={`hover:text-white transition-colors cursor-pointer whitespace-nowrap ${
                 currentRoute === 'blog' ? 'text-purple-400 font-extrabold' : ''
               }`}
             >
@@ -179,7 +179,7 @@ export const Header: React.FC = () => {
             </button>
             <button
               onClick={() => setRoute('diagnostics')}
-              className={`hover:text-white transition-colors cursor-pointer ${
+              className={`hover:text-white transition-colors cursor-pointer whitespace-nowrap ${
                 currentRoute === 'diagnostics' ? 'text-cyan-400 font-extrabold' : ''
               }`}
             >
@@ -191,67 +191,71 @@ export const Header: React.FC = () => {
 
       {/* Center Studio Tools - Perfectly Aligned 3D Buttons */}
       {currentRoute === 'studio' && (
-        <div className="hidden xl:flex items-center gap-2">
+        <div className="hidden xl:flex items-center gap-1.5 2xl:gap-2 shrink-0">
           {/* Surprise Me Feature */}
           <button
             onClick={surpriseMe}
-            className="btn-3d-glass flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition-all border-pink-500/40 text-pink-300"
+            className="btn-3d-glass h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-all border-pink-500/40 text-pink-300 whitespace-nowrap shrink-0"
             title="Randomize combination of mode, balls, obstacles, colors, melody and physics!"
           >
-            <Sparkles className="w-3.5 h-3.5 text-pink-400 animate-pulse" />
+            <Sparkles className="w-3.5 h-3.5 text-pink-400 animate-pulse shrink-0" />
             <span>Surprise Me</span>
           </button>
 
           {/* Sound Mute / Unmute */}
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
               !isMuted
                 ? 'btn-3d-glass border-emerald-400/50 text-emerald-300'
                 : 'btn-3d-glass text-slate-400 hover:text-white'
             }`}
             title="Toggle studio audio"
           >
-            {!isMuted ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5 text-red-400" />}
+            {!isMuted ? (
+              <Volume2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            ) : (
+              <VolumeX className="w-3.5 h-3.5 text-red-400 shrink-0" />
+            )}
             <span>{!isMuted ? 'Sound ON' : 'Muted'}</span>
           </button>
 
           <button
             onClick={() => setSeedFinderOpen(true)}
-            className="btn-3d-glass flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-200 hover:text-white transition-all"
+            className="btn-3d-glass h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-bold text-slate-200 hover:text-white transition-all whitespace-nowrap shrink-0"
             title="Run Web Worker to find seeds finishing in 59-60s"
           >
-            <Compass className="w-3.5 h-3.5 text-cyan-400" />
-            Auto-Seed Finder
+            <Compass className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <span>Auto-Seed Finder</span>
           </button>
 
           <button
             onClick={() => setMidiEditorOpen(true)}
-            className="btn-3d-glass flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-200 hover:text-white transition-all"
+            className="btn-3d-glass h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-bold text-slate-200 hover:text-white transition-all whitespace-nowrap shrink-0"
             title="Open 4-octave interactive MIDI piano roll"
           >
-            <Music className="w-3.5 h-3.5 text-purple-400" />
-            MIDI Editor
+            <Music className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+            <span>MIDI Editor</span>
           </button>
 
           <button
             onClick={() => setShortcutsOpen(true)}
-            className="btn-3d-glass flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all"
+            className="btn-3d-glass h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all whitespace-nowrap shrink-0"
             title="View keyboard shortcuts"
           >
-            <Keyboard className="w-3.5 h-3.5 text-[#CCFF00]" />
+            <Keyboard className="w-3.5 h-3.5 text-[#CCFF00] shrink-0" />
             <span>Shortcuts</span>
           </button>
         </div>
       )}
 
       {/* Right: Actions, Share, Export & Mobile Menu */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 2xl:gap-2 shrink-0">
         {currentRoute === 'studio' ? (
           <>
             <button
               onClick={handleSave}
-              className="btn-3d-glass p-2 rounded-xl text-slate-300 hover:text-white transition-all"
+              className="btn-3d-glass w-9 h-9 flex items-center justify-center rounded-xl text-slate-300 hover:text-white transition-all shrink-0 p-0"
               title="Save project to IndexedDB"
             >
               <Save className="w-4 h-4" />
@@ -259,7 +263,7 @@ export const Header: React.FC = () => {
 
             <button
               onClick={() => loadFromIndexedDB()}
-              className="btn-3d-glass p-2 rounded-xl text-slate-300 hover:text-white transition-all"
+              className="btn-3d-glass w-9 h-9 flex items-center justify-center rounded-xl text-slate-300 hover:text-white transition-all shrink-0 p-0"
               title="Load saved project from IndexedDB"
             >
               <FolderOpen className="w-4 h-4" />
@@ -267,81 +271,81 @@ export const Header: React.FC = () => {
 
             <button
               onClick={handleShare}
-              className="btn-3d-glass flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-200 transition-all"
+              className="btn-3d-glass h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-bold text-slate-200 transition-all whitespace-nowrap shrink-0"
               title="Copy shareable preset URL"
             >
-              <Share2 className="w-3.5 h-3.5 text-[#00F0FF]" />
+              <Share2 className="w-3.5 h-3.5 text-[#00F0FF] shrink-0" />
               <span className="hidden sm:inline">{copied ? 'Copied Link!' : 'Share'}</span>
             </button>
 
             <button
               onClick={() => setWhatNextOpen(true)}
-              className="btn-3d-cyan flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black text-black transition-all uppercase tracking-wider shadow-md shadow-cyan-500/20"
+              className="btn-3d-cyan h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-black text-black transition-all uppercase tracking-wider shadow-md shadow-cyan-500/20 whitespace-nowrap shrink-0"
               title="AI What Next Studio Navigator"
             >
-              <Sparkles className="w-3.5 h-3.5 text-black" />
+              <Sparkles className="w-3.5 h-3.5 text-black shrink-0" />
               <span className="hidden md:inline">what next?</span>
             </button>
 
             <button
               onClick={() => setWhatsNewOpen(true)}
-              className="btn-3d-pink flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black text-white transition-all uppercase tracking-wider shadow-md shadow-pink-500/30"
+              className="btn-3d-pink h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-black text-white transition-all uppercase tracking-wider shadow-md shadow-pink-500/30 whitespace-nowrap shrink-0"
               title="What's New in BounceForge Viral Update"
             >
-              <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+              <Sparkles className="w-3.5 h-3.5 text-white animate-pulse shrink-0" />
               <span className="hidden md:inline">what's new</span>
             </button>
 
             <button
               onClick={() => setExportOpen(true)}
-              className="btn-3d-lime flex items-center gap-2 px-4 py-2 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all"
+              className="btn-3d-lime h-9 flex items-center gap-2 px-3.5 sm:px-4 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
               title="Export frame-perfect 4K 9:16 vertical MP4"
             >
-              <Download className="w-4 h-4 stroke-[2.5]" />
+              <Download className="w-4 h-4 stroke-[2.5] shrink-0" />
               <span>Export 4K</span>
             </button>
           </>
         ) : (
           /* Landing Action */
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setWhatsNewOpen(true)}
-              className="btn-3d-pink flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black text-white transition-all uppercase tracking-wider shadow-md shadow-pink-500/30"
+              className="btn-3d-pink h-9 flex items-center gap-1.5 px-3.5 rounded-xl text-xs font-black text-white transition-all uppercase tracking-wider shadow-md shadow-pink-500/30 whitespace-nowrap shrink-0"
               title="What's New in BounceForge Viral Update"
             >
-              <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+              <Sparkles className="w-3.5 h-3.5 text-white animate-pulse shrink-0" />
               <span className="hidden sm:inline">what's new</span>
             </button>
 
             <button
               onClick={() => setRoute('studio')}
-              className="btn-3d-lime flex items-center gap-2 px-5 py-2.5 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all"
+              className="btn-3d-lime h-9 flex items-center gap-2 px-4 sm:px-5 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
+              <Play className="w-3.5 h-3.5 fill-current shrink-0" />
               <span>Launch Studio Free</span>
             </button>
           </div>
         )}
 
         {/* Global Multi-Language Switcher */}
-        <LanguageSwitcher variant="header" className="hidden sm:inline-block" />
+        <LanguageSwitcher variant="header" className="hidden sm:inline-block shrink-0" />
 
         {/* User Account Avatar / Auth Section */}
         {isAuthenticated && currentUser ? (
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-2 p-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+              className="h-9 flex items-center gap-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer whitespace-nowrap shrink-0"
             >
               <img
                 src={currentUser.avatarUrl}
                 alt={currentUser.fullName}
-                className="w-7 h-7 rounded-lg object-cover border border-white/20"
+                className="w-6 h-6 rounded-lg object-cover border border-white/20 shrink-0"
               />
               <span className="text-xs font-bold text-white hidden md:inline truncate max-w-24">
                 {currentUser.fullName.split(' ')[0]}
               </span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             </button>
 
             {/* Dropdown Menu */}
@@ -406,16 +410,16 @@ export const Header: React.FC = () => {
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => openAuthModal('login')}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+              className="h-9 px-3 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center justify-center"
             >
               Log In
             </button>
             <button
               onClick={() => setRoute('pricing')}
-              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-cyan-500/20 cursor-pointer"
+              className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-cyan-500/20 cursor-pointer whitespace-nowrap shrink-0 flex items-center justify-center"
             >
               Pricing
             </button>
@@ -425,7 +429,7 @@ export const Header: React.FC = () => {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="btn-3d-glass p-2 rounded-xl text-slate-300 hover:text-white xl:hidden ml-1"
+          className="btn-3d-glass w-9 h-9 flex items-center justify-center rounded-xl text-slate-300 hover:text-white xl:hidden ml-1 shrink-0 p-0"
           aria-label="Toggle navigation menu"
         >
           {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
