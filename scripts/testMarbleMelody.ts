@@ -227,6 +227,133 @@ function runTests() {
   assert('Melody library: 100% public domain / original composition', !copyrighted);
   assert('Copyright Blacklist filter: zero blacklisted pop stars, cartoons, or protected brands', !blacklistHit);
 
+  // TEST 9: 50 World 10-Layer Uniqueness Check (Max 3 Shared Layers Between Any Two Worlds)
+  console.log('\n--- TEST 9: 50 World 10-Layer Design System & Uniqueness Verification ---');
+  let allWorldsValid = true;
+  for (const p of MARBLE_MELODY_PRESETS) {
+    if (!p.world) {
+      allWorldsValid = false;
+      console.error(`Preset #${p.presetNumber} ${p.name} missing world definition`);
+      continue;
+    }
+    const layers = [
+      p.world.wallSurface,
+      p.world.objectMaterial,
+      p.world.marbleType,
+      p.world.lightingRig,
+      p.world.colorGrade,
+      p.world.hitEffect,
+      p.world.ambientParticles,
+      p.world.cameraLanguage,
+      p.world.finaleEvent,
+      p.world.ambientSoundBed,
+    ];
+    if (layers.some((l) => !l || typeof l !== 'string')) {
+      allWorldsValid = false;
+      console.error(`Preset #${p.presetNumber} ${p.name} has missing/invalid layers:`, p.world);
+    }
+  }
+  assert('All 50 presets define all 10 world layers', allWorldsValid);
+
+  // Pairwise uniqueness check across all 1,225 pairs
+  let uniquenessViolations = 0;
+  let maxSharedFound = 0;
+  let worstPair = '';
+
+  for (let i = 0; i < MARBLE_MELODY_PRESETS.length; i++) {
+    for (let j = i + 1; j < MARBLE_MELODY_PRESETS.length; j++) {
+      const w1 = MARBLE_MELODY_PRESETS[i].world;
+      const w2 = MARBLE_MELODY_PRESETS[j].world;
+      if (!w1 || !w2) continue;
+
+      let shared = 0;
+      if (w1.wallSurface === w2.wallSurface) shared++;
+      if (w1.objectMaterial === w2.objectMaterial) shared++;
+      if (w1.marbleType === w2.marbleType) shared++;
+      if (w1.lightingRig === w2.lightingRig) shared++;
+      if (w1.colorGrade === w2.colorGrade) shared++;
+      if (w1.hitEffect === w2.hitEffect) shared++;
+      if (w1.ambientParticles === w2.ambientParticles) shared++;
+      if (w1.cameraLanguage === w2.cameraLanguage) shared++;
+      if (w1.finaleEvent === w2.finaleEvent) shared++;
+      if (w1.ambientSoundBed === w2.ambientSoundBed) shared++;
+
+      if (shared > maxSharedFound) {
+        maxSharedFound = shared;
+        worstPair = `#${MARBLE_MELODY_PRESETS[i].presetNumber} (${MARBLE_MELODY_PRESETS[i].name}) vs #${MARBLE_MELODY_PRESETS[j].presetNumber} (${MARBLE_MELODY_PRESETS[j].name})`;
+      }
+
+      if (shared > 3) {
+        uniquenessViolations++;
+        console.error(
+          `Uniqueness violation: #${MARBLE_MELODY_PRESETS[i].presetNumber} and #${MARBLE_MELODY_PRESETS[j].presetNumber} share ${shared} layers (> 3 max allowed!)`
+        );
+      }
+    }
+  }
+
+  assert(
+    `Pairwise uniqueness check across all 1,225 pairs (Max shared: ${maxSharedFound}/10 on ${worstPair})`,
+    uniquenessViolations === 0 && maxSharedFound <= 3,
+    `${uniquenessViolations} pair violations found`
+  );
+
+  // TEST 10: 24 Hero Materials Verification
+  console.log('\n--- TEST 10: 24 Hero Materials Verification ---');
+  const HERO_MATERIALS = [
+    'clear_crystal',
+    'cut_diamond',
+    'frosted_glass',
+    'stained_glass',
+    'liquid_filled_glass',
+    'soap_bubble',
+    'sea_glass',
+    'neon_glass_tube',
+    'opal',
+    'amethyst_geode',
+    'obsidian',
+    'marble_stone',
+    'porcelain_gold',
+    'chrome_mirror',
+    'brushed_gold',
+    'copper_patina',
+    'liquid_mercury',
+    'gummy_jelly',
+    'hard_candy',
+    'velvet_felt',
+    'lacquered_wood',
+    'holographic_foil',
+    'latex_balloon',
+    'cracked_ice',
+  ];
+  assert('Exactly 24 hero materials in spec', HERO_MATERIALS.length === 24);
+
+  // TEST 11: 20 Hero Marbles Verification
+  console.log('\n--- TEST 11: 20 Hero Marbles Verification ---');
+  const HERO_MARBLES = [
+    'clear_diamond',
+    'swirl_glass',
+    'pearl',
+    'opal',
+    'moonstone',
+    'chrome_mirror',
+    'liquid_mercury',
+    'gold',
+    'ruby_glass',
+    'emerald_glass',
+    'amethyst',
+    'jade',
+    'amber_honey',
+    'snowglobe',
+    'bubble',
+    'neon_core',
+    'galaxy',
+    'gummy',
+    'candy_swirl',
+    'ember',
+  ];
+  assert('Exactly 20 hero marbles in spec', HERO_MARBLES.length === 20);
+
   console.log(`\n========================================`);
   console.log(`TEST SUMMARY: ${passed} / ${total} TESTS PASSED!`);
   console.log(`========================================\n`);

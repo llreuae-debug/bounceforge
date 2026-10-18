@@ -17,6 +17,70 @@ export type TunedObjectType =
   | 'marimba_bar'
   | 'final_catcher';
 
+export type HeroMaterial =
+  | 'clear_crystal'
+  | 'cut_diamond'
+  | 'frosted_glass'
+  | 'stained_glass'
+  | 'liquid_filled_glass'
+  | 'soap_bubble'
+  | 'sea_glass'
+  | 'neon_glass_tube'
+  | 'opal'
+  | 'amethyst_geode'
+  | 'obsidian'
+  | 'marble_stone'
+  | 'porcelain_gold'
+  | 'chrome_mirror'
+  | 'brushed_gold'
+  | 'copper_patina'
+  | 'liquid_mercury'
+  | 'jelly_gummy'
+  | 'hard_candy'
+  | 'velvet_felt'
+  | 'lacquered_wood'
+  | 'holographic_foil'
+  | 'latex_balloon'
+  | 'ice';
+
+export type HeroMarble =
+  | 'clear_diamond'
+  | 'swirl_glass'
+  | 'pearl'
+  | 'opal'
+  | 'moonstone'
+  | 'chrome_mirror'
+  | 'liquid_mercury'
+  | 'gold'
+  | 'ruby_glass'
+  | 'emerald_glass'
+  | 'amethyst'
+  | 'jade'
+  | 'amber_honey'
+  | 'ice_snowglobe'
+  | 'bubble'
+  | 'neon_core'
+  | 'galaxy'
+  | 'gummy'
+  | 'candy_swirl'
+  | 'ember';
+
+export interface World10Layers {
+  wallSurface: string; // 1. wall surface (material + texture + color)
+  objectMaterial: HeroMaterial; // 2. object material (from 24 hero materials)
+  marbleType: HeroMarble; // 3. marble type (from 20 hero marbles)
+  lightingRig: string; // 4. lighting rig (e.g. soft_morning, moonbeam, torch_flicker...)
+  colorGrade: string; // 5. color grade / palette
+  hitEffect: string; // 6. hit effect (per material)
+  ambientParticles: string; // 7. ambient particles
+  cameraLanguage: string; // 8. camera language (follow style, tilt, DOF)
+  finaleEvent: string; // 9. finale event
+  ambientSoundBed: string; // 10. ambient sound bed
+}
+
+export type PresetMood = 'calm' | 'epic' | 'cute' | 'festive' | 'night';
+export type MaterialCategory = 'glass' | 'crystal' | 'metal' | 'ice' | 'jelly' | 'stone' | 'neon' | 'candy';
+
 export type PathStyle =
   | 'zigzag'
   | 'scurve'
@@ -33,7 +97,8 @@ export type MarbleStyle =
   | 'pearl'
   | 'frosted'
   | 'neon_core'
-  | 'cats_eye';
+  | 'cats_eye'
+  | HeroMarble;
 
 export type MarbleSize = 'small' | 'medium' | 'large';
 
@@ -151,6 +216,7 @@ export interface MarbleMelodyConfig {
 
   handleText: string;
   seed: number;
+  world?: World10Layers;
 
   locks: {
     melody?: boolean;
@@ -182,6 +248,7 @@ export interface MarblePathPoint {
 export interface TunedObjectInstance {
   id: string;
   type: TunedObjectType;
+  material?: HeroMaterial;
   x: number;
   y: number;
   z: number;

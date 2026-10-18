@@ -246,9 +246,12 @@ export class MusicToLayoutSolver {
 
           const pitchRatio = Math.max(0.6, Math.min(1.8, nextNote.freq / 440));
 
+          const heroMat = config.world?.objectMaterial;
+
           const objectInstance: TunedObjectInstance = {
             id: objId,
             type: objectType,
+            material: heroMat,
             x: objectPos.x,
             y: objectPos.y,
             z: objectPos.z,

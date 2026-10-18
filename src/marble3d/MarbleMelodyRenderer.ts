@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { MarbleMelodyRun, MarblePathPoint, TunedObjectInstance, WallBackground } from './types';
 import { ObjectCatalog3D } from './objectCatalog';
+import { MarbleMaterialLibrary } from './materials';
 
 // Studio Wall Background Base Colors
 const WALL_BACKGROUND_COLORS: Record<string, number> = {
@@ -320,28 +321,44 @@ export class MarbleMelodyRenderer {
     this.marbleMeshes.forEach((mesh) => this.scene.remove(mesh));
     this.marbleMeshes = [];
 
-    // Apply Real 3D Textured Wall Material
+    // 1. Apply World 10-Layer Wall Surface
     const wallColorHex = WALL_BACKGROUND_COLORS[run.config.wallBackground] || 0xffedd5;
-    this.wallMesh.material = this.generateProceduralWallMaterial(run.config.wallBackground, wallColorHex);
+    const wallType = run.config.world?.wallSurface || run.config.wallBackground;
+    this.wallMesh.material = MarbleMaterialLibrary.getWallMaterial(wallType, wallColorHex);
     this.scene.background = new THREE.Color(wallColorHex);
 
-    // Theme Lighting Adjustments
-    if (run.config.lightingStyle === 'warm_morning') {
+    // 2. World Lighting Rig Configuration
+    const rig = run.config.world?.lightingRig || run.config.lightingStyle;
+    if (rig?.includes('moonbeam') || rig?.includes('night')) {
+      this.keyAreaLight.color.setHex(0x93c5fd);
+      this.keyAreaLight.intensity = 2.4;
+      this.bounceColorLight.color.setHex(0x1e1b4b);
+      this.bounceColorLight.intensity = 0.5;
+    } else if (rig?.includes('torch') || rig?.includes('magma') || rig?.includes('furnace')) {
+      this.keyAreaLight.color.setHex(0xf97316);
+      this.keyAreaLight.intensity = 1.9;
+      this.bounceColorLight.color.setHex(0x7c2d12);
+      this.bounceColorLight.intensity = 1.2;
+    } else if (rig?.includes('sunlight') || rig?.includes('golden') || rig?.includes('morning')) {
       this.keyAreaLight.color.setHex(0xfef08a);
-      this.keyAreaLight.intensity = 1.65;
-      this.bounceColorLight.color.setHex(0xfb923c);
-    } else if (run.config.lightingStyle === 'cool_daylight') {
-      this.keyAreaLight.color.setHex(0xf0f9ff);
-      this.keyAreaLight.intensity = 1.35;
-      this.bounceColorLight.color.setHex(0x38bdf8);
-    } else if (run.config.lightingStyle === 'golden_hour') {
-      this.keyAreaLight.color.setHex(0xfbbf24);
       this.keyAreaLight.intensity = 1.8;
-      this.bounceColorLight.color.setHex(0xf43f5e);
-    } else if (run.config.lightingStyle === 'colourful_bounce') {
+      this.bounceColorLight.color.setHex(0xfb923c);
+      this.bounceColorLight.intensity = 1.1;
+    } else if (rig?.includes('spotlight') || rig?.includes('theatrical')) {
       this.keyAreaLight.color.setHex(0xffffff);
-      this.bounceColorLight.color.setHex(0xa855f7);
-      this.bounceColorLight.intensity = 1.4;
+      this.keyAreaLight.intensity = 2.8;
+      this.bounceColorLight.color.setHex(0xec4899);
+      this.bounceColorLight.intensity = 0.9;
+    } else if (rig?.includes('neon') || rig?.includes('cyber')) {
+      this.keyAreaLight.color.setHex(0x06b6d4);
+      this.keyAreaLight.intensity = 1.6;
+      this.bounceColorLight.color.setHex(0xec4899);
+      this.bounceColorLight.intensity = 1.6;
+    } else {
+      this.keyAreaLight.color.setHex(0xffffff);
+      this.keyAreaLight.intensity = 1.45;
+      this.bounceColorLight.color.setHex(0x38bdf8);
+      this.bounceColorLight.intensity = 0.9;
     }
 
     // Place Tuned Objects with Real Physical 3D Thickness
@@ -364,9 +381,10 @@ export class MarbleMelodyRenderer {
       this.objectMeshes.set(`decor_${d.id}`, dMesh);
     }
 
-    // Place Embossed Handles
+    // Place Embossed Handles with world material
+    const handleMat = run.config.world?.objectMaterial || 'brushed_gold';
     for (const h of run.embossedHandles) {
-      const hMesh = ObjectCatalog3D.createEmbossedHandleMesh(h);
+      const hMesh = ObjectCatalog3D.createEmbossedHandleMesh(h, handleMat);
       this.scene.add(hMesh);
       this.objectMeshes.set(`handle_${h.id}`, hMesh);
     }
@@ -377,40 +395,8 @@ export class MarbleMelodyRenderer {
       const radius = lane.marbleRadius || 0.075;
       const sphereGeo = new THREE.SphereGeometry(radius, 32, 32);
 
-      let sphereMat: THREE.Material;
-      if (run.config.marbleStyle === 'chrome') {
-        sphereMat = new THREE.MeshStandardMaterial({
-          color: 0xffffff,
-          metalness: 0.98,
-          roughness: 0.08,
-        });
-      } else if (run.config.marbleStyle === 'pearl') {
-        sphereMat = new THREE.MeshPhysicalMaterial({
-          color: 0xfdf4ff,
-          roughness: 0.12,
-          transmission: 0.35,
-          clearcoat: 1.0,
-          clearcoatRoughness: 0.08,
-        });
-      } else if (run.config.marbleStyle === 'neon_core') {
-        sphereMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(lane.marbleColor),
-          emissive: new THREE.Color(lane.marbleColor),
-          emissiveIntensity: 0.65,
-          roughness: 0.18,
-        });
-      } else {
-        // Refractive Glass Swirl
-        sphereMat = new THREE.MeshPhysicalMaterial({
-          color: new THREE.Color(lane.marbleColor),
-          transmission: 0.88,
-          roughness: 0.06,
-          ior: 1.52,
-          thickness: 0.45,
-          transparent: true,
-          opacity: 0.96,
-        });
-      }
+      const marbleType = run.config.world?.marbleType || (run.config.marbleStyle as any) || 'swirl_glass';
+      const sphereMat = MarbleMaterialLibrary.getMarbleMaterial(marbleType, lane.marbleColor);
 
       const marbleMesh = new THREE.Mesh(sphereGeo, sphereMat);
       marbleMesh.castShadow = true;
@@ -477,17 +463,23 @@ export class MarbleMelodyRenderer {
       }
     }
 
+    // Wall Light Reaction (Specular bounce flare on hit)
+    this.bounceColorLight.intensity = 2.4;
+    setTimeout(() => {
+      if (this.bounceColorLight) this.bounceColorLight.intensity = 1.1;
+    }, 120);
+
     if (this.sparkleParticles) {
-      const count = 10;
+      const count = 12;
       for (let i = 0; i < count; i++) {
         const idx = (Math.floor(Math.random() * 90)) * 3;
         this.particlePositions[idx] = pos.x;
         this.particlePositions[idx + 1] = pos.y;
         this.particlePositions[idx + 2] = pos.z + 0.08;
 
-        this.particleVelocities[idx] = (Math.random() - 0.5) * 3;
-        this.particleVelocities[idx + 1] = (Math.random() - 0.5) * 3;
-        this.particleVelocities[idx + 2] = Math.random() * 2;
+        this.particleVelocities[idx] = (Math.random() - 0.5) * 3.5;
+        this.particleVelocities[idx + 1] = (Math.random() - 0.5) * 3.5;
+        this.particleVelocities[idx + 2] = Math.random() * 2.2;
       }
       this.sparkleParticles.geometry.attributes.position.needsUpdate = true;
     }
@@ -582,12 +574,20 @@ export class MarbleMelodyRenderer {
     const actIndex = Math.floor(time / (this.run.duration / 5));
     const actTiltZ = (actIndex % 2 === 0 ? 1 : -1) * 0.025;
 
-    this.camera.position.set(this.currentCamX, this.currentCamY + camTiltYOffset, camDistZ);
+    // Hero Moment every ~10s: close-up camera push for 0.6s
+    const cycle10 = time % 10.0;
+    const heroPush = cycle10 < 0.6 ? Math.sin((cycle10 / 0.6) * Math.PI) * 0.45 : 0;
+
+    this.camera.position.set(this.currentCamX, this.currentCamY + camTiltYOffset, camDistZ - heroPush);
     this.camera.lookAt(this.currentCamX, this.currentCamY - 0.35, 0);
     this.camera.rotation.z = actTiltZ;
 
+    // Hero Intro (first 0.8s): entrance light flare
+    const introFlare = time < 0.8 ? Math.max(0, 1 - time / 0.8) * 1.2 : 0;
+
     // Area Key Light follows camera down the wall to maintain consistent long soft cast shadows
     this.keyAreaLight.position.set(this.currentCamX + 2.8, this.currentCamY + 6.5, 6.2);
+    this.keyAreaLight.intensity = (this.keyAreaLight.intensity || 1.6) + introFlare;
     this.keyAreaLight.target.position.set(this.currentCamX, this.currentCamY, 0);
     this.keyAreaLight.target.updateMatrixWorld();
 

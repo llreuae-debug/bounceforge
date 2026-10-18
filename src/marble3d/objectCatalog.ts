@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { TunedObjectType, TunedObjectInstance, DecorInstance, EmbossedHandleInstance } from './types';
+import { MarbleMaterialLibrary } from './materials';
 
 export class ObjectCatalog3D {
   /**
@@ -11,6 +12,8 @@ export class ObjectCatalog3D {
     group.name = `tuned_${inst.id}`;
     group.position.set(inst.x, inst.y, inst.z);
     group.rotation.set(inst.rotationX, inst.rotationY, inst.rotationZ);
+
+    const heroMat = inst.material ? MarbleMaterialLibrary.getMaterial(inst.material, inst.color) : null;
 
     // 1. Visible Wall Pin & Mounting Bracket (Real 3D Wall Interface)
     const pinGeo = new THREE.CylinderGeometry(0.018, 0.018, 0.28, 12);
@@ -47,7 +50,7 @@ export class ObjectCatalog3D {
 
         // Outer Hollow Cylinder
         const outerTubeGeo = new THREE.CylinderGeometry(radius, radius, height, 24, 1, true);
-        const glassMat = new THREE.MeshPhysicalMaterial({
+        const glassMat = heroMat || new THREE.MeshPhysicalMaterial({
           color: new THREE.Color(inst.color),
           transmission: 0.88,
           opacity: 1.0,
@@ -508,9 +511,9 @@ export class ObjectCatalog3D {
   }
 
   /**
-   * Builds Embossed 3D Handle text on the wall
+   * Builds Embossed 3D Handle text on the wall using the world's hero material styling
    */
-  static createEmbossedHandleMesh(handle: EmbossedHandleInstance): THREE.Group {
+  static createEmbossedHandleMesh(handle: EmbossedHandleInstance, materialType: string = 'brushed_gold'): THREE.Group {
     const group = new THREE.Group();
     group.name = `handle_${handle.id}`;
     group.position.set(handle.x, handle.y, handle.z);
@@ -525,13 +528,23 @@ export class ObjectCatalog3D {
     ctx.font = 'bold 36px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+
+    // Shadow bevel
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
     ctx.fillText(handle.text, 256 + 2, 64 + 2);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.fillText(handle.text, 256 - 1, 64 - 1);
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+    // World material color accents
+    if (materialType.includes('gold') || materialType.includes('amber')) {
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.75)';
+    } else if (materialType.includes('ice') || materialType.includes('crystal')) {
+      ctx.fillStyle = 'rgba(186, 230, 253, 0.85)';
+    } else if (materialType.includes('neon')) {
+      ctx.fillStyle = 'rgba(236, 72, 153, 0.9)';
+    } else if (materialType.includes('emerald') || materialType.includes('jade')) {
+      ctx.fillStyle = 'rgba(52, 211, 153, 0.8)';
+    } else {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    }
     ctx.fillText(handle.text, 256, 64);
 
     const texture = new THREE.CanvasTexture(canvas);

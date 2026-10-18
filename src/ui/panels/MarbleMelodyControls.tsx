@@ -13,6 +13,7 @@ import {
 import { PUBLIC_DOMAIN_MELODIES, parseMidiFile } from '../../marble3d/melodyLibrary';
 import { VariationEngine } from '../../marble3d/variationEngine';
 import { MARBLE_MELODY_PRESETS, DEFAULT_MARBLE_MELODY_CONFIG } from '../../marble3d/presets';
+import { MarblePresetGallery } from '../components/MarblePresetGallery';
 import { triggerHaptic } from '../../platform/haptics';
 import {
   Music,
@@ -134,13 +135,6 @@ export const MarbleMelodyControls: React.FC = () => {
     showToast(`Reset ${section} settings to default`);
   };
 
-  const [selectedGroup, setSelectedGroup] = useState<'ALL' | 'A' | 'B' | 'C' | 'D' | 'E'>('ALL');
-  const [selectedVariant, setSelectedVariant] = useState<'chill' | 'viral' | 'insane'>('viral');
-
-  const filteredPresets = selectedGroup === 'ALL'
-    ? MARBLE_MELODY_PRESETS
-    : MARBLE_MELODY_PRESETS.filter((p) => p.group === selectedGroup);
-
   return (
     <div className="space-y-4 text-xs select-none">
       {/* Top Action Bar: Shuffle & 10 Variations */}
@@ -161,101 +155,8 @@ export const MarbleMelodyControls: React.FC = () => {
         </button>
       </div>
 
-      {/* 50 Presets Fast Picker with Group Tabs & Chill/Viral/Insane Variants */}
-      <div className="p-3 bg-white/[0.03] border border-white/10 rounded-2xl space-y-2.5">
-        <div className="flex items-center justify-between">
-          <span className="font-bold text-slate-200 flex items-center gap-1.5">
-            <Disc className="w-3.5 h-3.5 text-lime-400" />
-            50 Copyright-Safe Presets
-          </span>
-
-          {/* Variant Selector */}
-          <div className="flex items-center gap-1 bg-white/5 p-0.5 rounded-lg border border-white/10">
-            {(['chill', 'viral', 'insane'] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => {
-                  triggerHaptic(10);
-                  setSelectedVariant(v);
-                  const dur = v === 'viral' ? 56 : v === 'chill' ? 60 : 45;
-                  setTargetDuration(dur);
-                  updateModeSetting('targetDuration', dur);
-                }}
-                className={`px-2 py-0.5 text-[9.5px] font-bold rounded capitalize transition-all ${
-                  selectedVariant === v
-                    ? 'bg-lime-400 text-black shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Group Filter Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[10px] font-bold">
-          {[
-            { id: 'ALL', label: 'All 50' },
-            { id: 'A', label: 'A: Classical' },
-            { id: 'B', label: 'B: Classics 2' },
-            { id: 'C', label: 'C: Traditional' },
-            { id: 'D', label: 'D: Festive' },
-            { id: 'E', label: 'E: Original Vibes' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                triggerHaptic(5);
-                setSelectedGroup(tab.id as any);
-              }}
-              className={`px-2 py-1 rounded-lg border whitespace-nowrap transition-all ${
-                selectedGroup === tab.id
-                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
-                  : 'bg-white/[0.02] border-white/5 text-slate-400 hover:text-white'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Presets Grid */}
-        <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
-          {filteredPresets.map((preset) => {
-            const variantCfg = preset.variants[selectedVariant];
-            return (
-              <button
-                key={preset.id}
-                onClick={() => {
-                  triggerHaptic(10);
-                  setSeed(preset.baseSeed + (selectedVariant === 'insane' ? 99 : 0));
-                  updateModeSetting('melodyId', preset.melodyId);
-                  Object.keys(variantCfg).forEach((k) => {
-                    updateModeSetting(k, (variantCfg as any)[k]);
-                  });
-                  const chosenDuration = variantCfg.targetDuration || (selectedVariant === 'viral' ? 56 : 60);
-                  setTargetDuration(chosenDuration);
-                  updateModeSetting('targetDuration', chosenDuration);
-                  showToast(`Loaded #${preset.presetNumber} ${preset.name} (${selectedVariant}) · ${chosenDuration}s`);
-                }}
-                className={`p-2 rounded-xl text-left border transition-all ${
-                  config.melodyId === preset.melodyId
-                    ? 'bg-lime-400/10 border-lime-400 text-lime-300'
-                    : 'bg-white/[0.02] border-white/5 text-slate-300 hover:border-white/20'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1">
-                  <span className="font-bold truncate text-[11px]">
-                    {preset.presetNumber.toString().padStart(2, '0')}. {preset.name}
-                  </span>
-                </div>
-                <div className="text-[9px] text-slate-400 truncate">{preset.exampleHook}</div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* 50 Unique Worlds Visual Preset Gallery */}
+      <MarblePresetGallery />
 
       {/* 1. Melody & Audio Section */}
       <div className="p-3 bg-white/[0.03] border border-white/10 rounded-2xl space-y-3">
