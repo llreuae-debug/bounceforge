@@ -49,6 +49,7 @@ export type EmbossMode = 'embossed' | 'debossed';
 export type EmbossColorMode = 'same_as_wall' | 'slightly_lighter' | 'slightly_darker' | 'colored';
 
 export interface EmbossedTextConfig {
+  enabled?: boolean;
   titleText: string;
   reminders: string[]; // e.g. ["like & follow", "subscribe", "part 2?"]
   handleRepeats: number; // 2 to 4
@@ -300,6 +301,8 @@ export interface MarbleMelodyConfig {
   decorDensity: number; // 0 to 1
 
   handleText: string;
+  showHandleText?: boolean;
+  showBackgroundText?: boolean;
   seed: number;
   world?: World10Layers;
   reelFormat?: ReelFormatId;

@@ -38,6 +38,8 @@ export const ReelFormatPicker: React.FC<ReelFormatPickerProps> = ({ onFormatSele
   const currentFormatDef = REEL_FORMATS.find((f) => f.id === selectedFormat) || REEL_FORMATS[0];
   const formatPresets = FORMAT_PRESETS.filter((p) => p.formatId === selectedFormat);
 
+  const isWallTextOn = Boolean(modeSettings.showBackgroundText || modeSettings.embossedText?.enabled);
+
   const handleSelectFormat = (id: ReelFormatId) => {
     triggerHaptic(15);
     setSelectedFormat(id);
@@ -50,6 +52,7 @@ export const ReelFormatPicker: React.FC<ReelFormatPickerProps> = ({ onFormatSele
       updateModeSetting('embossedText', {
         ...curEmbossed,
         titleText: curEmbossed.titleText || fmt.defaultTitle,
+        enabled: isWallTextOn,
       });
     }
 
@@ -73,6 +76,7 @@ export const ReelFormatPicker: React.FC<ReelFormatPickerProps> = ({ onFormatSele
       ...curEmbossed,
       titleText: preset.embossedTitle,
       reminders: preset.reminders,
+      enabled: isWallTextOn,
     });
 
     const duration = selectedVariant === 'chill' ? 45 : selectedVariant === 'insane' ? 68 : 56;
@@ -103,14 +107,14 @@ export const ReelFormatPicker: React.FC<ReelFormatPickerProps> = ({ onFormatSele
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowWallTextPanel(!showWallTextPanel)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
-              showWallTextPanel
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+              isWallTextOn
                 ? 'bg-purple-600/30 border-purple-500 text-purple-300'
-                : 'bg-white/5 border-white/10 text-slate-300 hover:text-white'
+                : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
             }`}
           >
             <Type className="w-3 h-3" />
-            <span>Wall Text</span>
+            <span>Wall Text: {isWallTextOn ? 'On' : 'Off'}</span>
             {showWallTextPanel ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
 
@@ -169,11 +173,40 @@ export const ReelFormatPicker: React.FC<ReelFormatPickerProps> = ({ onFormatSele
       {showWallTextPanel && (
         <div className="p-3 bg-white/[0.03] border border-white/10 rounded-2xl space-y-3 animate-fade-in">
           <div className="flex items-center justify-between border-b border-white/5 pb-2">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Type className="w-3.5 h-3.5 text-purple-400" />
-              Embossed 3D Wall Text Settings
-            </span>
-            <span className="text-[10px] text-slate-400">Lit by top-left key light</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                <Type className="w-3.5 h-3.5 text-purple-400" />
+                Embossed 3D Wall Text
+              </span>
+              <span
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                  isWallTextOn
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                    : 'bg-slate-800 text-slate-400 border border-white/10'
+                }`}
+              >
+                {isWallTextOn ? 'Visible' : 'Hidden (Clean Background)'}
+              </span>
+            </div>
+
+            <button
+              onClick={() => {
+                const nextVal = !isWallTextOn;
+                updateModeSetting('showBackgroundText', nextVal);
+                updateModeSetting('embossedText', {
+                  ...(modeSettings.embossedText || {}),
+                  enabled: nextVal,
+                });
+                showToast(nextVal ? '📝 Wall text turned ON' : '🧹 Wall text turned OFF (Clean background)');
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
+                isWallTextOn
+                  ? 'bg-purple-600 text-white border-purple-400 hover:bg-purple-500'
+                  : 'bg-white/10 text-slate-300 border-white/20 hover:bg-white/20'
+              }`}
+            >
+              {isWallTextOn ? 'Turn Off' : 'Turn On'}
+            </button>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

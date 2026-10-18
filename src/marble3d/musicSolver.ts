@@ -462,136 +462,144 @@ export class MusicToLayoutSolver {
       }
     }
 
-    // 6. Embossed 3D @handle text on the wall
+    // 6. Embossed 3D @handle text on the wall (Clean wall by default; only when enabled)
     const embossedHandles: EmbossedHandleInstance[] = [];
-    const handleText = config.handleText || '@BounceForge';
-    const totalWallHeight = Math.abs(lowestY) + 4;
-    const handleCount = Math.max(2, Math.floor(totalWallHeight / 6.0));
-    for (let i = 0; i < handleCount; i++) {
-      embossedHandles.push({
-        id: `handle_${i}`,
-        text: handleText,
-        x: i % 2 === 0 ? -0.72 : 0.72,
-        y: 0.5 - i * 6.0,
-        z: 0.02,
-      });
+    if (Boolean(config.showHandleText && config.handleText && config.handleText.trim().length > 0)) {
+      const handleText = config.handleText.trim();
+      const totalWallHeight = Math.abs(lowestY) + 4;
+      const handleCount = Math.max(2, Math.floor(totalWallHeight / 6.0));
+      for (let i = 0; i < handleCount; i++) {
+        embossedHandles.push({
+          id: `handle_${i}`,
+          text: handleText,
+          x: i % 2 === 0 ? -0.72 : 0.72,
+          y: 0.5 - i * 6.0,
+          z: 0.02,
+        });
+      }
     }
 
     // 7. Embossed 3D Wall Text System (Format Titles, Reminders, Reveals, Act Labels)
-    const embossedWallTexts: EmbossedWallTextInstance[] = [];
+    // Clean wall by default; only populate if showBackgroundText is true or embossedText.enabled is true
     const activeFormat = config.reelFormat || 'f1_guess_tune';
-    const fontStyle =
-      config.embossedText?.fontStyle ||
-      (activeFormat === 'f5_night_beats' || activeFormat === 'f6_squeaky_orchestra' ? 'bold_cartoon' : 'script');
-    const embossMode = config.embossedText?.embossMode || 'embossed';
+    const embossedWallTexts: EmbossedWallTextInstance[] = [];
+    const wallTextEnabled = Boolean(config.showBackgroundText || config.embossedText?.enabled);
+    if (wallTextEnabled) {
+      const fontStyle =
+        config.embossedText?.fontStyle ||
+        (activeFormat === 'f5_night_beats' || activeFormat === 'f6_squeaky_orchestra' ? 'bold_cartoon' : 'script');
+      const embossMode = config.embossedText?.embossMode || 'embossed';
 
-    // Title Text (placed at top of wall)
-    const titleText = config.embossedText?.titleText || formatDef?.defaultTitle || 'marble melody';
-    embossedWallTexts.push({
-      id: 'title_main',
-      text: titleText,
-      type: 'title',
-      fontStyle,
-      embossMode,
-      x: 0,
-      y: 1.45,
-      z: 0.02,
-      scale: 1.0,
-      color: config.embossedText?.colorMode === 'colored' ? '#facc15' : undefined,
-    });
-
-    // Reminders along wall path (strictly |x| = 0.72 outside play corridor)
-    const reminders = config.embossedText?.reminders || ['like & follow', 'subscribe'];
-    for (let r = 0; r < reminders.length; r++) {
-      const remY = -2.5 - r * 7.5;
-      if (remY > lowestY + 1.5) {
+      // Title Text (placed at top of wall)
+      const titleText = config.embossedText?.titleText || formatDef?.defaultTitle || 'marble melody';
+      if (titleText && titleText.trim().length > 0) {
         embossedWallTexts.push({
-          id: `reminder_${r}`,
-          text: reminders[r],
-          type: 'reminder',
-          fontStyle: 'script',
+          id: 'title_main',
+          text: titleText,
+          type: 'title',
+          fontStyle,
           embossMode,
-          x: r % 2 === 0 ? 0.72 : -0.72,
-          y: remY,
+          x: 0,
+          y: 1.45,
           z: 0.02,
-          scale: 0.75,
+          scale: 1.0,
+          color: config.embossedText?.colorMode === 'colored' ? '#facc15' : undefined,
         });
       }
-    }
 
-    // Format Specific Wall Elements
-    if (activeFormat === 'f1_guess_tune' || formatDef?.endingType === 'reveal_answer') {
-      const foundMelody = PUBLIC_DOMAIN_MELODIES.find((m) => m.id === config.melodyId);
-      const answerName = config.embossedText?.revealAnswerText || foundMelody?.title || 'Ode to Joy';
-      embossedWallTexts.push({
-        id: 'reveal_answer_main',
-        text: `${answerName}\ndid u get it?`,
-        type: 'reveal_answer',
-        fontStyle: 'bold_cartoon',
-        embossMode: 'embossed',
-        x: 0,
-        y: lowestY + 0.65,
-        z: 0.03,
-        scale: 1.05,
-        color: '#facc15',
-        revealAtTime: Math.max(0, catchTime - 1.2),
-      });
-    } else if (activeFormat === 'f2_guess_all') {
-      for (let i = 0; i < actCount; i++) {
-        const actStartTime = i * actDuration;
-        const matchingObj = allObjects.find((o) => o.hitTime >= actStartTime) || allObjects[0];
+      // Reminders along wall path (strictly |x| = 0.72 outside play corridor)
+      const reminders = config.embossedText?.reminders || ['like & follow', 'subscribe'];
+      for (let r = 0; r < reminders.length; r++) {
+        const remY = -2.5 - r * 7.5;
+        if (remY > lowestY + 1.5 && reminders[r] && reminders[r].trim().length > 0) {
+          embossedWallTexts.push({
+            id: `reminder_${r}`,
+            text: reminders[r],
+            type: 'reminder',
+            fontStyle: 'script',
+            embossMode,
+            x: r % 2 === 0 ? 0.72 : -0.72,
+            y: remY,
+            z: 0.02,
+            scale: 0.75,
+          });
+        }
+      }
+
+      // Format Specific Wall Elements
+      if (activeFormat === 'f1_guess_tune' || formatDef?.endingType === 'reveal_answer') {
+        const foundMelody = PUBLIC_DOMAIN_MELODIES.find((m) => m.id === config.melodyId);
+        const answerName = config.embossedText?.revealAnswerText || foundMelody?.title || 'Ode to Joy';
         embossedWallTexts.push({
-          id: `act_num_${i + 1}`,
-          text: `${i + 1}`,
-          type: 'act_number',
+          id: 'reveal_answer_main',
+          text: `${answerName}\ndid u get it?`,
+          type: 'reveal_answer',
           fontStyle: 'bold_cartoon',
           embossMode: 'embossed',
+          x: 0,
+          y: lowestY + 0.65,
+          z: 0.03,
+          scale: 1.05,
+          color: '#facc15',
+          revealAtTime: Math.max(0, catchTime - 1.2),
+        });
+      } else if (activeFormat === 'f2_guess_all') {
+        for (let i = 0; i < actCount; i++) {
+          const actStartTime = i * actDuration;
+          const matchingObj = allObjects.find((o) => o.hitTime >= actStartTime) || allObjects[0];
+          embossedWallTexts.push({
+            id: `act_num_${i + 1}`,
+            text: `${i + 1}`,
+            type: 'act_number',
+            fontStyle: 'bold_cartoon',
+            embossMode: 'embossed',
+            x: -0.65,
+            y: matchingObj ? matchingObj.y + 0.35 : -i * 5,
+            z: 0.02,
+            scale: 1.1,
+            color: '#38bdf8',
+          });
+        }
+      } else if (activeFormat === 'f3_which_sounds_better') {
+        const label1Y = allObjects[0]?.y ? allObjects[0].y + 0.35 : 0;
+        const midObj = allObjects[Math.floor(allObjects.length / 2)];
+        const label2Y = midObj ? midObj.y + 0.35 : -6;
+        embossedWallTexts.push({
+          id: 'vs_label_1',
+          text: '1. bells',
+          type: 'versus_label',
+          fontStyle: 'clean_sans',
+          embossMode: 'embossed',
           x: -0.65,
-          y: matchingObj ? matchingObj.y + 0.35 : -i * 5,
+          y: label1Y,
           z: 0.02,
-          scale: 1.1,
-          color: '#38bdf8',
+          scale: 0.85,
+        });
+        embossedWallTexts.push({
+          id: 'vs_label_2',
+          text: '2. glass',
+          type: 'versus_label',
+          fontStyle: 'clean_sans',
+          embossMode: 'embossed',
+          x: -0.65,
+          y: label2Y,
+          z: 0.02,
+          scale: 0.85,
+        });
+        embossedWallTexts.push({
+          id: 'vs_ending',
+          text: 'comment 1 or 2 👇',
+          type: 'reveal_answer',
+          fontStyle: 'bold_cartoon',
+          embossMode: 'embossed',
+          x: 0,
+          y: lowestY + 0.65,
+          z: 0.03,
+          scale: 1.0,
+          color: '#facc15',
+          revealAtTime: Math.max(0, catchTime - 1.2),
         });
       }
-    } else if (activeFormat === 'f3_which_sounds_better') {
-      const label1Y = allObjects[0]?.y ? allObjects[0].y + 0.35 : 0;
-      const midObj = allObjects[Math.floor(allObjects.length / 2)];
-      const label2Y = midObj ? midObj.y + 0.35 : -6;
-      embossedWallTexts.push({
-        id: 'vs_label_1',
-        text: '1. bells',
-        type: 'versus_label',
-        fontStyle: 'clean_sans',
-        embossMode: 'embossed',
-        x: -0.65,
-        y: label1Y,
-        z: 0.02,
-        scale: 0.85,
-      });
-      embossedWallTexts.push({
-        id: 'vs_label_2',
-        text: '2. glass',
-        type: 'versus_label',
-        fontStyle: 'clean_sans',
-        embossMode: 'embossed',
-        x: -0.65,
-        y: label2Y,
-        z: 0.02,
-        scale: 0.85,
-      });
-      embossedWallTexts.push({
-        id: 'vs_ending',
-        text: 'comment 1 or 2 👇',
-        type: 'reveal_answer',
-        fontStyle: 'bold_cartoon',
-        embossMode: 'embossed',
-        x: 0,
-        y: lowestY + 0.65,
-        z: 0.03,
-        scale: 1.0,
-        color: '#facc15',
-        revealAtTime: Math.max(0, catchTime - 1.2),
-      });
     }
 
     // 8. Near Miss Tease before finale

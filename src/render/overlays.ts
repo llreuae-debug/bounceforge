@@ -59,7 +59,7 @@ export interface OverlaySettings {
 }
 
 export const DEFAULT_OVERLAYS: OverlaySettings = {
-  showTitle: true,
+  showTitle: false,
   titleText: 'can it escape??',
   titleFontSize: 42,
   titleColor: '#ffffff',
@@ -226,7 +226,7 @@ export function drawOverlays(
   }
 
   // Song Title Card for Marble Melody (2.5s at the start)
-  if (stats.customCounters?.modeFamily === 'marble_melody' && stats.customCounters?.songTitle && stats.elapsedTime <= 2.5) {
+  if (settings.showTitle && stats.customCounters?.modeFamily === 'marble_melody' && stats.customCounters?.songTitle && stats.elapsedTime <= 2.5) {
     const alpha = Math.min(1, Math.max(0, (2.5 - stats.elapsedTime) / 0.5));
     ctx.save();
     ctx.globalAlpha = alpha;

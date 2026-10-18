@@ -55,7 +55,9 @@ export const DEFAULT_MARBLE_MELODY_CONFIG: MarbleMelodyConfig = {
 
   decorEnabled: true,
   decorDensity: 0.45,
-  handleText: '@BounceForge',
+  handleText: '',
+  showHandleText: false,
+  showBackgroundText: false,
   seed: 10101,
 
   locks: {},

@@ -386,14 +386,24 @@ function runTests() {
   assert('Squeaky orchestra run generates squeaky duck procedural objects', hasDucks);
   assert('Signature twin wire rails generated along the track', hasRails);
 
-  // TEST 15: Embossed 3D Wall Text System
-  console.log('\n--- TEST 15: Embossed 3D Wall Text System ---');
+  // TEST 15: Embossed 3D Wall Text System & Clean Background Default
+  console.log('\n--- TEST 15: Embossed 3D Wall Text System & Clean Background Default ---');
+  const defaultCleanRun = MusicToLayoutSolver.solveRun(DEFAULT_MARBLE_MELODY_CONFIG);
+  assert(
+    'Default run has clean background wall (Zero embossed wall texts & zero handles)',
+    Boolean(
+      (!defaultCleanRun.embossedWallTexts || defaultCleanRun.embossedWallTexts.length === 0) &&
+      (!defaultCleanRun.embossedHandles || defaultCleanRun.embossedHandles.length === 0)
+    )
+  );
+
   const quizRun = MusicToLayoutSolver.solveRun({
     ...DEFAULT_MARBLE_MELODY_CONFIG,
     reelFormat: 'f1_guess_tune',
+    showBackgroundText: true,
     seed: 7777,
   });
-  assert('Embossed wall texts generated for run', Boolean(quizRun.embossedWallTexts && quizRun.embossedWallTexts.length > 0));
+  assert('Embossed wall texts generated when showBackgroundText is enabled', Boolean(quizRun.embossedWallTexts && quizRun.embossedWallTexts.length > 0));
 
   const titleText = quizRun.embossedWallTexts?.find((t) => t.type === 'title');
   const revealAnswer = quizRun.embossedWallTexts?.find((t) => t.type === 'reveal_answer');

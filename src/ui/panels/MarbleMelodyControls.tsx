@@ -549,15 +549,45 @@ export const MarbleMelodyControls: React.FC = () => {
           </div>
         </div>
 
-        {/* Embossed @Handle & Decor Toggle */}
+        {/* Wall Text & Handle Controls (Default Off for clean background) */}
         <div className="space-y-2 pt-1 border-t border-white/5">
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={Boolean(config.showBackgroundText || config.embossedText?.enabled)}
+                onChange={(e) => {
+                  const val = e.target.checked;
+                  updateModeSetting('showBackgroundText', val);
+                  updateModeSetting('embossedText', {
+                    ...(config.embossedText || {}),
+                    enabled: val,
+                  });
+                }}
+                className="rounded border-white/20 bg-black/40 text-purple-500 focus:ring-0"
+              />
+              <span className="text-[11px] text-slate-300 font-medium">Show Embossed Wall Text (Titles / Reminders)</span>
+            </label>
+          </div>
+
           <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-slate-400">Embossed 3D @Handle on Wall</label>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-semibold text-slate-400">Embossed 3D @Handle on Wall</label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(config.showHandleText)}
+                  onChange={(e) => updateModeSetting('showHandleText', e.target.checked)}
+                  className="rounded border-white/20 bg-black/40 text-purple-500 focus:ring-0"
+                />
+                <span className="text-[10px] text-slate-400">Enable</span>
+              </label>
+            </div>
             <input
               type="text"
-              value={config.handleText}
+              value={config.handleText || ''}
               onChange={(e) => updateModeSetting('handleText', e.target.value)}
-              placeholder="@BounceForge"
+              placeholder="e.g. @YourChannel (leave blank or toggle off to hide)"
               className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-1.5 text-slate-200 outline-none"
             />
           </div>
