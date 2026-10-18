@@ -25,7 +25,7 @@ interface ReelFormatPickerProps {
 }
 
 export const ReelFormatPicker: React.FC<ReelFormatPickerProps> = ({ onFormatSelected }) => {
-  const { modeSettings, updateModeSetting, setSeed, setTargetDuration, showToast } = useStudioStore();
+  const { modeSettings, updateModeSetting, setSeed, setTargetDuration, showToast, setMode, currentModeId } = useStudioStore();
 
   const activeFormatId: ReelFormatId = modeSettings.reelFormat || 'f1_guess_tune';
   const [selectedFormat, setSelectedFormat] = useState<ReelFormatId>(activeFormatId);
@@ -63,6 +63,9 @@ export const ReelFormatPicker: React.FC<ReelFormatPickerProps> = ({ onFormatSele
 
   const handleApplyPreset = (preset: FormatPresetDefinition) => {
     triggerHaptic(25);
+    if (currentModeId !== 'marble_melody_3d') {
+      setMode('marble_melody_3d');
+    }
     const newSeed = Math.floor(Math.random() * 900000) + 10000;
     setSeed(newSeed);
 

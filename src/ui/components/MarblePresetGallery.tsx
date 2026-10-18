@@ -28,9 +28,9 @@ export const MarblePresetGallery: React.FC<MarblePresetGalleryProps> = ({
   onSelectPreset,
   compact = false,
 }) => {
-  const { modeSettings, updateModeSetting, setSeed, setTargetDuration, showToast } = useStudioStore();
+  const { modeSettings, updateModeSetting, setSeed, setTargetDuration, showToast, setMode, currentModeId } = useStudioStore();
 
-  const currentMelodyId = modeSettings.melodyId || 'fur_elise';
+  const currentMelodyId = modeSettings.melodyId || 'toybox_run';
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,6 +80,9 @@ export const MarblePresetGallery: React.FC<MarblePresetGalleryProps> = ({
 
   const handleSelectWorld = (preset: MarbleMelodyPresetDefinition) => {
     triggerHaptic(20);
+    if (currentModeId !== 'marble_melody_3d') {
+      setMode('marble_melody_3d');
+    }
     const variant = cardVariants[preset.id] || 'viral';
     const variantCfg = preset.variants[variant];
 
