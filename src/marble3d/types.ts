@@ -75,6 +75,7 @@ export interface ChannelStyleConfig {
   defaultWallPalette: string;
   defaultTexturedWall: string;
   wallTextFont: EmbossFontStyle;
+  fontStyle?: EmbossFontStyle;
   embossStyle: EmbossMode;
   handlePlacement: 'repeats' | 'top_left' | 'center_path';
   favoriteFormats: ReelFormatId[];
@@ -150,12 +151,14 @@ export type HeroMarble =
   | 'galaxy'
   | 'gummy'
   | 'candy_swirl'
-  | 'ember';
+  | 'ember'
+  | 'obsidian';
 
 export interface World10Layers {
   wallSurface: string; // 1. wall surface (material + texture + color)
-  objectMaterial: HeroMaterial; // 2. object material (from 24 hero materials)
-  marbleType: HeroMarble; // 3. marble type (from 20 hero marbles)
+  wallColor?: string;
+  objectMaterial: HeroMaterial | string; // 2. object material (from 24 hero materials)
+  marbleType: HeroMarble | string; // 3. marble type (from 20 hero marbles)
   lightingRig: string; // 4. lighting rig (e.g. soft_morning, moonbeam, torch_flicker...)
   colorGrade: string; // 5. color grade / palette
   hitEffect: string; // 6. hit effect (per material)
@@ -211,6 +214,7 @@ export type WallTexture =
 
 export type WallBackground =
   | 'pastel_peach'
+  | 'pastel_peach_blush'
   | 'pastel_peach_gradient'
   | 'pastel_mint'
   | 'pastel_lavender'
@@ -349,7 +353,7 @@ export interface MarblePathPoint {
 export interface TunedObjectInstance {
   id: string;
   type: TunedObjectType;
-  material?: HeroMaterial;
+  material?: HeroMaterial | string;
   x: number;
   y: number;
   z: number;

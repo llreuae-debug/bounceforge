@@ -18,8 +18,17 @@ export const BASE_VISUAL_DEFAULTS: VisualSettings = {
   themeId: 'neon_night',
   bloomEnabled: true,
   bloomIntensity: 1.25,
+  ballGlowEnabled: true,
+  ballGlowIntensity: 1.0,
+  wallGlowEnabled: true,
+  wallGlowIntensity: 1.0,
+  rainbowWallsMode: 'off',
+  trailEnabled: true,
   trailLength: 18,
   trailFade: 0.65,
+  trailHueShift: false,
+  reactiveBgEnabled: true,
+  reactiveBgIntensity: 0.5,
   screenShakeIntensity: 0.6,
   slowMotionEnd: true,
   chromaticFlash: true,
@@ -46,6 +55,8 @@ export const BASE_ASMR_DEFAULTS: AsmrMixSettings = {
   backingVolume: 0.5,
   binauralAsmr: true,
   asmrMode: false,
+  headphonesMode: true,
+  asmrIntensity: 'balanced',
 };
 
 /**

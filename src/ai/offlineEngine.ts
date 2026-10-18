@@ -17,13 +17,11 @@ export type SupportedLanguage =
   | 'en'
   | 'ur'
   | 'ur_roman'
-  | 'ur_script'
   | 'hi'
   | 'hi_hinglish'
   | 'ar'
   | 'es'
   | 'pt-BR'
-  | 'pt'
   | 'fr'
   | 'de'
   | 'id'
@@ -252,7 +250,7 @@ export const OFFLINE_HOOK_TEMPLATES: Record<SupportedLanguage, Record<HookStyle,
       'bas aik baal barabar fasla',
     ],
   },
-  ur_script: {
+  ur: {
     curiosity: [
       'کیا یہ گیند نکل پائے گی؟',
       'آخری رنگ کا انتظار کریں',
@@ -484,7 +482,7 @@ export const OFFLINE_HOOK_TEMPLATES: Record<SupportedLanguage, Record<HookStyle,
       'a un milímetro de lograrlo',
     ],
   },
-  pt: {
+  'pt-BR': {
     curiosity: [
       'a bola vai conseguir escapar??',
       'espere pelo último anel',
@@ -1113,8 +1111,8 @@ export const OFFLINE_HOOK_TEMPLATES: Record<SupportedLanguage, Record<HookStyle,
 };
 
 // Aliases for locale routing
-(OFFLINE_HOOK_TEMPLATES as any)['ur'] = OFFLINE_HOOK_TEMPLATES['ur_script'];
-(OFFLINE_HOOK_TEMPLATES as any)['pt-BR'] = OFFLINE_HOOK_TEMPLATES['pt'];
+(OFFLINE_HOOK_TEMPLATES as any)['ur_script'] = OFFLINE_HOOK_TEMPLATES['ur'];
+(OFFLINE_HOOK_TEMPLATES as any)['pt'] = OFFLINE_HOOK_TEMPLATES['pt-BR'];
 
 /**
  * Generate 6 varied offline hooks tailored to the simulation

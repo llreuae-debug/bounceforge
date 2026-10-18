@@ -10,6 +10,7 @@ import {
   PhysicsWorldConfig,
   SimulationStats,
   Vector2D,
+  BreakEffectType,
 } from './types';
 import { Mulberry32 } from './prng';
 import { PhysicsEventBus } from './eventBus';
@@ -17,6 +18,7 @@ import { SpatialHashGrid } from './spatialHash';
 import { checkBallArcRingCollision, checkBallBallCollision, checkBallLineCollision } from './collision';
 import { getSafeArena, SafeArena, PlatformType } from '../render/safeArea';
 import type { BallPhysicsSettings, WallControlsSettings, CustomBallConfig } from '../presets/presetService';
+import { AsmrEngine } from '../audio/asmrEngine';
 
 export class PhysicsWorld {
   public width: number;
@@ -25,6 +27,7 @@ export class PhysicsWorld {
   public prng: Mulberry32;
   public eventBus: PhysicsEventBus;
   public spatialHash: SpatialHashGrid;
+  public breakEffects: BreakEffectType[] = [];
 
   public balls: Ball[] = [];
   public rings: ArcRing[] = [];
@@ -557,7 +560,7 @@ export class PhysicsWorld {
   ): void {
     if (ballPhysics) {
       if (ballPhysics.gravity !== undefined) {
-        this.gravity = { x: 0, y: ballPhysics.gravity * 800 };
+        this.config.gravity = { x: 0, y: ballPhysics.gravity * 800 };
       }
       if (ballPhysics.maxSpeedCap !== undefined) {
         this.config.maxSpeedCap = ballPhysics.maxSpeedCap;
@@ -613,10 +616,15 @@ export class PhysicsWorld {
           const sx = outerRing.centerX + Math.cos(angle) * (outerRing.radius - length / 2);
           const sy = outerRing.centerY + Math.sin(angle) * (outerRing.radius - length / 2);
           this.spikes.push({
+            id: this.spikes.length + 1,
             x: sx,
             y: sy,
+            angle,
+            length,
             radius: length / 2,
+            isOccupied: false,
             isDeadly: true,
+            color: '#ff0033',
           });
         }
       }

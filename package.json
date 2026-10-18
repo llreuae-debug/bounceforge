@@ -7,8 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
     "check:links": "node scripts/checkLinks.mjs",
-    "test:e2e": "playwright test"
+    "check:i18n": "npx tsx scripts/testI18n.ts",
+    "check:presets": "npx tsx scripts/verifyViralUpdate.ts",
+    "test": "npx tsx scripts/testMarbleMelody.ts && npx tsx scripts/testSlowMotion.ts && npx tsx scripts/testHeadlessModes.ts && npx tsx scripts/testGrowthTools.ts",
+    "test:e2e": "playwright test",
+    "audit": "npm run typecheck && npm run check:links && npm run check:i18n && npm run check:presets && npm run test"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.21.0",

@@ -148,6 +148,7 @@ export function useI18n(ns?: TranslationNamespace | TranslationNamespace[]) {
     t,
     i18n: instance,
     currentLanguage: currentLang,
+    language: currentLang,
     meta,
     isRTL: meta.dir === 'rtl',
     dir: meta.dir,

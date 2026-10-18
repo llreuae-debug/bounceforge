@@ -369,10 +369,13 @@ export class WorldRenderer {
       ctx.strokeStyle = line.color;
       ctx.lineWidth = 8;
       ctx.shadowColor = line.color;
-      ctx.shadowBlur = 10;
+      const lx1 = line.x1 ?? line.p1?.x ?? 0;
+      const ly1 = line.y1 ?? line.p1?.y ?? 0;
+      const lx2 = line.x2 ?? line.p2?.x ?? 0;
+      const ly2 = line.y2 ?? line.p2?.y ?? 0;
       ctx.beginPath();
-      ctx.moveTo(line.x1, line.y1);
-      ctx.lineTo(line.x2, line.y2);
+      ctx.moveTo(lx1, ly1);
+      ctx.lineTo(lx2, ly2);
       ctx.stroke();
     }
     ctx.restore();
@@ -416,8 +419,9 @@ export class WorldRenderer {
     ctx.save();
     for (const sw of world.shockwaves) {
       ctx.strokeStyle = sw.color;
-      ctx.globalAlpha = sw.alpha;
-      ctx.lineWidth = 6 * sw.alpha;
+      const a = sw.alpha ?? sw.opacity ?? 1;
+      ctx.globalAlpha = a;
+      ctx.lineWidth = 6 * a;
       ctx.beginPath();
       ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
       ctx.stroke();
@@ -513,8 +517,9 @@ export class WorldRenderer {
     if (!world.particles.length) return;
     ctx.save();
     for (const p of world.particles) {
-      ctx.globalAlpha = p.alpha;
+      ctx.globalAlpha = p.alpha ?? 1;
       ctx.fillStyle = p.color;
+      const sz = p.size ?? p.radius ?? 4;
 
       if (p.type === 'confetti') {
         ctx.save();
@@ -528,11 +533,11 @@ export class WorldRenderer {
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rotation);
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.5);
+        ctx.fillRect(-sz / 2, -sz / 2, sz, sz * 1.5);
         ctx.restore();
       } else {
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
         ctx.fill();
       }
     }

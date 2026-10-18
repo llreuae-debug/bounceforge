@@ -1047,8 +1047,8 @@ export async function parseMidiFile(arrayBuffer: ArrayBuffer): Promise<MelodyNot
   const midi = new Midi(arrayBuffer);
   const notes: MelodyNote[] = [];
 
-  midi.tracks.forEach((track, trackIdx) => {
-    track.notes.forEach((n) => {
+  midi.tracks.forEach((track: any, trackIdx: number) => {
+    track.notes.forEach((n: any) => {
       notes.push({
         time: parseFloat(n.time.toFixed(4)),
         duration: parseFloat(n.duration.toFixed(4)),

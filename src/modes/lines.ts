@@ -99,7 +99,8 @@ export const LinesMode: SimulationMode = {
 
   onCollision: (world: PhysicsWorld, event: CollisionEvent) => {
     if (world.customState.bouncePoints.length < world.customState.maxLines) {
-      world.customState.bouncePoints.push({ x: event.point.x, y: event.point.y });
+      const pt = event.point ?? event.position;
+      world.customState.bouncePoints.push({ x: pt.x, y: pt.y });
     }
   },
 

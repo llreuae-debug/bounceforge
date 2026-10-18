@@ -306,7 +306,7 @@ export class MusicToLayoutSolver {
           // HIT EVENT: Impact on tuned object
           const act = acts.find((a) => currentTime >= a.startTime && currentTime <= a.endTime) || acts[0];
           const objectType = act.family;
-          const colors = FAMILY_COLORS[objectType] || ['#38bdf8'];
+          const colors = (FAMILY_COLORS as any)[objectType] || ['#38bdf8'];
           const color = colors[noteIdx % colors.length];
 
           // Clamp object position strictly inside play corridor: |x| <= 0.52
@@ -514,7 +514,7 @@ export class MusicToLayoutSolver {
 
     // Check if handle is set or configured in channelStyle
     const rawHandle = (config.handleText || config.channelStyle?.handle || '').trim();
-    const isPastelRun = config.themePack === 'pastel_dream' || config.wallBackground === 'pastel_peach_blush' || config.wallBackground === 'pastel_peach_gradient';
+    const isPastelRun = config.themePack === 'pastel_dream' || (config.wallBackground as string) === 'pastel_peach_blush' || (config.wallBackground as string) === 'pastel_peach_gradient';
     const hasExplicitHandle = rawHandle.length > 0;
     const shouldShowHandle = Boolean(config.showHandleText || (hasExplicitHandle && isPastelRun) || config.embossedText?.enabled);
     const userHandle = rawHandle || (shouldShowHandle && isPastelRun ? '@BounceForge' : '');
@@ -616,7 +616,7 @@ export class MusicToLayoutSolver {
       // Format Specific Wall Elements
       if (activeFormat === 'f1_guess_tune' || formatDef?.endingType === 'reveal_answer') {
         const foundMelody = PUBLIC_DOMAIN_MELODIES.find((m) => m.id === config.melodyId);
-        const answerName = config.embossedText?.revealAnswerText || foundMelody?.title || 'Ode to Joy';
+        const answerName = config.embossedText?.revealAnswerText || foundMelody?.name || 'Ode to Joy';
         embossedWallTexts.push({
           id: 'reveal_answer_main',
           text: `${answerName}\ndid u get it?`,
@@ -631,6 +631,8 @@ export class MusicToLayoutSolver {
           revealAtTime: Math.max(0, catchTime - 1.2),
         });
       } else if (activeFormat === 'f2_guess_all') {
+        const actCount = acts.length;
+        const actDuration = acts.length > 0 ? duration / acts.length : 5;
         for (let i = 0; i < actCount; i++) {
           const actStartTime = i * actDuration;
           const matchingObj = allObjects.find((o) => o.hitTime >= actStartTime) || allObjects[0];

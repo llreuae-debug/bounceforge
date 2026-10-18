@@ -4,13 +4,147 @@
   :root {
     --font-sans: 'Helvetica Neue', Helvetica, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
+
+    /* Type scale tokens (11 · 13 · 14 · 16 · 20 · 24 · 32 · 48 · 64 · 96 px) */
+    --text-11: 11px;
+    --lh-11: 14px;
+    --ls-11: 0.02em;
+
+    --text-13: 13px;
+    --lh-13: 18px;
+    --ls-13: 0.01em;
+
+    --text-14: 14px;
+    --lh-14: 20px;
+    --ls-14: 0em;
+
+    --text-16: 16px;
+    --lh-16: 24px;
+    --ls-16: -0.01em;
+
+    --text-20: 20px;
+    --lh-20: 28px;
+    --ls-20: -0.015em;
+
+    --text-24: 24px;
+    --lh-24: 32px;
+    --ls-24: -0.02em;
+
+    --text-32: 32px;
+    --lh-32: 40px;
+    --ls-32: -0.025em;
+
+    --text-48: 48px;
+    --lh-48: 56px;
+    --ls-48: -0.03em;
+
+    --text-64: 64px;
+    --lh-64: 72px;
+    --ls-64: -0.035em;
+
+    --text-96: 96px;
+    --lh-96: 104px;
+    --ls-96: -0.04em;
+
+    /* 4px grid spacing tokens */
+    --space-4: 4px;
+    --space-8: 8px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-20: 20px;
+    --space-24: 24px;
+    --space-32: 32px;
+    --space-48: 48px;
+    --space-64: 64px;
+
+    /* Line length max measure */
+    --max-measure: 70ch;
   }
 
   body {
     font-family: var(--font-sans);
     background-color: #050608;
     color: #e2e8f0;
+    text-align: start;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Headings, body text, form labels default to start-aligned */
+  h1, h2, h3, h4, h5, h6,
+  p, label, td, th, li {
+    text-align: start;
+  }
+
+  p {
+    max-width: var(--max-measure);
+  }
+
+  /* Tabular numbers for counters, stats, seeds, timers, prices */
+  .tabular-nums,
+  .num-tabular,
+  input[type="number"],
+  .timer-display,
+  .counter-display,
+  .price-display,
+  .stat-value {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+}
+
+/* Typography Scale Token Utilities */
+.type-11 { font-size: var(--text-11); line-height: var(--lh-11); letter-spacing: var(--ls-11); }
+.type-13 { font-size: var(--text-13); line-height: var(--lh-13); letter-spacing: var(--ls-13); }
+.type-14 { font-size: var(--text-14); line-height: var(--lh-14); letter-spacing: var(--ls-14); }
+.type-16 { font-size: var(--text-16); line-height: var(--lh-16); letter-spacing: var(--ls-16); }
+.type-20 { font-size: var(--text-20); line-height: var(--lh-20); letter-spacing: var(--ls-20); }
+.type-24 { font-size: var(--text-24); line-height: var(--lh-24); letter-spacing: var(--ls-24); }
+.type-32 { font-size: var(--text-32); line-height: var(--lh-32); letter-spacing: var(--ls-32); }
+.type-48 { font-size: var(--text-48); line-height: var(--lh-48); letter-spacing: var(--ls-48); }
+.type-64 { font-size: var(--text-64); line-height: var(--lh-64); letter-spacing: var(--ls-64); }
+.type-96 { font-size: var(--text-96); line-height: var(--lh-96); letter-spacing: var(--ls-96); }
+
+/* Settings row alignment standard */
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding-block: var(--space-8);
+}
+.settings-label {
+  text-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.settings-control {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+/* Grid card equal heights with pinned actions */
+.card-grid-item {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.card-grid-item > .card-footer {
+  margin-top: auto;
+}
+
+/* Empty state and centered error blocks */
+.empty-state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-12);
+  padding: var(--space-32);
 }
 
 /* Glassmorphism utilities */

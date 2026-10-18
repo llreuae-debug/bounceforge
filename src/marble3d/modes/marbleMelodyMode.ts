@@ -129,7 +129,7 @@ export const MarbleMelodyMode: SimulationMode = {
         const hit = lane.hits[hIdx];
         const isTriggered = (prevTime === 0 ? hit.time >= 0 : hit.time > prevTime) && hit.time <= currTime;
         if (isTriggered) {
-          const obj = run.objects.find((o) => o.id === hit.objectId);
+          const obj = run.objects.find((o: any) => o.id === hit.objectId);
           world.eventBus.emit({
             id: world.customState.eventIdCounter++,
             type: 'ring',

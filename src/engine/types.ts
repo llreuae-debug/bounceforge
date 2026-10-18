@@ -30,6 +30,7 @@ export interface Ball {
   initialRestitution?: number;
   customEmoji?: string;
   customImageDataUrl?: string;
+  customImage?: string;
   customTexture?: any;
   tier?: number;
   name?: string;
@@ -65,13 +66,16 @@ export interface ArcRing {
 }
 
 export interface LineSegment {
-  id: number;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
+  id?: number;
+  x1?: number;
+  y1?: number;
+  x2?: number;
+  y2?: number;
   color: string;
   restitution: number;
+  p1?: Vector2D;
+  p2?: Vector2D;
+  thickness?: number;
 }
 
 export interface Spike {
@@ -82,6 +86,7 @@ export interface Spike {
   length: number;
   radius: number;
   isOccupied: boolean;
+  isDeadly?: boolean;
   color: string;
 }
 
@@ -110,10 +115,11 @@ export interface Particle {
   vx: number;
   vy: number;
   color: string;
-  size: number;
+  size?: number;
+  radius?: number;
   width?: number;
   height?: number;
-  alpha: number;
+  alpha?: number;
   maxLife: number;
   life: number;
   rotation?: number;
@@ -126,15 +132,18 @@ export interface Shockwave {
   y: number;
   radius: number;
   maxRadius: number;
-  alpha: number;
+  alpha?: number;
   color: string;
+  speed?: number;
+  opacity?: number;
 }
 
 export interface CollisionEvent {
   id: number;
   time: number; // in seconds from start
-  type: 'ring' | 'ball' | 'spike' | 'wall' | 'escape' | 'peg' | 'portal' | 'merge';
+  type: 'ring' | 'ball' | 'spike' | 'wall' | 'escape' | 'peg' | 'portal' | 'merge' | 'line';
   position: Vector2D;
+  point?: Vector2D;
   velocity: Vector2D;
   impulse: number;
   ringId?: number;

@@ -137,7 +137,7 @@ export const ObstacleCourseMode: SimulationMode = {
     world.customState.spinnerAngle += speed * dt;
 
     // Remove old dynamic spinner line segments
-    world.lines = world.lines.filter((l) => l.id < 200 || l.id > 210);
+    world.lines = world.lines.filter((l) => (l.id ?? 0) < 200 || (l.id ?? 0) > 210);
 
     // Recreate rotated spinner line segments
     const spinners = world.customState.spinners || [];

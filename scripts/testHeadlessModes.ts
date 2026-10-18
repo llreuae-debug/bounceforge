@@ -11,7 +11,7 @@ function runSimulation(
   mode: any,
   settings: Record<string, any>,
   seed: number,
-  maxSeconds: number = 60
+  maxSeconds: number = 90
 ) {
   const world = new PhysicsWorld(1080, 1920, seed);
   if (mode.onCollision) {
@@ -46,7 +46,7 @@ function runSimulation(
 console.log('=== TEST 1: SEQUENCE BREAK VIRAL PRESET HEADLESS TEST ===');
 const seqViralPreset = SequenceBreakMode.presets[1];
 console.log('Sequence Break Viral Preset Settings:', seqViralPreset.settings);
-const seqResult = runSimulation(SequenceBreakMode, seqViralPreset.settings, 102, 60);
+const seqResult = runSimulation(SequenceBreakMode, seqViralPreset.settings, 102, 90);
 console.log(`✓ Sequence Break Seed 102: finished=${seqResult.finished}, payoff=${seqResult.time.toFixed(2)}s, bounces=${seqResult.bounces}`);
 if (!seqResult.finished || seqResult.time < 30 || seqResult.time > 60) {
   throw new Error(`Sequence Break Seed 102 unexpected result: ${JSON.stringify(seqResult)}`);
@@ -84,16 +84,16 @@ const testWorld = new PhysicsWorld(1080, 1920, 1234);
 testWorld.addRing({
   centerX: 540,
   centerY: 960,
-  radius: 300,
+  radius: 200,
   thickness: 16,
   color: '#CCFF00',
-  gaps: [],
+  gaps: [{ startAngle: -0.4, endAngle: 0.4 }],
   restitution: 1.0,
 });
 testWorld.addBall({
   x: 540,
   y: 960,
-  vx: 600,
+  vx: -600,
   vy: 0,
   radius: 18,
   color: '#00F0FF',
@@ -107,15 +107,19 @@ testWorld.addBall({
 
 console.log('Initial bounce boost energy:', testWorld.getBounceBoostEnergy());
 let hitEnergy = 0;
-for (let i = 0; i < 45; i++) {
+let energyAfterEscape = -1;
+for (let i = 0; i < 150; i++) {
   testWorld.step(FIXED_DT);
   if (testWorld.bounces > 0 && hitEnergy === 0) {
     hitEnergy = testWorld.getBounceBoostEnergy();
     console.log(`On wall hit: bounces=${testWorld.bounces}, bounceBoostEnergy=${hitEnergy}%`);
   }
+  if (testWorld.escapes > 0 && energyAfterEscape === -1) {
+    energyAfterEscape = testWorld.getBounceBoostEnergy();
+    console.log(`After escape: escapes=${testWorld.escapes}, bounceBoostEnergy=${energyAfterEscape}%`);
+    break;
+  }
 }
-const energyAfterEscape = testWorld.getBounceBoostEnergy();
-console.log(`After escape: escapes=${testWorld.escapes}, bounceBoostEnergy=${energyAfterEscape}%`);
 
 if (hitEnergy > 0) {
   console.log('✓ Bounce boost energy increased dynamically with wall hit!');

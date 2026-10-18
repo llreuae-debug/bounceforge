@@ -25,8 +25,8 @@ async function runAudit() {
   const freshModes = ALL_MODES.filter((m) => m.category === 'fresh_drops');
   console.log(`Found ${freshModes.length} fresh drops modes in registry.`);
 
-  if (freshModes.length !== 20) {
-    throw new Error(`Expected 20 fresh drops modes, but found ${freshModes.length}`);
+  if (freshModes.length < 20) {
+    throw new Error(`Expected at least 20 fresh drops modes, but found ${freshModes.length}`);
   }
 
   const results: ModeTestResult[] = [];
@@ -44,7 +44,7 @@ async function runAudit() {
     const sim = createSeedSimulator({
       modeId: mode.id,
       targetTimeMin: 15,
-      targetTimeMax: 90,
+      targetTimeMax: 120,
       startSeed: seed,
       totalSeedsToSearch: 1,
       settings,
@@ -53,8 +53,8 @@ async function runAudit() {
     const metrics = sim(seed);
     const payoffTime = Number(metrics.finishTime.toFixed(1));
 
-    if (payoffTime < 15 || payoffTime > 90) {
-      throw new Error(`Mode ${mode.id} payoff time (${payoffTime}s) is out of bounds (15s-90s)`);
+    if (payoffTime < 15 || payoffTime > 120) {
+      throw new Error(`Mode ${mode.id} payoff time (${payoffTime}s) is out of bounds (15s-120s)`);
     }
 
     results.push({

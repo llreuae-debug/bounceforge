@@ -52,7 +52,7 @@ export const AiHookSuggester: React.FC<AiHookSuggesterProps> = ({
 
   const languages: { id: SupportedLanguage; label: string }[] = [
     { id: 'en', label: 'English' },
-    { id: 'ur_script', label: 'Urdu (اردو)' },
+    { id: 'ur', label: 'Urdu (اردو)' },
     { id: 'ur_roman', label: 'Urdu (Roman Urdu)' },
     { id: 'hi', label: 'Hindi (हिन्दी)' },
     { id: 'hi_hinglish', label: 'Hindi (Hinglish)' },

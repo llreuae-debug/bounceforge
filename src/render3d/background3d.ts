@@ -2,12 +2,12 @@ import * as THREE from 'three';
 
 export class BackgroundSimulator3D {
   private canvas: HTMLCanvasElement;
-  private renderer: THREE.WebGLRenderer;
+  private renderer!: THREE.WebGLRenderer;
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
   private rings: THREE.Mesh[] = [];
-  private ball: THREE.Mesh;
-  private dustParticles: THREE.Points;
+  private ball!: THREE.Mesh;
+  private dustParticles!: THREE.Points;
   private animId: number | null = null;
   private lastTime: number = performance.now();
   private pointer = { x: 0, y: 0 };

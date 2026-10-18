@@ -284,15 +284,19 @@ export function checkBallBallCollision(b1: Ball, b2: Ball, now: number): Collisi
  * Circle vs Line Segment Collision
  */
 export function checkBallLineCollision(ball: Ball, seg: LineSegment, now: number): CollisionEvent | null {
-  const vx = seg.x2 - seg.x1;
-  const vy = seg.y2 - seg.y1;
+  const x1 = seg.x1 ?? seg.p1?.x ?? 0;
+  const y1 = seg.y1 ?? seg.p1?.y ?? 0;
+  const x2 = seg.x2 ?? seg.p2?.x ?? 0;
+  const y2 = seg.y2 ?? seg.p2?.y ?? 0;
+  const vx = x2 - x1;
+  const vy = y2 - y1;
   const lenSq = vx * vx + vy * vy;
   if (lenSq === 0) return null;
 
   // Project ball center onto line segment clamped to [0, 1]
-  const t = Math.max(0, Math.min(1, ((ball.x - seg.x1) * vx + (ball.y - seg.y1) * vy) / lenSq));
-  const projX = seg.x1 + t * vx;
-  const projY = seg.y1 + t * vy;
+  const t = Math.max(0, Math.min(1, ((ball.x - x1) * vx + (ball.y - y1) * vy) / lenSq));
+  const projX = x1 + t * vx;
+  const projY = y1 + t * vy;
 
   const dx = ball.x - projX;
   const dy = ball.y - projY;

@@ -30,6 +30,7 @@ export type InstrumentType =
   | 'piano'
   | 'synth'
   | 'eightBit'
+  | '8bit'
   | 'pluck'
   | 'xylophone'
   | 'guitar';

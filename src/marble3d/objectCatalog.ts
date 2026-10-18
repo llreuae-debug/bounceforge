@@ -13,7 +13,7 @@ export class ObjectCatalog3D {
     group.position.set(inst.x, inst.y, inst.z);
     group.rotation.set(inst.rotationX, inst.rotationY, inst.rotationZ);
 
-    const heroMat = inst.material ? MarbleMaterialLibrary.getMaterial(inst.material, inst.color) : null;
+    const heroMat = inst.material ? MarbleMaterialLibrary.getMaterial(inst.material as any, inst.color) : null;
 
     // 1. Visible Wall Pin & Mounting Bracket (Real 3D Wall Interface)
     const pinGeo = new THREE.CylinderGeometry(0.018, 0.018, 0.28, 12);
