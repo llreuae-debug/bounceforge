@@ -694,7 +694,7 @@ export class MarbleMelodyRenderer {
       finalTiltZ = THREE.MathUtils.lerp(actTiltZ, 0.025, smoothBlend);
     }
 
-    this.camera.position.set(finalCamX, finalCamY + camTiltYOffset, camDistZ - heroPush);
+    this.camera.position.set(finalCamX, finalCamY + camTiltYOffset, camDistZ);
     this.camera.lookAt(finalCamX, finalCamY - 0.35, 0);
     this.camera.rotation.z = finalTiltZ;
 
