@@ -294,6 +294,10 @@ export interface MarbleMelodyConfig {
 
   themePack: ThemePack;
   wallBackground: WallBackground;
+  customWallColor?: string;
+  customWallImage?: string;
+  customWallImageRepeatY?: number;
+  customWallImageRepeatX?: number;
   lightingStyle: LightingStyle;
   cameraStyle: CameraStyle;
 

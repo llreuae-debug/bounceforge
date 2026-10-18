@@ -341,14 +341,37 @@ export class MarbleMelodyRenderer {
 
     // 1. Apply World 10-Layer Wall Surface
     let wallColorHex = 0x2c2c30;
-    if (run.config.world?.wallColor) {
+    if (run.config.customWallColor) {
+      wallColorHex = parseInt(run.config.customWallColor.replace('#', ''), 16);
+    } else if (run.config.world?.wallColor) {
       wallColorHex = parseInt(run.config.world.wallColor.replace('#', ''), 16);
     } else if (run.config.wallBackground && WALL_BACKGROUND_COLORS[run.config.wallBackground]) {
       wallColorHex = WALL_BACKGROUND_COLORS[run.config.wallBackground];
     }
     const wallType = run.config.world?.wallSurface || run.config.wallBackground || 'charcoal_studio';
-    this.wallMesh.material = MarbleMaterialLibrary.getWallMaterial(wallType, wallColorHex);
-    this.scene.background = new THREE.Color(wallColorHex);
+
+    if (run.config.customWallImage) {
+      const textureLoader = new THREE.TextureLoader();
+      const customTex = textureLoader.load(run.config.customWallImage, (tex) => {
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        const repX = run.config.customWallImageRepeatX || 1;
+        const repY = run.config.customWallImageRepeatY || 10;
+        tex.repeat.set(repX, repY);
+        tex.needsUpdate = true;
+      });
+      const customMat = new THREE.MeshStandardMaterial({
+        map: customTex,
+        color: run.config.customWallColor ? wallColorHex : 0xffffff,
+        roughness: 0.78,
+        metalness: 0.04,
+      });
+      this.wallMesh.material = customMat;
+      this.scene.background = new THREE.Color(wallColorHex);
+    } else {
+      this.wallMesh.material = MarbleMaterialLibrary.getWallMaterial(wallType, wallColorHex);
+      this.scene.background = new THREE.Color(wallColorHex);
+    }
 
     // 2. World Lighting Rig Configuration
     const rig = run.config.world?.lightingRig || run.config.lightingStyle;

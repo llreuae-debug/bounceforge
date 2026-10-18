@@ -135,6 +135,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
   const [editingPresetName, setEditingPresetName] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const ballImageInputRef = useRef<HTMLInputElement | null>(null);
+  const bgImageInputRef = useRef<HTMLInputElement | null>(null);
 
   // Custom Ball Crop/Zoom State
   const [imageZoom, setImageZoom] = useState(1.0);
@@ -978,6 +979,129 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Custom Background Color & Image Upload */}
+                <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                      <Palette className="w-3.5 h-3.5 text-pink-400" />
+                      Background Color &amp; Custom Image
+                    </span>
+                    {(visuals.customBgColor || visuals.customBgImage) && (
+                      <button
+                        onClick={() => {
+                          setVisuals({ customBgColor: undefined, customBgImage: undefined });
+                          showToast('Reset background to theme default');
+                        }}
+                        className="text-[10px] text-pink-400 hover:text-pink-300 font-bold"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Color Swatches & Picker */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {[
+                      { name: 'Dark Slate', color: '#0b0f19' },
+                      { name: 'Pitch Black', color: '#020306' },
+                      { name: 'Midnight Blue', color: '#0f172a' },
+                      { name: 'Deep Purple', color: '#1e112a' },
+                      { name: 'Forest Dark', color: '#052e16' },
+                      { name: 'Dark Wine', color: '#270814' },
+                      { name: 'Pastel Peach', color: '#fed7aa' },
+                      { name: 'Mint Green', color: '#a7f3d0' },
+                      { name: 'Clean White', color: '#f8fafc' },
+                    ].map((swatch) => (
+                      <button
+                        key={swatch.name}
+                        onClick={() => {
+                          triggerHaptic(10);
+                          setVisuals({ customBgColor: swatch.color });
+                          showToast(`Applied ${swatch.name} background`);
+                        }}
+                        title={swatch.name}
+                        className={`w-5 h-5 rounded-full border transition-all ${
+                          visuals.customBgColor === swatch.color ? 'ring-2 ring-purple-400 border-white' : 'border-white/20 hover:scale-110'
+                        }`}
+                        style={{ backgroundColor: swatch.color }}
+                      />
+                    ))}
+
+                    <div className="flex items-center gap-1 ml-auto">
+                      <input
+                        type="color"
+                        value={visuals.customBgColor || '#0b0f19'}
+                        onChange={(e) => setVisuals({ customBgColor: e.target.value })}
+                        className="w-5 h-5 rounded-full border border-white/20 cursor-pointer bg-transparent"
+                        title="Pick Custom Color"
+                      />
+                      <span className="text-[10px] font-mono text-slate-400 uppercase">
+                        {visuals.customBgColor || 'Theme'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Custom Upload Image */}
+                  <div className="pt-2 border-t border-white/5 space-y-1.5">
+                    <input
+                      type="file"
+                      ref={bgImageInputRef}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file && file.type.startsWith('image/')) {
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            setVisuals({ customBgImage: reader.result as string });
+                            showToast('🖼️ Custom background image applied!');
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      accept="image/*"
+                      className="hidden"
+                    />
+
+                    {visuals.customBgImage ? (
+                      <div className="flex items-center justify-between p-1.5 bg-black/40 rounded-xl border border-white/10">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={visuals.customBgImage}
+                            alt="Background Preview"
+                            className="w-8 h-8 rounded-lg object-cover border border-white/10"
+                          />
+                          <span className="text-[10px] text-slate-300 font-bold">Custom Image Active</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => bgImageInputRef.current?.click()}
+                            className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-[10px] font-bold"
+                          >
+                            Replace
+                          </button>
+                          <button
+                            onClick={() => {
+                              setVisuals({ customBgImage: undefined });
+                              showToast('Removed custom background image');
+                            }}
+                            className="p-1 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                            title="Remove Image"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => bgImageInputRef.current?.click()}
+                        className="w-full py-1.5 px-3 rounded-xl border border-dashed border-white/20 hover:border-pink-400/50 bg-black/20 hover:bg-pink-500/5 text-slate-400 hover:text-pink-300 transition-all flex items-center justify-center gap-2 text-xs font-medium"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-pink-400" />
+                        <span>Upload Custom Background (JPG, PNG)</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Rainbow Walls: Off / Flow / Flash */}

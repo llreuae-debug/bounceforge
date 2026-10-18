@@ -33,6 +33,9 @@ export interface VisualSettings {
   slowMotionEnd: boolean;
   chromaticFlash: boolean;
   ringColorMode: 'theme' | 'rainbow' | 'index' | 'pulse';
+
+  customBgColor?: string;
+  customBgImage?: string;
 }
 
 export class WorldRenderer {
@@ -163,23 +166,47 @@ export class WorldRenderer {
       this.reactiveBgPulse *= 0.85; // smooth decay
     }
 
+    // Custom Background Image support
+    if (visuals.customBgImage) {
+      let img = this.imageCache.get(visuals.customBgImage);
+      if (!img) {
+        img = new Image();
+        img.src = visuals.customBgImage;
+        this.imageCache.set(visuals.customBgImage, img);
+      }
+      if (img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, 0, 0, w, h);
+        if (visuals.customBgColor) {
+          ctx.save();
+          ctx.globalAlpha = 0.3;
+          ctx.fillStyle = visuals.customBgColor;
+          ctx.fillRect(0, 0, w, h);
+          ctx.restore();
+        }
+        return;
+      }
+    }
+
     // 8K Multi-Stop HDR Radial Gradient
     const cx = w / 2;
     const cy = h / 2;
     const radius = Math.max(w, h) * 0.75;
     const bgGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, radius);
 
+    const primaryBg = visuals.customBgColor || theme.background;
+    const secondaryBg = visuals.customBgColor ? visuals.customBgColor : (theme.backgroundSecondary || '#111424');
+
     if (pulseIntensity > 0.01) {
       // Glow pulse in center with harmonic chromatic color
       const boostColor = `rgba(0, 240, 255, ${pulseIntensity * 0.3})`;
       bgGrad.addColorStop(0, boostColor);
-      bgGrad.addColorStop(0.2, theme.backgroundSecondary || '#111424');
-      bgGrad.addColorStop(0.65, theme.background);
-      bgGrad.addColorStop(1.0, '#030408');
+      bgGrad.addColorStop(0.2, secondaryBg);
+      bgGrad.addColorStop(0.65, primaryBg);
+      bgGrad.addColorStop(1.0, visuals.customBgColor ? primaryBg : '#030408');
     } else {
-      bgGrad.addColorStop(0, theme.backgroundSecondary || '#111424');
-      bgGrad.addColorStop(0.55, theme.background);
-      bgGrad.addColorStop(1.0, '#020306');
+      bgGrad.addColorStop(0, secondaryBg);
+      bgGrad.addColorStop(0.55, primaryBg);
+      bgGrad.addColorStop(1.0, visuals.customBgColor ? primaryBg : '#020306');
     }
 
     ctx.fillStyle = bgGrad;
