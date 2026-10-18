@@ -12,6 +12,7 @@ import { presetService, SavedPreset } from '../../presets/presetService';
 import { copyText } from '../../platform/clipboard';
 import { triggerHaptic } from '../../platform/haptics';
 import { detectCapabilities, generateDiagnosticReport } from '../../platform/capabilities';
+import { MarbleMelodyControls } from './MarbleMelodyControls';
 
 import {
   Search,
@@ -368,7 +369,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                     <label className="text-[11px] font-bold text-slate-400 block mb-1">Tuned Presets</label>
                     <div className="grid grid-cols-3 gap-1.5">
                       {['chill', 'viral', 'insane'].map((presetKey) => {
-                        const p = currentMode.presets?.[presetKey];
+                        const p = Array.isArray(currentMode.presets)
+                          ? currentMode.presets.find((x) => x.name.toLowerCase().includes(presetKey))
+                          : (currentMode.presets as any)?.[presetKey];
                         if (!p) return null;
                         return (
                           <button
@@ -396,6 +399,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
 
                 {/* Dynamic Mode-Specific Rules */}
                 <div className="pt-2 border-t border-white/5 space-y-2.5 text-xs">
+                  {/* Marble Melody 3D Flagship Controls */}
+                  {currentModeId === 'marble_melody_3d' && (
+                    <MarbleMelodyControls />
+                  )}
+
                   {/* Sequence Break Controls */}
                   {currentModeId === 'sequence_break' && (
                     <>
@@ -1144,7 +1152,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                   <select
                     value={audioSettings.instrument}
                     onChange={(e) => {
-                      AudioEngine.getInstance().setInstrument(e.target.value as InstrumentType);
+                      AudioEngine.getInstance().updateSettings({ instrument: e.target.value as InstrumentType });
                     }}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-pink-300 font-bold outline-none cursor-pointer"
                   >
@@ -1163,7 +1171,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                 <div>
                   <label className="text-[11px] font-bold text-slate-400 block mb-1">ASMR Textures Audition</label>
                   <div className="grid grid-cols-2 gap-1.5">
-                    {(['wood_click', 'bubble_pop', 'marble_click', 'water_drip', 'crystal_ding'] as AsmrTextureType[]).map((tex) => (
+                    {(['sandPour', 'kineticCut', 'bubbleWrap', 'soapPop', 'marbleRoll', 'softRain', 'vinylCrackle'] as AsmrTextureType[]).map((tex) => (
                       <button
                         key={tex}
                         onClick={() => AsmrEngine.getInstance().playTexture(tex)}
@@ -1280,12 +1288,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                     <span className="font-bold text-slate-200">Bottom Caption</span>
                     <input
                       type="checkbox"
-                      checked={overlays.bottomCaptionEnabled ?? false}
-                      onChange={(e) => setOverlays({ bottomCaptionEnabled: e.target.checked })}
+                      checked={overlays.showBottomCaption ?? false}
+                      onChange={(e) => setOverlays({ showBottomCaption: e.target.checked })}
                       className="accent-cyan-400 rounded cursor-pointer"
                     />
                   </div>
-                  {overlays.bottomCaptionEnabled && (
+                  {overlays.showBottomCaption && (
                     <>
                       <input
                         type="text"
@@ -1330,12 +1338,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                     <span className="font-bold text-slate-200">Arena Center Text</span>
                     <input
                       type="checkbox"
-                      checked={overlays.centerTextEnabled ?? false}
-                      onChange={(e) => setOverlays({ centerTextEnabled: e.target.checked })}
+                      checked={overlays.showCenterText ?? false}
+                      onChange={(e) => setOverlays({ showCenterText: e.target.checked })}
                       className="accent-cyan-400 rounded cursor-pointer"
                     />
                   </div>
-                  {overlays.centerTextEnabled && (
+                  {overlays.showCenterText && (
                     <>
                       <input
                         type="text"

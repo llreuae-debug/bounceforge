@@ -3,6 +3,7 @@ import { AudioSettings, NoteItem, SfxType } from './types';
 import { SoundSynthesizer } from './synth';
 import { BUILTIN_MELODIES } from './melodies';
 import { normalizeAudioBufferToLufs } from './loudness';
+import { MarbleAudioSynthesizer } from '../marble3d/audioSynthesizer';
 
 /**
  * Renders an offline AudioBuffer from the collision event log.
@@ -59,6 +60,21 @@ export async function renderOfflineAudio(
     const pan = settings.stereoPanning !== false && ev.position
       ? Math.max(-0.85, Math.min(0.85, (ev.position.x - 540) / 540))
       : 0;
+
+    // Marble Melody 3D Hit
+    if (ev.extra?.marbleMelodyHit && ev.extra?.melodyNote) {
+      const vol = ev.extra.melodyNote.velocity || 0.85;
+      MarbleAudioSynthesizer.playTunedHit(
+        offlineCtx,
+        limiter,
+        ev.extra.objectType || 'glass_tube',
+        ev.extra.melodyNote,
+        t,
+        vol,
+        pan
+      );
+      continue;
+    }
 
     if (ev.type === 'escape') {
       SoundSynthesizer.playSfx(offlineCtx, limiter, 'shatter', t, settings.sfxVolume);

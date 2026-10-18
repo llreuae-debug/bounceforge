@@ -2,6 +2,7 @@ import { AudioSettings, NoteItem, SfxType } from './types';
 import { BUILTIN_MELODIES, Melody } from './melodies';
 import { SoundSynthesizer } from './synth';
 import { CollisionEvent } from '../engine/types';
+import { MarbleAudioSynthesizer } from '../marble3d/audioSynthesizer';
 
 export class AudioEngine {
   private static instance: AudioEngine;
@@ -209,6 +210,21 @@ export class AudioEngine {
     const pan = this.settings.stereoPanning !== false && event.position
       ? Math.max(-0.85, Math.min(0.85, (event.position.x - 540) / 540))
       : 0;
+
+    // Marble Melody 3D Physical Material Hit
+    if (event.extra?.marbleMelodyHit && event.extra?.melodyNote) {
+      const vol = event.extra.melodyNote.velocity || 0.85;
+      MarbleAudioSynthesizer.playTunedHit(
+        this.ctx,
+        dest,
+        event.extra.objectType || 'glass_tube',
+        event.extra.melodyNote,
+        t,
+        vol,
+        pan
+      );
+      return;
+    }
 
     if (event.type === 'escape') {
       // Escape: play glass shatter and triumphant high chord note

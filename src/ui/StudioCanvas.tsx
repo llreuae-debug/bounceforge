@@ -508,7 +508,7 @@ export const StudioCanvas: React.FC = () => {
           </div>
 
           {/* Bounce Boost Energy Meter HUD */}
-          {ballPhysics.bounceBoost && (
+          {ballPhysics.bounceBoostEnabled && (
             <div className="absolute top-10 left-3 z-30 px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md border border-amber-400/40 text-[10px] font-mono text-amber-300 flex items-center gap-1.5 shadow-md pointer-events-none">
               <Zap className="w-3 h-3 text-amber-400 fill-amber-400 animate-pulse" />
               <span>boost: {Math.round(bounceBoostEnergy)}%</span>

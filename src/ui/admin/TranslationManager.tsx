@@ -173,8 +173,8 @@ export const TranslationManager: React.FC = () => {
     }
 
     // Check placeholders exist in English
-    const enPlaceholders = en.match(/\{[a-zA-Z0-9_]+\}/g) || [];
-    const targetPlaceholders = target.match(/\{[a-zA-Z0-9_]+\}/g) || [];
+    const enPlaceholders: string[] = en.match(/\{[a-zA-Z0-9_]+\}/g) || [];
+    const targetPlaceholders: string[] = target.match(/\{[a-zA-Z0-9_]+\}/g) || [];
 
     for (const ph of enPlaceholders) {
       if (!targetPlaceholders.includes(ph) && !en.includes('plural')) {

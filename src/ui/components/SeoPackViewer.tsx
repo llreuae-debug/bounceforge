@@ -38,7 +38,7 @@ export const SeoPackViewer: React.FC<SeoPackViewerProps> = ({
   useEffect(() => {
     TrendsManager.getInstance().getTrends().then(({ data, isOutdated }) => {
       setTrendsUpdated(data.updated);
-      setIsOutdated(isOutdated);
+      setIsTrendsOutdated(isOutdated);
     });
   }, []);
 

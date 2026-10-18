@@ -320,7 +320,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
     isWhatsNewOpen: false,
     isWhatNextOpen: false,
     isTrendsAdminOpen: false,
-
+    isRestartConfirmOpen: false,
 
     setRoute: (route, pushState = true) => {
       if (pushState && typeof window !== 'undefined') {
@@ -342,6 +342,10 @@ export const useStudioStore = create<StudioState>((set, get) => {
           refunds: '/refunds',
           checkout_success: '/checkout/success',
           checkout_cancelled: '/checkout/cancelled',
+          about: '/about',
+          showcase: '/showcase',
+          feedback: '/feedback',
+          disclaimer: '/disclaimer',
           '404': '/404',
         };
         const targetPath = pathMap[route] || '/';

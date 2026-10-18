@@ -25,7 +25,7 @@ import { triggerHaptic } from '../../platform/haptics';
 import { copyText } from '../../platform/clipboard';
 
 export const DiagnosticsPage: React.FC = () => {
-  const { setRoute, setQualityMode, qualityMode } = useStudioStore();
+  const { setRoute, setQualityMode, qualityMode, showToast } = useStudioStore();
   const [caps, setCaps] = useState<DeviceCapabilities | null>(null);
   const [copied, setCopied] = useState(false);
   const [benchmarking, setBenchmarking] = useState(false);

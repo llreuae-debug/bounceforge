@@ -53,8 +53,12 @@ import { SequenceBreakMode } from './sequenceBreak';
 import { ColorMatchMode } from './colorMatch';
 import { ColorLockMode } from './colorLock';
 import { LinesMode } from './lines';
+import { MarbleMelodyMode } from '../marble3d/modes/marbleMelodyMode';
 
 export const ALL_MODES: SimulationMode[] = [
+  // 3D Flagship Mode Family
+  MarbleMelodyMode,
+
   // 10 Featured Game Modes (from Reference UI & Spec)
   ClassicMode,
   AccumulationMode,
@@ -115,6 +119,7 @@ export const ALL_MODES: SimulationMode[] = [
 export function getModeById(id: string): SimulationMode {
   // Support exact aliases matching viral reference names
   const cleanId = id.toLowerCase().replace(/[\s-]/g, '_');
+  if (cleanId === 'marble_melody' || cleanId === 'marble_melody_3d' || cleanId === 'marble3d') return MarbleMelodyMode;
   if (cleanId === 'sequence_break' || cleanId === 'target' || cleanId === 'targets') return SequenceBreakMode;
   if (cleanId === 'color_lock' || cleanId === 'color_match' || cleanId === 'colormatch') return ColorLockMode;
   if (cleanId === 'multiply' || cleanId === 'infinite_loop') return InfiniteLoopMode;

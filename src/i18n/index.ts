@@ -60,6 +60,9 @@ class MissingKeyTracker {
 }
 
 export const missingKeysTracker = new MissingKeyTracker();
+export function getMissingKeysReport(): MissingKeyReport[] {
+  return missingKeysTracker.getAll();
+}
 
 // Initialize i18next instance
 i18n

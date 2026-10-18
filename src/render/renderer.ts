@@ -87,6 +87,17 @@ export class WorldRenderer {
     // Scale to output
     ctx.scale(scaleX, scaleY);
 
+    // 3D Mode Direct Render Path (Marble Melody 3D)
+    if (world.customState?.is3D) {
+      if (world.customState.onRenderFg) {
+        world.customState.onRenderFg(ctx, world);
+      }
+      const stats = world.getStats();
+      drawOverlays(ctx, world.width, world.height, overlays, stats, isExport);
+      ctx.restore();
+      return;
+    }
+
     // 1. Draw Background (with reactive background pulse)
     this.drawBackground(ctx, world.width, world.height, theme, visuals, isExport);
 
