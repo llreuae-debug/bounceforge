@@ -47,9 +47,9 @@ const GenerateSeoSchema = z.object({
 const WhatNextSchema = z.object({
   action: z.literal('what_next'),
   currentModeId: z.string(),
-  currentSettings: z.record(z.any()).optional(),
-  recentHistory: z.array(z.record(z.any())).optional(),
-  performanceInsights: z.record(z.any()).optional(),
+  currentSettings: z.record(z.string(), z.any()).optional(),
+  recentHistory: z.array(z.record(z.string(), z.any())).optional(),
+  performanceInsights: z.record(z.string(), z.any()).optional(),
 });
 
 const GenerateLabelsSchema = z.object({
