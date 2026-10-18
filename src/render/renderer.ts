@@ -163,39 +163,80 @@ export class WorldRenderer {
       this.reactiveBgPulse *= 0.85; // smooth decay
     }
 
-    const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 50, w / 2, h / 2, h * 0.7);
+    // 8K Multi-Stop HDR Radial Gradient
+    const cx = w / 2;
+    const cy = h / 2;
+    const radius = Math.max(w, h) * 0.75;
+    const bgGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, radius);
+
     if (pulseIntensity > 0.01) {
-      // Glow pulse in center
-      const boostColor = `rgba(0, 240, 255, ${pulseIntensity * 0.25})`;
+      // Glow pulse in center with harmonic chromatic color
+      const boostColor = `rgba(0, 240, 255, ${pulseIntensity * 0.3})`;
       bgGrad.addColorStop(0, boostColor);
-      bgGrad.addColorStop(0.3, theme.backgroundSecondary || '#111424');
-      bgGrad.addColorStop(1, theme.background);
+      bgGrad.addColorStop(0.2, theme.backgroundSecondary || '#111424');
+      bgGrad.addColorStop(0.65, theme.background);
+      bgGrad.addColorStop(1.0, '#030408');
     } else {
       bgGrad.addColorStop(0, theme.backgroundSecondary || '#111424');
-      bgGrad.addColorStop(1, theme.background);
+      bgGrad.addColorStop(0.55, theme.background);
+      bgGrad.addColorStop(1.0, '#020306');
     }
 
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
+    // 8K Anti-Banding Film Dither (prevents color banding on 4K/8K displays)
+    if (isExport) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.012)';
+      // Stippled micro-noise
+      for (let s = 0; s < 400; s++) {
+        const nx = (s * 137.5) % w;
+        const ny = (s * 289.3) % h;
+        ctx.fillRect(nx, ny, 1, 1);
+      }
+      ctx.restore();
+    }
 
-    // Subtle starfield or grid for themes
-    if (theme.id === 'galaxy') {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-      for (let i = 0; i < 40; i++) {
+    // 8K High-DPI Subtle Starfield or Grid for specific themes
+    if (theme.id === 'galaxy' || theme.id === 'midnight' || theme.id === 'cosmic') {
+      ctx.save();
+      for (let i = 0; i < 90; i++) {
         const sx = ((i * 137.5) % w);
         const sy = ((i * 243.7) % h);
-        ctx.fillRect(sx, sy, 1.5, 1.5);
+        const brightness = 0.25 + (Math.sin(i * 1.7) * 0.2 + 0.2);
+        const starSize = i % 7 === 0 ? 2.0 : 1.2;
+        ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+        ctx.fillRect(sx, sy, starSize, starSize);
+
+        // Sub-pixel star glow on hero stars
+        if (i % 15 === 0) {
+          ctx.fillStyle = `rgba(56, 189, 248, ${brightness * 0.5})`;
+          ctx.beginPath();
+          ctx.arc(sx + starSize / 2, sy + starSize / 2, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
-    } else if (theme.id === 'matrix') {
-      ctx.strokeStyle = 'rgba(0, 255, 102, 0.04)';
+      ctx.restore();
+    } else if (theme.id === 'matrix' || theme.id === 'synthwave') {
+      ctx.save();
+      const lineColor = theme.id === 'matrix' ? 'rgba(0, 255, 102, 0.045)' : 'rgba(6, 182, 212, 0.04)';
+      ctx.strokeStyle = lineColor;
       ctx.lineWidth = 1;
-      for (let x = 0; x < w; x += 60) {
+      const step = 60;
+      for (let x = 0; x < w; x += step) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, h);
         ctx.stroke();
       }
+      for (let y = 0; y < h; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
   }
 

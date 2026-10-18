@@ -171,21 +171,28 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) 
               </p>
 
               {/* Presets */}
-              <div className="flex flex-wrap gap-1">
-                {mode.presets.map((preset: any, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMode(mode.id);
-                      applyPreset(preset.settings);
-                    }}
-                    className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-200 border border-white/5 hover:border-cyan-500/30 transition-all font-medium"
-                  >
-                    {preset.name}
-                  </button>
-                ))}
-              </div>
+              {mode.id === 'marble_melody_3d' ? (
+                <div className="flex items-center gap-1.5 text-[10.5px] text-cyan-300 font-semibold bg-cyan-500/10 px-2.5 py-1 rounded-xl border border-cyan-500/25 shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <span>50 3D Worlds (Crystal, Ice, Metal, Candy...)</span>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1">
+                  {mode.presets.map((preset: any, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMode(mode.id);
+                        applyPreset(preset.settings);
+                      }}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-200 border border-white/5 hover:border-cyan-500/30 transition-all font-medium"
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}

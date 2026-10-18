@@ -103,10 +103,11 @@ export class VideoExporter {
       fileHandle,
     } = config;
 
-    // Strict 4K Dimension Validation (Vertical 2160x3840 or Landscape 3840x2160)
+    // Strict 4K / 8K Dimension Validation (Vertical 2160x3840 or 4320x7680)
     const is4K = (width === 2160 && height === 3840) || (width === 3840 && height === 2160);
-    if (!is4K && (width >= 2160 || height >= 2160)) {
-      console.warn(`Adjusting 4K dimensions (requested ${width}x${height})`);
+    const is8K = (width === 4320 && height === 7680) || (width === 7680 && height === 4320);
+    if (!is4K && !is8K && (width >= 2160 || height >= 2160)) {
+      console.warn(`Adjusting Ultra HD dimensions (requested ${width}x${height})`);
     }
 
     // Preload video language font to prevent fallback boxes in exported frames
@@ -143,10 +144,12 @@ export class VideoExporter {
     const hasWebCodecs = typeof window !== 'undefined' && 'VideoEncoder' in window && 'AudioEncoder' in window;
 
     // Bitrate specifications:
-    // 4K60 = 60 Mbps, 4K30 = 45 Mbps, 1440p = 25 Mbps, 1080p60 = 16 Mbps, 1080p30 = 12 Mbps
+    // 8K60 = 110 Mbps, 8K30 = 85 Mbps, 4K60 = 60 Mbps, 4K30 = 45 Mbps, 1440p = 25 Mbps, 1080p60 = 16 Mbps, 1080p30 = 12 Mbps
     let bitrate = config.bitrate;
     if (!bitrate) {
-      if (width >= 2160) {
+      if (width >= 4320) {
+        bitrate = fps >= 60 ? 110000000 : 85000000;
+      } else if (width >= 2160) {
         bitrate = fps >= 60 ? 60000000 : 45000000;
       } else if (width >= 1440) {
         bitrate = 25000000;

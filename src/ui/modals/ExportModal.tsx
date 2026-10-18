@@ -60,7 +60,7 @@ export const ExportModal: React.FC = () => {
   const { currentUser, openUpgradeModal, openAuthModal } = useAuthStore();
   const isGuest = !currentUser;
 
-  const [resolution, setResolution] = useState<'720' | '1080' | '1440' | '4k' | 'square' | 'landscape'>('1080');
+  const [resolution, setResolution] = useState<'720' | '1080' | '1440' | '4k' | '8k' | 'square' | 'landscape'>('1080');
   const [fps, setFps] = useState<30 | 60>(60);
   const [duration, setDuration] = useState<number>(targetDuration);
   const [useDiskStreaming, setUseDiskStreaming] = useState<boolean>(true);
@@ -175,6 +175,9 @@ export const ExportModal: React.FC = () => {
     } else if (resolution === '4k') {
       width = 2160;
       height = 3840;
+    } else if (resolution === '8k') {
+      width = 4320;
+      height = 7680;
     } else if (resolution === 'square') {
       width = 1080;
       height = 1080;
@@ -644,6 +647,31 @@ export const ExportModal: React.FC = () => {
                       {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
                     </div>
                     <span className="text-[10px] text-slate-400 block">{canDo4K || isGuest ? '4K UHD' : 'unsupported'}</span>
+                  </button>
+
+                  {/* 4320x7680 8K UHD */}
+                  <button
+                    disabled={!canDo4K && !isGuest}
+                    onClick={() => {
+                      if (isGuest) {
+                        openUpgradeModal('8K Ultra HD Video Export');
+                        return;
+                      }
+                      canDo4K && setResolution('8k');
+                    }}
+                    className={`p-2.5 rounded-2xl border text-center transition-all ${
+                      !canDo4K && !isGuest
+                        ? 'opacity-40 cursor-not-allowed bg-white/5 border-white/5 text-slate-500'
+                        : resolution === '8k'
+                        ? 'bg-gradient-to-r from-amber-500/30 to-yellow-500/30 border-amber-400 text-amber-200 shadow-md shadow-amber-500/20'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-xs font-extrabold">4320 × 7680</span>
+                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
+                    </div>
+                    <span className="text-[10px] text-amber-400 font-bold block">8K Ultra HD</span>
                   </button>
 
                   {/* 1080x1080 Square */}

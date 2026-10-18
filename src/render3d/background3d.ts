@@ -26,10 +26,10 @@ export class BackgroundSimulator3D {
       this.renderer = new THREE.WebGLRenderer({
         canvas,
         alpha: true,
-        antialias: false,
-        powerPreference: 'low-power',
+        antialias: true,
+        powerPreference: 'high-performance',
       });
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0) * 0.6); // 0.6x for lightweight performance
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0)); // Crisp high-DPI 8K rendering
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     } catch (e) {
       console.warn('WebGL background initialization skipped (unsupported device/browser)', e);
@@ -38,21 +38,29 @@ export class BackgroundSimulator3D {
     }
 
     // Ambient & Rim Lights
-    const amb = new THREE.AmbientLight(0xffffff, 0.4);
+    const amb = new THREE.AmbientLight(0xffffff, 0.6);
     this.scene.add(amb);
-    const point = new THREE.PointLight(0x00f0ff, 2.0, 15);
-    point.position.set(0, 0, 4);
+    const point = new THREE.PointLight(0x00f0ff, 2.8, 20);
+    point.position.set(0, 0, 5);
     this.scene.add(point);
+    const rimPoint = new THREE.PointLight(0xec4899, 2.2, 18);
+    rimPoint.position.set(-4, 3, 3);
+    this.scene.add(rimPoint);
 
-    // 6-8 Neon Torus Rings rotating on different axes
+    // 6-8 Neon Torus Rings rotating on different axes (8K smooth geometry)
     const ringColors = ['#00f0ff', '#a855f7', '#ff007f', '#ffd600', '#00ff88', '#38bdf8', '#ff7a00'];
     for (let i = 0; i < 7; i++) {
       const radius = 1.8 + i * 0.45;
-      const geo = new THREE.TorusGeometry(radius, 0.04, 16, 48);
-      const mat = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(ringColors[i]),
+      const geo = new THREE.TorusGeometry(radius, 0.045, 32, 96);
+      const c = new THREE.Color(ringColors[i]);
+      const mat = new THREE.MeshStandardMaterial({
+        color: c,
+        roughness: 0.15,
+        metalness: 0.85,
+        emissive: c,
+        emissiveIntensity: 0.45,
         transparent: true,
-        opacity: 0.75,
+        opacity: 0.85,
       });
       const ring = new THREE.Mesh(geo, mat);
       ring.rotation.x = i * 0.4;
@@ -62,26 +70,32 @@ export class BackgroundSimulator3D {
     }
 
     // Glowing Bouncing Ball
-    const bGeo = new THREE.SphereGeometry(0.25, 24, 24);
-    const bMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+    const bGeo = new THREE.SphereGeometry(0.25, 48, 48);
+    const bMat = new THREE.MeshStandardMaterial({
+      color: 0x00f0ff,
+      emissive: 0x00f0ff,
+      emissiveIntensity: 0.8,
+      roughness: 0.1,
+      metalness: 0.9,
+    });
     this.ball = new THREE.Mesh(bGeo, bMat);
     this.scene.add(this.ball);
 
-    // Floating Dust Particles with depth
-    const dustCount = 180;
+    // Floating Dust Particles with depth (300 particles)
+    const dustCount = 300;
     const dustGeo = new THREE.BufferGeometry();
     const dustPos = new Float32Array(dustCount * 3);
     for (let i = 0; i < dustCount * 3; i += 3) {
-      dustPos[i] = (Math.random() - 0.5) * 16;
-      dustPos[i + 1] = (Math.random() - 0.5) * 16;
-      dustPos[i + 2] = (Math.random() - 0.5) * 12;
+      dustPos[i] = (Math.random() - 0.5) * 18;
+      dustPos[i + 1] = (Math.random() - 0.5) * 18;
+      dustPos[i + 2] = (Math.random() - 0.5) * 14;
     }
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
     const dustMat = new THREE.PointsMaterial({
       color: 0xffffff,
-      size: 0.04,
+      size: 0.05,
       transparent: true,
-      opacity: 0.4,
+      opacity: 0.6,
     });
     this.dustParticles = new THREE.Points(dustGeo, dustMat);
     this.scene.add(this.dustParticles);

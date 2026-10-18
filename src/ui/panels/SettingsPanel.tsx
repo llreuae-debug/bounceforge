@@ -1484,6 +1484,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                       { id: '1080', label: '1080×1920' },
                       { id: '1440', label: '1440×2560' },
                       { id: '4k', label: '2160×3840' },
+                      { id: '8k', label: '4320×7680 (8K)' },
                       { id: 'square', label: '1080×1080' },
                       { id: 'landscape', label: '1920×1080' },
                     ].map((res) => (
