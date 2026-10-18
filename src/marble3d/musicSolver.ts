@@ -8,8 +8,10 @@ import {
   TunedObjectType,
   DecorInstance,
   EmbossedHandleInstance,
+  EmbossedWallTextInstance,
 } from './types';
 import { PUBLIC_DOMAIN_MELODIES, generateProceduralMelody } from './melodyLibrary';
+import { REEL_FORMATS, ReelFormatService } from './formats';
 
 // Deterministic PRNG
 class LcgRng {
@@ -41,6 +43,13 @@ const ACT_FAMILIES: TunedObjectType[] = [
   'kalimba_tine',
   'crystal_glass',
   'marimba_bar',
+  'squeaky_duck',
+  'spring_smiley',
+  'unbranded_phone',
+  'unbranded_speaker',
+  'brass_horn',
+  'desk_bell',
+  'cymbal_drum',
 ];
 
 const FAMILY_COLORS: Record<TunedObjectType, string[]> = {
@@ -49,7 +58,7 @@ const FAMILY_COLORS: Record<TunedObjectType, string[]> = {
   rainbow_xylophone: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#6366f1', '#a855f7'],
   drum: ['#f87171', '#fbbf24', '#f43f5e', '#e11d48'],
   dark_tube: ['#1e293b', '#0f172a', '#334155'],
-  wire_rail: ['#94a3b8', '#64748b', '#cbd5e1'],
+  wire_rail: ['#e2e8f0', '#94a3b8', '#cbd5e1'],
   kalimba_tine: ['#d97706', '#b45309', '#f59e0b'],
   music_box_comb: ['#cbd5e1', '#94a3b8'],
   hand_bell: ['#fbbf24', '#f59e0b', '#d97706'],
@@ -60,6 +69,19 @@ const FAMILY_COLORS: Record<TunedObjectType, string[]> = {
   wind_chime: ['#c084fc', '#a855f7'],
   piano_staircase: ['#f8fafc', '#0f172a'],
   marimba_bar: ['#78350f', '#92400e', '#b45309'],
+  squeaky_duck: ['#facc15', '#fde047'],
+  spring_smiley: ['#fbbf24', '#f59e0b'],
+  unbranded_phone: ['#38bdf8', '#818cf8', '#ec4899'],
+  unbranded_speaker: ['#18181b', '#27272a', '#3b82f6'],
+  brass_horn: ['#fbbf24', '#f59e0b', '#d97706'],
+  desk_bell: ['#fbbf24', '#e2e8f0'],
+  cymbal_drum: ['#e11d48', '#facc15', '#f43f5e'],
+  split_piano_key: ['#f8fafc', '#18181b'],
+  prop_star: ['#facc15', '#fbbf24'],
+  prop_heart: ['#f43f5e', '#ec4899'],
+  prop_cloud: ['#f8fafc', '#e2e8f0'],
+  prop_snowflake: ['#bae6fd', '#7dd3fc'],
+  prop_leaf: ['#22c55e', '#16a34a'],
   final_catcher: ['#fbcfe8', '#e0f2fe', '#fef08a'],
 };
 
@@ -180,8 +202,13 @@ export class MusicToLayoutSolver {
     const actCount = config.actCount || 5;
     const actDuration = duration / actCount;
     const acts = [];
+    const formatDef = config.reelFormat ? ReelFormatService.getFormat(config.reelFormat) : undefined;
+    const availableFamilies = formatDef?.instrumentFamilies?.length
+      ? formatDef.instrumentFamilies
+      : ACT_FAMILIES;
+
     for (let i = 0; i < actCount; i++) {
-      const family = ACT_FAMILIES[(config.seed + i) % ACT_FAMILIES.length];
+      const family = availableFamilies[(config.seed + i) % availableFamilies.length];
       const colors = FAMILY_COLORS[family] || ['#38bdf8'];
       acts.push({
         actIndex: i,
@@ -450,7 +477,124 @@ export class MusicToLayoutSolver {
       });
     }
 
-    // 7. Near Miss Tease before finale
+    // 7. Embossed 3D Wall Text System (Format Titles, Reminders, Reveals, Act Labels)
+    const embossedWallTexts: EmbossedWallTextInstance[] = [];
+    const activeFormat = config.reelFormat || 'f1_guess_tune';
+    const fontStyle =
+      config.embossedText?.fontStyle ||
+      (activeFormat === 'f5_night_beats' || activeFormat === 'f6_squeaky_orchestra' ? 'bold_cartoon' : 'script');
+    const embossMode = config.embossedText?.embossMode || 'embossed';
+
+    // Title Text (placed at top of wall)
+    const titleText = config.embossedText?.titleText || formatDef?.defaultTitle || 'marble melody';
+    embossedWallTexts.push({
+      id: 'title_main',
+      text: titleText,
+      type: 'title',
+      fontStyle,
+      embossMode,
+      x: 0,
+      y: 1.45,
+      z: 0.02,
+      scale: 1.0,
+      color: config.embossedText?.colorMode === 'colored' ? '#facc15' : undefined,
+    });
+
+    // Reminders along wall path (strictly |x| = 0.72 outside play corridor)
+    const reminders = config.embossedText?.reminders || ['like & follow', 'subscribe'];
+    for (let r = 0; r < reminders.length; r++) {
+      const remY = -2.5 - r * 7.5;
+      if (remY > lowestY + 1.5) {
+        embossedWallTexts.push({
+          id: `reminder_${r}`,
+          text: reminders[r],
+          type: 'reminder',
+          fontStyle: 'script',
+          embossMode,
+          x: r % 2 === 0 ? 0.72 : -0.72,
+          y: remY,
+          z: 0.02,
+          scale: 0.75,
+        });
+      }
+    }
+
+    // Format Specific Wall Elements
+    if (activeFormat === 'f1_guess_tune' || formatDef?.endingType === 'reveal_answer') {
+      const foundMelody = PUBLIC_DOMAIN_MELODIES.find((m) => m.id === config.melodyId);
+      const answerName = config.embossedText?.revealAnswerText || foundMelody?.title || 'Ode to Joy';
+      embossedWallTexts.push({
+        id: 'reveal_answer_main',
+        text: `${answerName}\ndid u get it?`,
+        type: 'reveal_answer',
+        fontStyle: 'bold_cartoon',
+        embossMode: 'embossed',
+        x: 0,
+        y: lowestY + 0.65,
+        z: 0.03,
+        scale: 1.05,
+        color: '#facc15',
+        revealAtTime: Math.max(0, catchTime - 1.2),
+      });
+    } else if (activeFormat === 'f2_guess_all') {
+      for (let i = 0; i < actCount; i++) {
+        const actStartTime = i * actDuration;
+        const matchingObj = allObjects.find((o) => o.hitTime >= actStartTime) || allObjects[0];
+        embossedWallTexts.push({
+          id: `act_num_${i + 1}`,
+          text: `${i + 1}`,
+          type: 'act_number',
+          fontStyle: 'bold_cartoon',
+          embossMode: 'embossed',
+          x: -0.65,
+          y: matchingObj ? matchingObj.y + 0.35 : -i * 5,
+          z: 0.02,
+          scale: 1.1,
+          color: '#38bdf8',
+        });
+      }
+    } else if (activeFormat === 'f3_which_sounds_better') {
+      const label1Y = allObjects[0]?.y ? allObjects[0].y + 0.35 : 0;
+      const midObj = allObjects[Math.floor(allObjects.length / 2)];
+      const label2Y = midObj ? midObj.y + 0.35 : -6;
+      embossedWallTexts.push({
+        id: 'vs_label_1',
+        text: '1. bells',
+        type: 'versus_label',
+        fontStyle: 'clean_sans',
+        embossMode: 'embossed',
+        x: -0.65,
+        y: label1Y,
+        z: 0.02,
+        scale: 0.85,
+      });
+      embossedWallTexts.push({
+        id: 'vs_label_2',
+        text: '2. glass',
+        type: 'versus_label',
+        fontStyle: 'clean_sans',
+        embossMode: 'embossed',
+        x: -0.65,
+        y: label2Y,
+        z: 0.02,
+        scale: 0.85,
+      });
+      embossedWallTexts.push({
+        id: 'vs_ending',
+        text: 'comment 1 or 2 👇',
+        type: 'reveal_answer',
+        fontStyle: 'bold_cartoon',
+        embossMode: 'embossed',
+        x: 0,
+        y: lowestY + 0.65,
+        z: 0.03,
+        scale: 1.0,
+        color: '#facc15',
+        revealAtTime: Math.max(0, catchTime - 1.2),
+      });
+    }
+
+    // 8. Near Miss Tease before finale
     const nearMissTime = duration - 3.2;
     const nearMissTease = {
       time: nearMissTime,
@@ -469,6 +613,9 @@ export class MusicToLayoutSolver {
       catcher,
       decor,
       embossedHandles,
+      embossedWallTexts,
+      activeFormat,
+      splitScreenConfig: activeFormat === 'f11_split_screen' ? { enabled: true, splitRatio: 0.48, show3DPiano: true } : undefined,
       nearMissTease,
     };
 

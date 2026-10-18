@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TunedObjectType, TunedObjectInstance, DecorInstance, EmbossedHandleInstance } from './types';
+import { TunedObjectType, TunedObjectInstance, DecorInstance, EmbossedHandleInstance, EmbossedWallTextInstance } from './types';
 import { MarbleMaterialLibrary } from './materials';
 
 export class ObjectCatalog3D {
@@ -213,21 +213,354 @@ export class ObjectCatalog3D {
       }
 
       case 'wire_rail': {
-        const railLength = 0.48;
-        const curve = new THREE.CatmullRomCurve3([
-          new THREE.Vector3(-railLength / 2, 0.08, 0),
-          new THREE.Vector3(0, 0, 0.04),
-          new THREE.Vector3(railLength / 2, -0.08, 0),
+        // Signature Dual Chrome Wire Rails (2 parallel wires + cross rungs)
+        const railLength = 0.52;
+        const wireSpacing = 0.075;
+        const wireRadius = 0.009;
+
+        const curve1 = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-railLength / 2, 0.06, -wireSpacing / 2),
+          new THREE.Vector3(0, 0, -wireSpacing / 2 + 0.02),
+          new THREE.Vector3(railLength / 2, -0.06, -wireSpacing / 2),
         ]);
-        const railGeo = new THREE.TubeGeometry(curve, 18, 0.018, 8, false);
-        const railMat = new THREE.MeshStandardMaterial({
-          color: 0x94a3b8,
-          metalness: 0.9,
-          roughness: 0.2,
+        const curve2 = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-railLength / 2, 0.06, wireSpacing / 2),
+          new THREE.Vector3(0, 0, wireSpacing / 2 + 0.02),
+          new THREE.Vector3(railLength / 2, -0.06, wireSpacing / 2),
+        ]);
+
+        const wireMat = new THREE.MeshStandardMaterial({
+          color: 0xe2e8f0,
+          metalness: 0.95,
+          roughness: 0.12,
         });
-        const railMesh = new THREE.Mesh(railGeo, railMat);
-        railMesh.castShadow = true;
-        group.add(railMesh);
+
+        const wireGeo1 = new THREE.TubeGeometry(curve1, 20, wireRadius, 8, false);
+        const wire1 = new THREE.Mesh(wireGeo1, wireMat);
+        wire1.castShadow = true;
+        group.add(wire1);
+
+        const wireGeo2 = new THREE.TubeGeometry(curve2, 20, wireRadius, 8, false);
+        const wire2 = new THREE.Mesh(wireGeo2, wireMat);
+        wire2.castShadow = true;
+        group.add(wire2);
+
+        // Cross rungs / pegs connecting the two parallel wires
+        const rungCount = 5;
+        const rungGeo = new THREE.CylinderGeometry(0.005, 0.005, wireSpacing, 8);
+        rungGeo.rotateX(Math.PI / 2);
+        for (let r = 0; r < rungCount; r++) {
+          const frac = (r + 0.5) / rungCount;
+          const p1 = curve1.getPoint(frac);
+          const p2 = curve2.getPoint(frac);
+          const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+          const rung = new THREE.Mesh(rungGeo, wireMat);
+          rung.position.copy(mid);
+          rung.castShadow = true;
+          group.add(rung);
+        }
+        break;
+      }
+
+      case 'squeaky_duck': {
+        // High-engagement original procedural yellow rubber duck with squash capability
+        group.userData.isSqueaky = true;
+        const yellowMat = new THREE.MeshStandardMaterial({
+          color: 0xfacc15,
+          roughness: 0.38,
+          metalness: 0.04,
+        });
+
+        // Duck body (rounded egg shape)
+        const bodyGeo = new THREE.SphereGeometry(0.13, 18, 16);
+        bodyGeo.scale(1.25, 0.95, 1.05);
+        const bodyMesh = new THREE.Mesh(bodyGeo, yellowMat);
+        bodyMesh.name = 'duck_body';
+        bodyMesh.position.set(0, 0, 0.04);
+        bodyMesh.castShadow = true;
+        group.add(bodyMesh);
+
+        // Duck head
+        const headGeo = new THREE.SphereGeometry(0.08, 16, 14);
+        const headMesh = new THREE.Mesh(headGeo, yellowMat);
+        headMesh.position.set(0.09, 0.09, 0.06);
+        headMesh.castShadow = true;
+        group.add(headMesh);
+
+        // Orange beak
+        const beakGeo = new THREE.ConeGeometry(0.032, 0.065, 8);
+        beakGeo.rotateZ(-Math.PI / 2);
+        const beakMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.3 });
+        const beakMesh = new THREE.Mesh(beakGeo, beakMat);
+        beakMesh.position.set(0.18, 0.08, 0.06);
+        beakMesh.castShadow = true;
+        group.add(beakMesh);
+
+        // Glossy black eyes
+        const eyeGeo = new THREE.SphereGeometry(0.012, 8, 8);
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.1 });
+        const eye1 = new THREE.Mesh(eyeGeo, eyeMat);
+        eye1.position.set(0.13, 0.12, 0.11);
+        const eye2 = new THREE.Mesh(eyeGeo, eyeMat);
+        eye2.position.set(0.13, 0.12, 0.01);
+        group.add(eye1, eye2);
+        break;
+      }
+
+      case 'spring_smiley': {
+        // Original spring-mounted smiley toy
+        group.userData.isSpring = true;
+        // Coiled metal spring
+        const springCurve = new THREE.CatmullRomCurve3(
+          Array.from({ length: 24 }, (_, i) => {
+            const angle = (i / 24) * Math.PI * 6;
+            const y = (i / 24) * 0.18 - 0.09;
+            return new THREE.Vector3(Math.cos(angle) * 0.04, y, Math.sin(angle) * 0.04);
+          })
+        );
+        const springGeo = new THREE.TubeGeometry(springCurve, 32, 0.007, 8, false);
+        const springMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.18 });
+        const springMesh = new THREE.Mesh(springGeo, springMat);
+        springMesh.castShadow = true;
+        group.add(springMesh);
+
+        // Top Smiley Head
+        const headGeo = new THREE.SphereGeometry(0.11, 20, 18);
+        const headMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.25 });
+        const headMesh = new THREE.Mesh(headGeo, headMat);
+        headMesh.name = 'smiley_head';
+        headMesh.position.set(0, 0.14, 0.02);
+        headMesh.castShadow = true;
+        group.add(headMesh);
+
+        // Cute smiling face (two tiny curved dark eyes and smile)
+        const eyeGeo = new THREE.SphereGeometry(0.012, 8, 8);
+        const darkMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.2 });
+        const e1 = new THREE.Mesh(eyeGeo, darkMat);
+        e1.position.set(-0.035, 0.16, 0.12);
+        const e2 = new THREE.Mesh(eyeGeo, darkMat);
+        e2.position.set(0.035, 0.16, 0.12);
+        group.add(e1, e2);
+
+        // Smile arc
+        const smileCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-0.04, 0.12, 0.11),
+          new THREE.Vector3(0, 0.10, 0.12),
+          new THREE.Vector3(0.04, 0.12, 0.11),
+        ]);
+        const smileGeo = new THREE.TubeGeometry(smileCurve, 10, 0.005, 6, false);
+        const smileMesh = new THREE.Mesh(smileGeo, darkMat);
+        group.add(smileMesh);
+        break;
+      }
+
+      case 'unbranded_phone': {
+        // Modern unbranded minimal smartphone slab
+        const phoneGeo = new THREE.BoxGeometry(0.24, 0.44, 0.024);
+        const bodyMat = new THREE.MeshStandardMaterial({
+          color: 0x27272a,
+          metalness: 0.85,
+          roughness: 0.25,
+        });
+        const bodyMesh = new THREE.Mesh(phoneGeo, bodyMat);
+        bodyMesh.castShadow = true;
+        group.add(bodyMesh);
+
+        // Illuminated screen with colorful audio waveform ringtone look
+        const screenGeo = new THREE.PlaneGeometry(0.21, 0.40);
+        const screenMat = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(inst.color || 0x38bdf8),
+        });
+        const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+        screenMesh.position.z = 0.013;
+        group.add(screenMesh);
+        break;
+      }
+
+      case 'unbranded_speaker': {
+        // Sleek cylindrical resonator studio speaker
+        const height = 0.34;
+        const radius = 0.16;
+        const speakerGeo = new THREE.CylinderGeometry(radius, radius, height, 24);
+        speakerGeo.rotateX(Math.PI / 2);
+        const speakerMat = new THREE.MeshStandardMaterial({
+          color: 0x18181b,
+          roughness: 0.75,
+          metalness: 0.2,
+        });
+        const speakerMesh = new THREE.Mesh(speakerGeo, speakerMat);
+        speakerMesh.castShadow = true;
+        group.add(speakerMesh);
+
+        // Speaker driver cone
+        const coneGeo = new THREE.ConeGeometry(radius * 0.72, 0.04, 20);
+        coneGeo.rotateX(-Math.PI / 2);
+        const coneMat = new THREE.MeshStandardMaterial({
+          color: 0x27272a,
+          roughness: 0.4,
+          metalness: 0.3,
+        });
+        const coneMesh = new THREE.Mesh(coneGeo, coneMat);
+        coneMesh.position.z = 0.06;
+        group.add(coneMesh);
+
+        // Glowing LED ring trim
+        const ledGeo = new THREE.TorusGeometry(radius * 0.85, 0.008, 8, 24);
+        const ledMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+        const led = new THREE.Mesh(ledGeo, ledMat);
+        led.position.z = height / 2 + 0.002;
+        group.add(led);
+        break;
+      }
+
+      case 'brass_horn': {
+        // Golden flared trumpet / horn bell
+        const hornGeo = new THREE.CylinderGeometry(0.03, 0.17, 0.36, 24, 1, true);
+        hornGeo.rotateZ(Math.PI / 4);
+        const brassMat = new THREE.MeshStandardMaterial({
+          color: 0xfbbf24,
+          metalness: 0.94,
+          roughness: 0.14,
+        });
+        const hornMesh = new THREE.Mesh(hornGeo, brassMat);
+        hornMesh.castShadow = true;
+        group.add(hornMesh);
+
+        // Flared rim
+        const rimGeo = new THREE.TorusGeometry(0.17, 0.012, 8, 24);
+        rimGeo.rotateZ(Math.PI / 4);
+        const rimMesh = new THREE.Mesh(rimGeo, brassMat);
+        rimMesh.position.set(0.12, -0.12, 0);
+        group.add(rimMesh);
+        break;
+      }
+
+      case 'desk_bell': {
+        // Classic polished hotel/reception call bell
+        const bellDomeGeo = new THREE.SphereGeometry(0.17, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+        const domeMat = new THREE.MeshStandardMaterial({
+          color: 0xfbbf24,
+          metalness: 0.95,
+          roughness: 0.12,
+        });
+        const domeMesh = new THREE.Mesh(bellDomeGeo, domeMat);
+        domeMesh.position.z = 0.03;
+        domeMesh.castShadow = true;
+        group.add(domeMesh);
+
+        // Base ring flange
+        const baseFlangeGeo = new THREE.CylinderGeometry(0.20, 0.20, 0.025, 24);
+        baseFlangeGeo.rotateX(Math.PI / 2);
+        const baseMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.7, roughness: 0.3 });
+        const baseFlange = new THREE.Mesh(baseFlangeGeo, baseMat);
+        baseFlange.castShadow = true;
+        group.add(baseFlange);
+
+        // Top plunger button
+        const plungerGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.08, 12);
+        plungerGeo.rotateX(Math.PI / 2);
+        const plunger = new THREE.Mesh(plungerGeo, domeMat);
+        plunger.position.z = 0.20;
+        plunger.castShadow = true;
+        group.add(plunger);
+        break;
+      }
+
+      case 'cymbal_drum': {
+        // Drum with brass cymbal disc mounted above
+        const radius = 0.20;
+        const shellDepth = 0.12;
+        const shellGeo = new THREE.CylinderGeometry(radius, radius, shellDepth, 20);
+        shellGeo.rotateX(Math.PI / 2);
+        const shellMat = new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.3, metalness: 0.3 });
+        const shell = new THREE.Mesh(shellGeo, shellMat);
+        shell.castShadow = true;
+        group.add(shell);
+
+        // Shiny brass cymbal disk
+        const cymbalGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.012, 28);
+        cymbalGeo.rotateX(Math.PI / 2);
+        const cymbalMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.94, roughness: 0.12 });
+        const cymbal = new THREE.Mesh(cymbalGeo, cymbalMat);
+        cymbal.position.z = shellDepth / 2 + 0.04;
+        cymbal.castShadow = true;
+        group.add(cymbal);
+        break;
+      }
+
+      case 'split_piano_key': {
+        // 3D Piano Key for split screen & staircase runs
+        const keyGeo = new THREE.BoxGeometry(0.18, 0.48, 0.038);
+        const isSharp = inst.note && inst.note.pitchName.includes('#');
+        const keyMat = new THREE.MeshStandardMaterial({
+          color: isSharp ? 0x18181b : 0xf8fafc,
+          roughness: isSharp ? 0.35 : 0.15,
+          metalness: 0.05,
+        });
+        const keyMesh = new THREE.Mesh(keyGeo, keyMat);
+        keyMesh.name = 'piano_key_face';
+        keyMesh.castShadow = true;
+        group.add(keyMesh);
+        break;
+      }
+
+      case 'prop_star': {
+        // 3D 5-pointed star
+        const starGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.04, 5);
+        starGeo.rotateX(Math.PI / 2);
+        const starMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.85, roughness: 0.2 });
+        const star = new THREE.Mesh(starGeo, starMat);
+        star.castShadow = true;
+        group.add(star);
+        break;
+      }
+
+      case 'prop_heart': {
+        // 3D rounded heart prop
+        const heartGeo = new THREE.SphereGeometry(0.11, 16, 16);
+        heartGeo.scale(1.2, 1.4, 0.6);
+        const heartMat = new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.2, metalness: 0.1 });
+        const heart = new THREE.Mesh(heartGeo, heartMat);
+        heart.castShadow = true;
+        group.add(heart);
+        break;
+      }
+
+      case 'prop_cloud': {
+        // Soft puffy cloud
+        const cloudGroup = new THREE.Group();
+        const puffMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.8 });
+        const p1 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), puffMat);
+        const p2 = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 12), puffMat);
+        p2.position.x = 0.08;
+        const p3 = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 12), puffMat);
+        p3.position.x = -0.07;
+        cloudGroup.add(p1, p2, p3);
+        cloudGroup.castShadow = true;
+        group.add(cloudGroup);
+        break;
+      }
+
+      case 'prop_snowflake': {
+        // Hexagonal snowflake prop
+        const snowGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.02, 6);
+        snowGeo.rotateX(Math.PI / 2);
+        const snowMat = new THREE.MeshStandardMaterial({ color: 0xbae6fd, roughness: 0.1, metalness: 0.2 });
+        const snow = new THREE.Mesh(snowGeo, snowMat);
+        snow.castShadow = true;
+        group.add(snow);
+        break;
+      }
+
+      case 'prop_leaf': {
+        // Curved green leaf prop
+        const leafGeo = new THREE.SphereGeometry(0.10, 12, 12);
+        leafGeo.scale(1.4, 0.4, 0.4);
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.4 });
+        const leaf = new THREE.Mesh(leafGeo, leafMat);
+        leaf.rotation.z = Math.PI / 4;
+        leaf.castShadow = true;
+        group.add(leaf);
         break;
       }
 
@@ -557,6 +890,149 @@ export class ObjectCatalog3D {
       depthWrite: false,
     });
     const plane = new THREE.Mesh(planeGeo, planeMat);
+    group.add(plane);
+
+    return group;
+  }
+
+  /**
+   * Builds Embossed/Debossed 3D Wall Text that scrolls with the scene.
+   * Shaded with directional highlight on top-left and soft shadow on bottom-right,
+   * lit by the same key light as the wall.
+   */
+  static createEmbossedWallTextMesh(
+    inst: EmbossedWallTextInstance,
+    wallColorHex: string = '#2C2C30'
+  ): THREE.Group {
+    const group = new THREE.Group();
+    group.name = `embossed_text_${inst.id}`;
+    group.position.set(inst.x, inst.y, inst.z);
+    group.userData.initialY = inst.y;
+    group.userData.revealAtTime = inst.revealAtTime;
+    group.userData.type = inst.type;
+
+    const isDebossed = inst.embossMode === 'debossed';
+    const fontStyle = inst.fontStyle || 'script';
+
+    // Canvas resolution tuned for razor-sharp 4K legibility
+    const canvas = document.createElement('canvas');
+    const isTitle = inst.type === 'title' || inst.type === 'reveal_answer';
+    const isActNumber = inst.type === 'act_number';
+    const canvasWidth = isActNumber ? 256 : isTitle ? 1024 : 512;
+    const canvasHeight = isActNumber ? 256 : isTitle ? 320 : 160;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    // Font selection based on 3 font styles
+    let fontFace = 'sans-serif';
+    let fontSize = isActNumber ? 120 : isTitle ? 72 : 36;
+    let fontWeight = 'bold';
+
+    if (fontStyle === 'script') {
+      fontFace = '"Brush Script MT", "Caveat", "Dancing Script", "Pacifico", "Segoe Script", cursive, sans-serif';
+      fontWeight = '600';
+      fontSize = isActNumber ? 130 : isTitle ? 82 : 42;
+    } else if (fontStyle === 'bold_cartoon') {
+      fontFace = '"Titan One", "Comic Sans MS", "Arial Rounded MT Bold", "Fredoka One", cursive, sans-serif';
+      fontWeight = '900';
+      fontSize = isActNumber ? 130 : isTitle ? 76 : 38;
+    } else {
+      fontFace = '"Inter", "Helvetica Neue", Arial, sans-serif';
+      fontWeight = '800';
+      fontSize = isActNumber ? 110 : isTitle ? 68 : 34;
+    }
+
+    ctx.font = `${fontWeight} ${fontSize}px ${fontFace}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const lines = inst.text.split('\n');
+    const lineHeight = fontSize * 1.15;
+    const startY = canvasHeight / 2 - ((lines.length - 1) * lineHeight) / 2;
+
+    for (let li = 0; li < lines.length; li++) {
+      const lineText = lines[li];
+      const cy = startY + li * lineHeight;
+      const cx = canvasWidth / 2;
+
+      if (fontStyle === 'bold_cartoon') {
+        // Playful cartoon letters: thick dark outline + vibrant yellow/cyan fill
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 14;
+        ctx.strokeStyle = '#18181b';
+        ctx.strokeText(lineText, cx, cy);
+
+        // Highlight bevel
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = '#27272a';
+        ctx.strokeText(lineText, cx - 2, cy - 2);
+
+        // Vibrant fill
+        ctx.fillStyle = inst.color || '#facc15';
+        ctx.fillText(lineText, cx, cy);
+      } else {
+        // Architectural Embossed / Debossed Relief
+        // Top-left key light -> casts highlight on top-left (-x, -y) and shadow on bottom-right (+x, +y)
+        const offset = Math.max(2, Math.round(fontSize * 0.055));
+
+        if (!isDebossed) {
+          // EMBOSSED (Raised from the wall)
+          // 1. Soft bottom-right drop shadow
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+          ctx.fillText(lineText, cx + offset, cy + offset);
+
+          // 2. Secondary deeper drop shadow
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+          ctx.fillText(lineText, cx + offset * 1.8, cy + offset * 1.8);
+
+          // 3. Top-left light reflection / highlight
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+          ctx.fillText(lineText, cx - offset * 0.8, cy - offset * 0.8);
+
+          // 4. Face fill (matches wall color or custom tint)
+          if (inst.color) {
+            ctx.fillStyle = inst.color;
+          } else {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+          }
+          ctx.fillText(lineText, cx, cy);
+        } else {
+          // DEBOSSED (Carved into the wall)
+          // 1. Top-left inner shadow (carved cavity)
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+          ctx.fillText(lineText, cx - offset, cy - offset);
+
+          // 2. Bottom-right inner highlight (carved lip catches key light)
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+          ctx.fillText(lineText, cx + offset * 0.8, cy + offset * 0.8);
+
+          // 3. Recessed interior
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+          ctx.fillText(lineText, cx, cy);
+        }
+      }
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false;
+
+    const aspect = canvasWidth / canvasHeight;
+    const planeHeight = (isActNumber ? 0.65 : isTitle ? 1.05 : 0.5) * inst.scale;
+    const planeWidth = planeHeight * aspect;
+
+    const planeGeo = new THREE.PlaneGeometry(planeWidth, planeHeight);
+    const planeMat = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+      opacity: inst.revealAtTime ? 0 : 1, // hidden until reveal
+    });
+    const plane = new THREE.Mesh(planeGeo, planeMat);
+    plane.name = 'text_plane';
     group.add(plane);
 
     return group;

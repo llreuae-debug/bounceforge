@@ -27,8 +27,15 @@ const WALL_BACKGROUND_COLORS: Record<string, number> = {
   deep_teal: 0x042f2e,
   lilac: 0xf5f3ff,
   mint: 0xecfdf5,
-  candy_pink: 0xfdf2f8,
+  pastel_pink: 0xfdf2f8,
   night_blue: 0x090d16,
+  charcoal_studio: 0x2c2c30,
+  soft_lavender_grey: 0xcfcbd8,
+  off_white_gallery: 0xe9e7ec,
+  warm_greige: 0x8e857c,
+  deep_navy_velvet: 0x0f172a,
+  grass_field: 0x15803d,
+  night_sky_clouds: 0x1e1b4b,
 };
 
 export class MarbleMelodyRenderer {
@@ -48,6 +55,8 @@ export class MarbleMelodyRenderer {
   private wallMesh: THREE.Mesh;
   private objectMeshes: Map<string, THREE.Group> = new Map();
   private marbleMeshes: THREE.Mesh[] = [];
+  private embossedTextMeshes: THREE.Group[] = [];
+  private splitPianoKeys: THREE.Mesh[] = [];
 
   // Layer B: Foreground Floating Bokeh & Dust Motes
   private dustPoints: THREE.Points | null = null;
@@ -78,33 +87,33 @@ export class MarbleMelodyRenderer {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffedd5);
 
-    // Camera with 30° FOV (cinematic telephoto depth)
-    this.camera = new THREE.PerspectiveCamera(30, 9 / 16, 0.1, 100);
-    this.camera.position.set(0, 1.8, 7.2);
+    // Studio Look: Long-lens look (FOV 22°), tilted ~10° for real depth and side profile
+    this.camera = new THREE.PerspectiveCamera(22, 9 / 16, 0.1, 120);
+    this.camera.position.set(0, 1.8, 9.2);
 
     // 1. Soft Studio Ambient Light
     this.ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
     this.scene.add(this.ambientLight);
 
-    // 2. Large Soft Key Area Light (produces long, soft directional shadows with contact hardening)
-    this.keyAreaLight = new THREE.DirectionalLight(0xfffbeb, 1.5);
-    this.keyAreaLight.position.set(2.8, 6.5, 6.2);
+    // 2. Large Soft Key Area Light from TOP-LEFT (produces ≈45° down-right soft shadows)
+    this.keyAreaLight = new THREE.DirectionalLight(0xfffbeb, 1.6);
+    this.keyAreaLight.position.set(-4.5, 6.0, 5.5);
     this.keyAreaLight.castShadow = true;
     this.keyAreaLight.shadow.mapSize.width = 1024;
     this.keyAreaLight.shadow.mapSize.height = 1024;
     this.keyAreaLight.shadow.camera.near = 0.5;
-    this.keyAreaLight.shadow.camera.far = 25;
-    this.keyAreaLight.shadow.camera.left = -3;
-    this.keyAreaLight.shadow.camera.right = 3;
-    this.keyAreaLight.shadow.camera.top = 4;
-    this.keyAreaLight.shadow.camera.bottom = -4;
+    this.keyAreaLight.shadow.camera.far = 30;
+    this.keyAreaLight.shadow.camera.left = -4;
+    this.keyAreaLight.shadow.camera.right = 4;
+    this.keyAreaLight.shadow.camera.top = 5;
+    this.keyAreaLight.shadow.camera.bottom = -5;
     this.keyAreaLight.shadow.bias = -0.0008;
-    this.keyAreaLight.shadow.radius = 3; // Soft contact shadow blur
+    this.keyAreaLight.shadow.radius = 3.5; // Soft contact shadow blur
     this.scene.add(this.keyAreaLight);
 
-    // 3. Soft Fill Light from opposite angle
+    // 3. Soft Fill Light from opposite angle (bottom-right)
     this.softFillLight = new THREE.DirectionalLight(0xe0e7ff, 0.45);
-    this.softFillLight.position.set(-3.2, -2.5, 4.5);
+    this.softFillLight.position.set(3.8, -3.2, 4.2);
     this.scene.add(this.softFillLight);
 
     // 4. Color Bleed Point Light (drifts with marble to cast subtle colored glow on the wall)
@@ -325,10 +334,19 @@ export class MarbleMelodyRenderer {
     this.objectMeshes.clear();
     this.marbleMeshes.forEach((mesh) => this.scene.remove(mesh));
     this.marbleMeshes = [];
+    this.embossedTextMeshes.forEach((mesh) => this.scene.remove(mesh));
+    this.embossedTextMeshes = [];
+    this.splitPianoKeys.forEach((key) => this.scene.remove(key));
+    this.splitPianoKeys = [];
 
     // 1. Apply World 10-Layer Wall Surface
-    const wallColorHex = WALL_BACKGROUND_COLORS[run.config.wallBackground] || 0xffedd5;
-    const wallType = run.config.world?.wallSurface || run.config.wallBackground;
+    let wallColorHex = 0x2c2c30;
+    if (run.config.world?.wallColor) {
+      wallColorHex = parseInt(run.config.world.wallColor.replace('#', ''), 16);
+    } else if (run.config.wallBackground && WALL_BACKGROUND_COLORS[run.config.wallBackground]) {
+      wallColorHex = WALL_BACKGROUND_COLORS[run.config.wallBackground];
+    }
+    const wallType = run.config.world?.wallSurface || run.config.wallBackground || 'charcoal_studio';
     this.wallMesh.material = MarbleMaterialLibrary.getWallMaterial(wallType, wallColorHex);
     this.scene.background = new THREE.Color(wallColorHex);
 
@@ -394,14 +412,59 @@ export class MarbleMelodyRenderer {
       this.objectMeshes.set(`handle_${h.id}`, hMesh);
     }
 
+    // Place Embossed 3D Wall Text System
+    if (run.embossedWallTexts) {
+      const wallColorString = '#' + wallColorHex.toString(16).padStart(6, '0');
+      for (const textInst of run.embossedWallTexts) {
+        const textMesh = ObjectCatalog3D.createEmbossedWallTextMesh(textInst, wallColorString);
+        this.scene.add(textMesh);
+        this.embossedTextMeshes.push(textMesh);
+      }
+    }
+
+    // Optional Split-Screen 3D Piano Keyboard
+    if (run.splitScreenConfig?.enabled && run.splitScreenConfig.show3DPiano) {
+      const keyCount = 14;
+      const startX = -0.72;
+      const keyWidth = 0.11;
+      for (let k = 0; k < keyCount; k++) {
+        const isBlack = [1, 3, 6, 8, 10, 13].includes(k);
+        const keyGeo = new THREE.BoxGeometry(isBlack ? 0.07 : 0.10, isBlack ? 0.32 : 0.46, 0.035);
+        const keyMat = new THREE.MeshStandardMaterial({
+          color: isBlack ? 0x18181b : 0xf8fafc,
+          metalness: 0.1,
+          roughness: isBlack ? 0.3 : 0.15,
+        });
+        const keyMesh = new THREE.Mesh(keyGeo, keyMat);
+        keyMesh.position.set(startX + k * keyWidth, -0.85, 0.04);
+        keyMesh.name = `split_piano_${k}`;
+        keyMesh.userData.isBlack = isBlack;
+        keyMesh.userData.baseColor = isBlack ? 0x18181b : 0xf8fafc;
+        this.scene.add(keyMesh);
+        this.splitPianoKeys.push(keyMesh);
+      }
+    }
+
     // Create 3D Marbles with PBR Physical Materials (scaled 5-7% of frame width)
     for (let i = 0; i < run.lanes.length; i++) {
       const lane = run.lanes[i];
       const radius = lane.marbleRadius || 0.075;
       const sphereGeo = new THREE.SphereGeometry(radius, 32, 32);
 
+      const signature = run.config.signatureMarble;
       const marbleType = run.config.world?.marbleType || (run.config.marbleStyle as any) || 'swirl_glass';
-      const sphereMat = MarbleMaterialLibrary.getMarbleMaterial(marbleType, lane.marbleColor);
+      const sphereMat = signature
+        ? new THREE.MeshPhysicalMaterial({
+            color: new THREE.Color(signature.coreColor || '#ea580c'),
+            roughness: 1.0 - (signature.glossiness ?? 0.95),
+            metalness: 0.08,
+            transmission: 0.65,
+            ior: 1.52,
+            thickness: 0.45,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.04,
+          })
+        : MarbleMaterialLibrary.getMarbleMaterial(marbleType, lane.marbleColor);
 
       const marbleMesh = new THREE.Mesh(sphereGeo, sphereMat);
       marbleMesh.castShadow = true;
@@ -590,17 +653,56 @@ export class MarbleMelodyRenderer {
     // Hero Intro (first 0.8s): entrance light flare
     const introFlare = time < 0.8 ? Math.max(0, 1 - time / 0.8) * 1.2 : 0;
 
-    // Area Key Light follows camera down the wall to maintain consistent long soft cast shadows
-    this.keyAreaLight.position.set(this.currentCamX + 2.8, this.currentCamY + 6.5, 6.2);
+    // Top-Left Studio Key Light follows camera down the wall to maintain consistent 45° soft cast shadows
+    this.keyAreaLight.position.set(this.currentCamX - 4.5, this.currentCamY + 6.0, 5.5);
     this.keyAreaLight.intensity = (this.keyAreaLight.intensity || 1.6) + introFlare;
     this.keyAreaLight.target.position.set(this.currentCamX, this.currentCamY, 0);
     this.keyAreaLight.target.updateMatrixWorld();
+
+    this.softFillLight.position.set(this.currentCamX + 3.8, this.currentCamY - 3.2, 4.2);
+    this.softFillLight.target.position.set(this.currentCamX, this.currentCamY, 0);
+    this.softFillLight.target.updateMatrixWorld();
 
     // Color bleed light moves with primary marble
     this.bounceColorLight.position.set(rawMarbleX, targetCamY + 0.45, 0.4);
 
     // Drifting light leak
     this.lightLeakMesh.position.set(this.currentCamX + 0.4 + Math.sin(time * 0.5) * 0.3, this.currentCamY, 0.08);
+
+    // Embossed Wall Text Reveals (Slides out of wall at revealAtTime)
+    for (const tm of this.embossedTextMeshes) {
+      const revealTime = tm.userData.revealAtTime;
+      if (revealTime !== undefined) {
+        const plane = tm.getObjectByName('text_plane') as THREE.Mesh;
+        if (plane && plane.material) {
+          if (time >= revealTime) {
+            const progress = Math.min(1.0, (time - revealTime) / 0.55);
+            (plane.material as THREE.MeshBasicMaterial).opacity = progress;
+            tm.position.y = (tm.userData.initialY || 0) + (1.0 - progress) * 0.18;
+          } else {
+            (plane.material as THREE.MeshBasicMaterial).opacity = 0;
+          }
+        }
+      }
+    }
+
+    // Split-Screen 3D Piano Key Illumination
+    if (this.splitPianoKeys.length > 0 && this.run) {
+      // Find note hits active near current time
+      const activeHit = this.run.lanes.flatMap((l) => l.hits).find((h) => Math.abs(h.time - time) < 0.12);
+      for (let k = 0; k < this.splitPianoKeys.length; k++) {
+        const pKey = this.splitPianoKeys[k];
+        const isTarget = activeHit && (activeHit.note.midi % 14) === k;
+        const mat = pKey.material as THREE.MeshStandardMaterial;
+        if (isTarget) {
+          mat.color.setHex(0xfacc15); // Vibrant glow on strike
+          pKey.position.z = 0.025;
+        } else {
+          mat.color.setHex(pKey.userData.baseColor);
+          pKey.position.z = 0.04;
+        }
+      }
+    }
 
     // Finale Camera Pull-Back: at finale downbeat, smooth pull-back revealing wall section
     const finaleTime = this.run.duration - 2.0;
@@ -622,15 +724,41 @@ export class MarbleMelodyRenderer {
       this.dustPoints.geometry.attributes.position.needsUpdate = true;
     }
 
-    // Update Object Wobbles
+    // Update Object Wobbles & Squishes
     this.objectWobbles.forEach((wobble, id) => {
       const mesh = this.objectMeshes.get(id);
       if (mesh) {
         mesh.rotation.x += wobble.intensity * 0.06 * (Math.random() - 0.5);
         mesh.rotation.y += wobble.intensity * 0.06 * (Math.random() - 0.5);
+
+        // Soft-Body Squash for Squeaky Duck
+        if (mesh.userData.isSqueaky) {
+          const duckBody = mesh.getObjectByName('duck_body');
+          if (duckBody) {
+            const squishRatio = wobble.intensity * 1.8;
+            duckBody.scale.set(1.25 + squishRatio * 0.45, 0.95 - squishRatio * 0.55, 1.05 + squishRatio * 0.45);
+          }
+        }
+
+        // Spring Bounce for Spring Smiley
+        if (mesh.userData.isSpring) {
+          const smileyHead = mesh.getObjectByName('smiley_head');
+          if (smileyHead) {
+            smileyHead.position.x = (Math.random() - 0.5) * wobble.intensity * 0.35;
+          }
+        }
+
         wobble.intensity *= wobble.decay;
         if (wobble.intensity < 0.01) {
           this.objectWobbles.delete(id);
+          if (mesh.userData.isSqueaky) {
+            const duckBody = mesh.getObjectByName('duck_body');
+            if (duckBody) duckBody.scale.set(1.25, 0.95, 1.05);
+          }
+          if (mesh.userData.isSpring) {
+            const smileyHead = mesh.getObjectByName('smiley_head');
+            if (smileyHead) smileyHead.position.x = 0;
+          }
         }
 
         const hitPulse = mesh.getObjectByName('hitPulse') as THREE.Mesh;

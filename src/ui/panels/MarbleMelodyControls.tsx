@@ -14,6 +14,7 @@ import { PUBLIC_DOMAIN_MELODIES, parseMidiFile } from '../../marble3d/melodyLibr
 import { VariationEngine } from '../../marble3d/variationEngine';
 import { MARBLE_MELODY_PRESETS, DEFAULT_MARBLE_MELODY_CONFIG } from '../../marble3d/presets';
 import { MarblePresetGallery } from '../components/MarblePresetGallery';
+import { ReelFormatPicker } from '../components/ReelFormatPicker';
 import { triggerHaptic } from '../../platform/haptics';
 import {
   Music,
@@ -154,6 +155,9 @@ export const MarbleMelodyControls: React.FC = () => {
           <span>Make 10 Variations</span>
         </button>
       </div>
+
+      {/* 12 Viral Reel Formats & Series Mode */}
+      <ReelFormatPicker />
 
       {/* 50 Unique Worlds Visual Preset Gallery */}
       <MarblePresetGallery />

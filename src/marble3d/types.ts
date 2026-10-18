@@ -15,7 +15,92 @@ export type TunedObjectType =
   | 'wind_chime'
   | 'piano_staircase'
   | 'marimba_bar'
+  | 'squeaky_duck'
+  | 'spring_smiley'
+  | 'unbranded_phone'
+  | 'unbranded_speaker'
+  | 'brass_horn'
+  | 'desk_bell'
+  | 'cymbal_drum'
+  | 'split_piano_key'
+  | 'prop_star'
+  | 'prop_heart'
+  | 'prop_cloud'
+  | 'prop_snowflake'
+  | 'prop_leaf'
   | 'final_catcher';
+
+export type ReelFormatId =
+  | 'f1_guess_tune'
+  | 'f2_guess_all'
+  | 'f3_which_sounds_better'
+  | 'f4_themed_props'
+  | 'f5_night_beats'
+  | 'f6_squeaky_orchestra'
+  | 'f7_gadget_tones'
+  | 'f8_brass_band'
+  | 'f9_glass_crystal'
+  | 'f10_nature_walls'
+  | 'f11_split_screen'
+  | 'f12_interior_scene';
+
+export type EmbossFontStyle = 'script' | 'bold_cartoon' | 'clean_sans';
+export type EmbossMode = 'embossed' | 'debossed';
+export type EmbossColorMode = 'same_as_wall' | 'slightly_lighter' | 'slightly_darker' | 'colored';
+
+export interface EmbossedTextConfig {
+  titleText: string;
+  reminders: string[]; // e.g. ["like & follow", "subscribe", "part 2?"]
+  handleRepeats: number; // 2 to 4
+  fontStyle: EmbossFontStyle;
+  embossMode: EmbossMode;
+  depth: number; // 0.02 to 0.1
+  colorMode: EmbossColorMode;
+  customColor?: string;
+  revealAnswerText?: string;
+  revealAnswerTime?: number;
+}
+
+export interface SignatureMarbleConfig {
+  coreColor: string;
+  stripeColor: string;
+  glossiness: number; // 0 to 1
+}
+
+export interface ChannelStyleConfig {
+  channelName: string;
+  handle: string;
+  signatureMarble: SignatureMarbleConfig;
+  defaultWallPalette: string;
+  defaultTexturedWall: string;
+  wallTextFont: EmbossFontStyle;
+  embossStyle: EmbossMode;
+  handlePlacement: 'repeats' | 'top_left' | 'center_path';
+  favoriteFormats: ReelFormatId[];
+  profileCovers: Array<{
+    id: string;
+    title: string;
+    presetName: string;
+    formatId: ReelFormatId;
+    viewsLabel: string;
+    timestamp: number;
+    accentColor: string;
+  }>;
+}
+
+export interface EmbossedWallTextInstance {
+  id: string;
+  text: string;
+  type: 'title' | 'reminder' | 'handle' | 'act_number' | 'reveal_answer' | 'versus_label';
+  fontStyle: EmbossFontStyle;
+  embossMode: EmbossMode;
+  x: number;
+  y: number;
+  z: number;
+  scale: number;
+  color?: string;
+  revealAtTime?: number;
+}
 
 export type HeroMaterial =
   | 'clear_crystal'
@@ -217,6 +302,10 @@ export interface MarbleMelodyConfig {
   handleText: string;
   seed: number;
   world?: World10Layers;
+  reelFormat?: ReelFormatId;
+  embossedText?: EmbossedTextConfig;
+  signatureMarble?: SignatureMarbleConfig;
+  channelStyle?: Partial<ChannelStyleConfig>;
 
   locks: {
     melody?: boolean;
@@ -227,6 +316,7 @@ export interface MarbleMelodyConfig {
     background?: boolean;
     lighting?: boolean;
     decor?: boolean;
+    embossedText?: boolean;
   };
 }
 
@@ -267,6 +357,7 @@ export interface TunedObjectInstance {
   lane: number;
   family: string;
   pitchRatio: number; // relative to base pitch for water/length scaling
+  squishAmount?: number; // for squeaky toys
 }
 
 export interface DecorInstance {
@@ -316,6 +407,13 @@ export interface MarbleMelodyRun {
   };
   decor: DecorInstance[];
   embossedHandles: EmbossedHandleInstance[];
+  embossedWallTexts?: EmbossedWallTextInstance[];
+  activeFormat?: ReelFormatId;
+  splitScreenConfig?: {
+    enabled: boolean;
+    splitRatio: number; // e.g. 0.45 top / 0.55 bottom
+    show3DPiano: boolean;
+  };
   nearMissTease?: {
     time: number;
     x: number;

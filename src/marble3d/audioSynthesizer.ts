@@ -162,6 +162,46 @@ export class MarbleAudioSynthesizer {
         this.synthKalimba(ctx, targetNode, note.freq, startTime, note.duration, volume);
         break;
 
+      case 'squeaky_duck':
+        this.synthSqueakyDuck(ctx, targetNode, note.freq, startTime, note.duration, volume);
+        break;
+
+      case 'spring_smiley':
+        this.synthSpringSmiley(ctx, targetNode, note.freq, startTime, note.duration, volume);
+        break;
+
+      case 'unbranded_phone':
+        this.synthPhoneTone(ctx, targetNode, note.freq, startTime, note.duration, volume);
+        break;
+
+      case 'unbranded_speaker':
+        this.synthSpeakerBass(ctx, targetNode, note.freq, startTime, note.duration, volume);
+        break;
+
+      case 'brass_horn':
+        this.synthBrassHorn(ctx, targetNode, note.freq, startTime, note.duration, volume);
+        break;
+
+      case 'desk_bell':
+        this.synthDeskBell(ctx, targetNode, note.freq, startTime, note.duration, volume);
+        break;
+
+      case 'cymbal_drum':
+        this.synthCymbalDrum(ctx, targetNode, note.freq, startTime, note.duration, volume);
+        break;
+
+      case 'split_piano_key':
+        this.synthPiano(ctx, targetNode, note.freq, startTime, note.duration, volume);
+        break;
+
+      case 'prop_star':
+      case 'prop_heart':
+      case 'prop_cloud':
+      case 'prop_snowflake':
+      case 'prop_leaf':
+        this.synthDecorProp(ctx, targetNode, note.freq, startTime, volume);
+        break;
+
       case 'final_catcher':
         this.synthFinale(ctx, targetNode, note.freq, startTime, volume);
         break;
@@ -734,6 +774,251 @@ export class MarbleAudioSynthesizer {
 
     osc.start(t);
     osc1Stop(osc, t + hitDur + 0.02);
+  }
+
+  /** Squeaky Duck: rubber squeak with upward frequency chirp + harmonic overtone */
+  private static synthSqueakyDuck(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
+    const osc = ctx.createOscillator();
+    const oscHarm = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    oscHarm.type = 'sine';
+
+    // Upward frequency chirp (squeak press)
+    const baseFreq = Math.max(300, Math.min(1800, freq * 1.2));
+    osc.frequency.setValueAtTime(baseFreq * 0.75, t);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.35, t + 0.04);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq, t + 0.12);
+
+    oscHarm.frequency.setValueAtTime(baseFreq * 1.5, t);
+    oscHarm.frequency.exponentialRampToValueAtTime(baseFreq * 2.7, t + 0.04);
+    oscHarm.frequency.exponentialRampToValueAtTime(baseFreq * 2.0, t + 0.12);
+
+    const hitDur = Math.max(0.18, Math.min(dur, 0.42));
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.95, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
+
+    osc.connect(gain);
+    oscHarm.connect(gain);
+    gain.connect(dest);
+
+    osc.start(t);
+    oscHarm.start(t);
+    osc1Stop(osc, t + hitDur + 0.02);
+    osc1Stop(oscHarm, t + hitDur + 0.02);
+  }
+
+  /** Spring Smiley: comedy spring boing with pitch vibrato */
+  private static synthSpringSmiley(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
+    const osc = ctx.createOscillator();
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+
+    // Fast spring wobble (24Hz vibrato)
+    lfo.type = 'triangle';
+    lfo.frequency.setValueAtTime(24, t);
+    lfoGain.gain.setValueAtTime(freq * 0.18, t);
+    lfoGain.gain.exponentialRampToValueAtTime(2, t + 0.35);
+
+    lfo.connect(osc.frequency);
+
+    const hitDur = Math.max(0.35, Math.min(dur, 0.65));
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.85, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
+
+    osc.connect(gain);
+    gain.connect(dest);
+
+    lfo.start(t);
+    osc.start(t);
+    osc1Stop(lfo, t + hitDur + 0.02);
+    osc1Stop(osc, t + hitDur + 0.02);
+  }
+
+  /** Unbranded Phone: digital keypad ringtone ping */
+  private static synthPhoneTone(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc1.type = 'sine';
+    osc2.type = 'sine';
+
+    osc1.frequency.setValueAtTime(freq, t);
+    // DTMF harmonic interval
+    osc2.frequency.setValueAtTime(freq * 1.498, t);
+
+    const hitDur = Math.max(0.2, Math.min(dur, 0.45));
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.8, t + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(dest);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1Stop(osc1, t + hitDur + 0.02);
+    osc1Stop(osc2, t + hitDur + 0.02);
+  }
+
+  /** Unbranded Speaker: low sub-bass kick + resonant transient */
+  private static synthSpeakerBass(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    const subFreq = Math.max(45, Math.min(140, freq * 0.35));
+    osc.frequency.setValueAtTime(subFreq * 2.2, t);
+    osc.frequency.exponentialRampToValueAtTime(subFreq, t + 0.06);
+
+    const hitDur = Math.max(0.3, Math.min(dur, 0.7));
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 1.1, t + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
+
+    osc.connect(gain);
+    gain.connect(dest);
+
+    osc.start(t);
+    osc1Stop(osc, t + hitDur + 0.02);
+  }
+
+  /** Brass Horn: fanfare overtone stack */
+  private static synthBrassHorn(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    osc1.type = 'sawtooth';
+    osc2.type = 'triangle';
+
+    osc1.frequency.setValueAtTime(freq, t);
+    osc2.frequency.setValueAtTime(freq * 2.0, t);
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(freq * 2.5, t);
+    filter.Q.setValueAtTime(3.5, t);
+
+    const hitDur = Math.max(0.35, Math.min(dur, 0.9));
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.75, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(dest);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1Stop(osc1, t + hitDur + 0.02);
+    osc1Stop(osc2, t + hitDur + 0.02);
+  }
+
+  /** Desk Bell: crisp high metallic hotel call bell */
+  private static synthDeskBell(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    const bellFreq = Math.max(1200, freq * 2);
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(bellFreq, t);
+
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(bellFreq * 2.76, t);
+
+    const hitDur = Math.max(1.2, dur * 1.5);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.85, t + 0.001);
+    gain.gain.exponentialRampToValueAtTime(vol * 0.18, t + 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(dest);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1Stop(osc1, t + hitDur + 0.02);
+    osc1Stop(osc2, t + hitDur + 0.02);
+  }
+
+  /** Cymbal Drum: cymbal splash + rim crack */
+  private static synthCymbalDrum(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq * 1.8, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.8, t + 0.08);
+
+    const hitDur = Math.max(0.28, Math.min(dur, 0.5));
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.9, t + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
+
+    osc.connect(gain);
+    gain.connect(dest);
+
+    osc.start(t);
+    osc1Stop(osc, t + hitDur + 0.02);
+  }
+
+  /** Piano: acoustic piano strike */
+  private static synthPiano(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc1.type = 'triangle';
+    osc1.frequency.setValueAtTime(freq, t);
+
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(freq * 2.0, t);
+
+    const hitDur = Math.max(0.6, dur);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.85, t + 0.004);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(dest);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1Stop(osc1, t + hitDur + 0.02);
+    osc1Stop(osc2, t + hitDur + 0.02);
+  }
+
+  /** Decor Prop Ping */
+  private static synthDecorProp(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, vol: number) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq * 1.5, t);
+
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.6, t + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+
+    osc.connect(gain);
+    gain.connect(dest);
+
+    osc.start(t);
+    osc1Stop(osc, t + 0.28);
   }
 
   /** Finale Downbeat Chord Burst */

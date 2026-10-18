@@ -1,4 +1,4 @@
-import { AutoViralTitles, MarbleMelodyConfig } from './types';
+import { AutoViralTitles, MarbleMelodyConfig, ReelFormatId } from './types';
 import { SupportedLanguage } from '../i18n/config';
 
 // Blacklisted keywords (copyrighted cartoons, pop songs, pop stars, movie characters, protected brands)
@@ -35,6 +35,15 @@ export const COPYRIGHT_BLACKLIST: string[] = [
   'queen',
   'michael jackson',
   'rihanna',
+  'apple',
+  'iphone',
+  'samsung',
+  'sony',
+  'nike',
+  'adidas',
+  'coca cola',
+  'pepsi',
+  'lego',
 ];
 
 export interface TitleGenerationParams {
@@ -49,6 +58,7 @@ export interface TitleGenerationParams {
   durationSeconds: number;
   language?: SupportedLanguage;
   seed: number;
+  reelFormat?: ReelFormatId;
 }
 
 /**
@@ -97,20 +107,58 @@ export function generateAutoViralTitles(params: TitleGenerationParams): AutoVira
   const cleanMelody = melodyName.toLowerCase().replace(/\s*\(.*?\)/g, '').trim();
   const primaryObject = (objectFamilies[0] || 'glass tube').replace(/_/g, ' ');
   const secondaryObject = (objectFamilies[1] || 'xylophone').replace(/_/g, ' ');
+  const reelFormat = params.reelFormat;
 
   // 1. Generate 3 Distinct Hooks using rotating formulas
-  // Formula A: satisfying + object + melody
-  const hookA = `${cleanMelody} played by a marble`;
-
-  // Formula B: count / challenge
-  const hookB = marbleCount > 1
+  let hookA = `${cleanMelody} played by a marble`;
+  let hookB = marbleCount > 1
     ? `${marbleCount} marbles, ${totalNotes} notes, 0 errors`
     : `${totalNotes} notes. 1 marble. zero mistakes`;
-
-  // Formula C: ASMR / prediction / spot instrument
-  const hookC = isPublicDomain
+  let hookC = isPublicDomain
     ? `${cleanMelody} but it's an ASMR marble run`
     : `every note is a different 3D object 🎶`;
+
+  let extraHashtags: string[] = [];
+  let formatQuestion = 'Rate the finale drop from 1 to 10 in the comments! 👇✨';
+
+  // Format Specific Hook Formulas (Part 6)
+  if (reelFormat === 'f1_guess_tune') {
+    hookA = 'guess the tune in 5 seconds';
+    hookB = 'only 1% get the 3rd one';
+    hookC = 'can you name this song before the reveal?';
+    extraHashtags = ['#guessthesong', '#guessthetune', '#quiz'];
+    formatQuestion = 'Did you guess it before the answer revealed at the end? 👇';
+  } else if (reelFormat === 'f2_guess_all') {
+    hookA = 'guess all 3 tunes';
+    hookB = 'only 1% get all tunes right';
+    hookC = 'how many tunes did you recognize?';
+    extraHashtags = ['#guessthesong', '#musicquiz', '#challenge'];
+    formatQuestion = 'Drop your answers in the comments! 1, 2, 3 👇';
+  } else if (reelFormat === 'f3_which_sounds_better') {
+    hookA = 'bells or glass? 1 or 2 👇';
+    hookB = 'which one sounds better?';
+    hookC = 'which instrument has the cleaner tone?';
+    extraHashtags = ['#whichone', '#soundcomparison', '#asmrsounds'];
+    formatQuestion = 'Comment 1 or 2! Which tone was your favorite? 👇';
+  } else if (reelFormat === 'f5_night_beats') {
+    hookA = "night beats but it's a marble";
+    hookB = 'volume up 🔊 bass test';
+    hookC = 'phonk marble run hits different';
+    extraHashtags = ['#nightbeats', '#phonk', '#bassdrop'];
+    formatQuestion = 'Turn the bass up! Rate this beat 1-10 👇🔊';
+  } else if (reelFormat === 'f6_squeaky_orchestra') {
+    hookA = 'rubber ducks play a classic';
+    hookB = 'the squeakiest orchestra';
+    hookC = 'squeaky toys hit every note';
+    extraHashtags = ['#rubberduck', '#squeakytoy', '#orchestra'];
+    formatQuestion = 'How did the rubber ducks sound? 🦆 Comment below!';
+  } else if (reelFormat === 'f11_split_screen') {
+    hookA = 'my hands vs the marble';
+    hookB = 'live piano vs marble physics 🎹';
+    hookC = 'split screen marble run';
+    extraHashtags = ['#splitscreen', '#pianocover', '#marblephysics'];
+    formatQuestion = 'Who was more on beat? Let me know below 👇';
+  }
 
   const hookAlternatives = [
     {
@@ -136,41 +184,48 @@ export function generateAutoViralTitles(params: TitleGenerationParams): AutoVira
 
   // 2. YouTube Shorts Title (<= 100 chars, keyword first)
   let youtubeTitle = `${cleanMelody} on ${primaryObject}s · Satisfying 3D ASMR Marble Run (${Math.round(durationSeconds)}s)`;
-  if (youtubeTitle.length > 98) {
+  if (reelFormat === 'f1_guess_tune') {
+    youtubeTitle = `Guess the Tune in 5 Seconds! · Satisfying 3D ASMR Marble Run`;
+  } else if (reelFormat === 'f3_which_sounds_better') {
+    youtubeTitle = `Which Sounds Better? (1 or 2) · Satisfying 3D ASMR Marble Run`;
+  } else if (reelFormat === 'f5_night_beats') {
+    youtubeTitle = `Night Beats but it's a 3D Marble Run · Volume Up 🔊`;
+  } else if (reelFormat === 'f6_squeaky_orchestra') {
+    youtubeTitle = `Rubber Ducks Play ${cleanMelody} · Squeaky Toy Orchestra`;
+  } else if (youtubeTitle.length > 98) {
     youtubeTitle = `${cleanMelody} played by a marble run · Satisfying ASMR 3D`;
   }
   youtubeTitle = sanitizeCopyright(youtubeTitle);
 
   // 3. TikTok Caption + 4-6 Hashtags
-  const tiktokHashtags = [
+  const baseTiktok = [
     '#marblerun',
     '#oddlysatisfying',
     '#asmrsounds',
     '#3danimation',
-    '#musiccover',
-    '#satisfyingvideo',
   ];
+  const tiktokHashtags = [...extraHashtags, ...baseTiktok].slice(0, 6);
   const tiktokCaption = sanitizeCopyright(
     `${cleanMelody} played note-for-note down this 3D wall of ${primaryObject}s & ${secondaryObject}s! Wait for the finale drop 🎶✨`
   );
 
   // 4. Instagram Reels Caption + Hashtags
-  const reelsHashtags = [
+  const baseReels = [
     '#satisfying',
     '#asmr',
     '#marblerun',
-    '#calm',
     '#relaxingvideos',
   ];
+  const reelsHashtags = [...extraHashtags, ...baseReels].slice(0, 6);
   const reelsCaption = sanitizeCopyright(
     `Which part gave you chills? ${totalNotes} notes, ${marbleCount} marble${marbleCount > 1 ? 's' : ''}, 100% mechanical physics. Turn sound ON 🎧`
   );
 
   // 5. Pinned Comment Question
   const questions = [
+    formatQuestion,
     'Which instrument sounded best: the glass tubes or the xylophone? 👇',
     'Did you recognize this melody before the 10-second mark? 🎶',
-    'Rate the finale drop from 1 to 10 in the comments! 👇✨',
     'What public-domain song should we build the marble wall for next? 🎹',
   ];
   const pinnedComment = questions[seed % questions.length];

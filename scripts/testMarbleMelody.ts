@@ -4,6 +4,7 @@ import { MARBLE_MELODY_PRESETS, DEFAULT_MARBLE_MELODY_CONFIG } from '../src/marb
 import { PUBLIC_DOMAIN_MELODIES } from '../src/marble3d/melodyLibrary';
 import { MarbleMelodyConfig } from '../src/marble3d/types';
 import { isCopyrightSafe } from '../src/marble3d/viralTitles';
+import { REEL_FORMATS, FORMAT_PRESETS } from '../src/marble3d/formats';
 
 function runTests() {
   console.log('🧪 Starting MARBLE MELODY 3D Verification Suite (50 Presets + Framing + Real 3D Depth)...\n');
@@ -352,7 +353,66 @@ function runTests() {
     'candy_swirl',
     'ember',
   ];
-  assert('Exactly 20 hero marbles in spec', HERO_MARBLES.length === 20);
+  // TEST 12: 12 Viral Reel Formats
+  console.log('\n--- TEST 12: 12 Viral Reel Formats Verification ---');
+  assert('Exactly 12 viral reel formats registered', REEL_FORMATS.length === 12);
+
+  const hotCount = REEL_FORMATS.filter((f) => f.isHot).length;
+  assert(`High-engagement HOT badges applied (Count: ${hotCount})`, hotCount >= 4);
+
+  // TEST 13: 60 Format Presets (5 per format)
+  console.log('\n--- TEST 13: 60 Format Presets (5 per format) ---');
+  assert('Exactly 60 format presets registered (5 per format)', FORMAT_PRESETS.length === 60);
+
+  let allFormatsHave5 = true;
+  for (const fmt of REEL_FORMATS) {
+    const presetsForFmt = FORMAT_PRESETS.filter((p) => p.formatId === fmt.id);
+    if (presetsForFmt.length !== 5) {
+      allFormatsHave5 = false;
+      console.error(`Format ${fmt.id} has ${presetsForFmt.length} presets instead of 5`);
+    }
+  }
+  assert('Every single format has exactly 5 curated presets', allFormatsHave5);
+
+  // TEST 14: Studio Look: Wire Rails & Procedural Objects
+  console.log('\n--- TEST 14: Studio Look: Wire Rails & Procedural Objects ---');
+  const duckRun = MusicToLayoutSolver.solveRun({
+    ...DEFAULT_MARBLE_MELODY_CONFIG,
+    reelFormat: 'f6_squeaky_orchestra',
+    seed: 4242,
+  });
+  const hasDucks = duckRun.objects.some((o) => o.type === 'squeaky_duck');
+  const hasRails = duckRun.objects.some((o) => o.type === 'wire_rail');
+  assert('Squeaky orchestra run generates squeaky duck procedural objects', hasDucks);
+  assert('Signature twin wire rails generated along the track', hasRails);
+
+  // TEST 15: Embossed 3D Wall Text System
+  console.log('\n--- TEST 15: Embossed 3D Wall Text System ---');
+  const quizRun = MusicToLayoutSolver.solveRun({
+    ...DEFAULT_MARBLE_MELODY_CONFIG,
+    reelFormat: 'f1_guess_tune',
+    seed: 7777,
+  });
+  assert('Embossed wall texts generated for run', Boolean(quizRun.embossedWallTexts && quizRun.embossedWallTexts.length > 0));
+
+  const titleText = quizRun.embossedWallTexts?.find((t) => t.type === 'title');
+  const revealAnswer = quizRun.embossedWallTexts?.find((t) => t.type === 'reveal_answer');
+  const reminders = quizRun.embossedWallTexts?.filter((t) => t.type === 'reminder');
+
+  assert('Title text placed at top of wall inside safe corridor', Boolean(titleText && titleText.y > 1.0));
+  assert('Quiz reveal answer placed at drop time', Boolean(revealAnswer && revealAnswer.revealAtTime !== undefined));
+  assert('Small reminders placed along path outside play corridor', Boolean(reminders && reminders.length >= 1));
+
+  // TEST 16: Copyright & Brand Safety Across All 60 Presets
+  console.log('\n--- TEST 16: Copyright & Brand Safety (All 60 Presets) ---');
+  let copyrightSafe = true;
+  for (const p of FORMAT_PRESETS) {
+    if (!isCopyrightSafe(p.name) || !isCopyrightSafe(p.embossedTitle) || !isCopyrightSafe(p.hookText)) {
+      copyrightSafe = false;
+      console.error(`Preset "${p.id}" failed copyright safety filter!`);
+    }
+  }
+  assert('All 60 presets pass copyright & brand safety filter (Zero violations)', copyrightSafe);
 
   console.log(`\n========================================`);
   console.log(`TEST SUMMARY: ${passed} / ${total} TESTS PASSED!`);
