@@ -98,7 +98,7 @@ export class MarbleAudioSynthesizer {
     osc2.frequency.setValueAtTime(freq * 2.756, t);
 
     const hitDur = Math.max(dur, 1.4);
-    gain.gain.setValueAtTime(0, t);
+    gain.gain.setValueAtTime(0.0001, t);
     gain.gain.linearRampToValueAtTime(vol * 0.9, t + 0.003);
     gain.gain.exponentialRampToValueAtTime(vol * 0.35, t + 0.12);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
@@ -136,7 +136,7 @@ export class MarbleAudioSynthesizer {
       osc.frequency.setValueAtTime(freqs[i], t);
 
       const amp = (vol / (i + 1)) * 0.8;
-      gain.gain.setValueAtTime(0, t);
+      gain.gain.setValueAtTime(0.0001, t);
       gain.gain.linearRampToValueAtTime(amp, t + 0.001);
       gain.gain.exponentialRampToValueAtTime(0.0001, t + decays[i]);
 
@@ -171,7 +171,7 @@ export class MarbleAudioSynthesizer {
     osc2.frequency.setValueAtTime(freq * 3.0, t);
 
     const hitDur = 0.55;
-    gain.gain.setValueAtTime(0, t);
+    gain.gain.setValueAtTime(0.0001, t);
     gain.gain.linearRampToValueAtTime(vol * 0.95, t + 0.002);
     gain.gain.exponentialRampToValueAtTime(vol * 0.2, t + 0.08);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
@@ -209,7 +209,7 @@ export class MarbleAudioSynthesizer {
     osc.frequency.exponentialRampToValueAtTime(endFreq, t + 0.08);
 
     const hitDur = 0.4;
-    gain.gain.setValueAtTime(0, t);
+    gain.gain.setValueAtTime(0.0001, t);
     gain.gain.linearRampToValueAtTime(vol, t + 0.003);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
 
@@ -242,7 +242,7 @@ export class MarbleAudioSynthesizer {
     filter.frequency.setValueAtTime(freq * 1.8, t);
 
     const hitDur = 0.9;
-    gain.gain.setValueAtTime(0, t);
+    gain.gain.setValueAtTime(0.0001, t);
     gain.gain.linearRampToValueAtTime(vol * 0.85, t + 0.006);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
 
@@ -272,7 +272,7 @@ export class MarbleAudioSynthesizer {
     osc.frequency.setValueAtTime(freq, t);
 
     const hitDur = Math.max(dur, 0.7);
-    gain.gain.setValueAtTime(0, t);
+    gain.gain.setValueAtTime(0.0001, t);
     gain.gain.linearRampToValueAtTime(vol * 0.88, t + 0.002);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
 
@@ -310,7 +310,7 @@ export class MarbleAudioSynthesizer {
     osc.frequency.setValueAtTime(freq, t);
 
     const hitDur = 0.85;
-    gain.gain.setValueAtTime(0, t);
+    gain.gain.setValueAtTime(0.0001, t);
     gain.gain.linearRampToValueAtTime(vol * 0.8, t + 0.003);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
 
@@ -344,7 +344,7 @@ export class MarbleAudioSynthesizer {
       osc.frequency.setValueAtTime(f, t + i * 0.03);
 
       const hitDur = 2.4 - i * 0.2;
-      gain.gain.setValueAtTime(0, t + i * 0.03);
+      gain.gain.setValueAtTime(0.0001, t + i * 0.03);
       gain.gain.linearRampToValueAtTime(vol * 0.7, t + i * 0.03 + 0.005);
       gain.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.03 + hitDur);
 

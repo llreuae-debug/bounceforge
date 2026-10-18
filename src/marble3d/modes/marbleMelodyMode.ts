@@ -63,6 +63,7 @@ export const MarbleMelodyMode: SimulationMode = {
     const run = MusicToLayoutSolver.solveRun(config);
     world.customState.marbleMelodyRun = run;
     world.customState.currentTime = 0;
+    world.customState.eventIdCounter = 1;
     world.customState.is3D = true;
 
     // Instantiate and prepare 3D Three.js renderer
@@ -90,64 +91,83 @@ export const MarbleMelodyMode: SimulationMode = {
         ctx.drawImage(offCanvas, 0, 0, w.width, w.height);
       }
     };
+  },
 
-    // Emit collision events into world eventBus with physical material metadata
-    let eventIdCounter = 1;
+  step: (world: PhysicsWorld, dt: number, _settings: Record<string, any>) => {
+    const prevTime = world.customState.currentTime || 0;
+    const currTime = prevTime + dt;
+    world.customState.currentTime = currTime;
+    world.time = currTime;
+
+    const run = world.customState.marbleMelodyRun;
+    if (!run) return;
+
+    if (!world.customState.eventIdCounter) {
+      world.customState.eventIdCounter = 1;
+    }
+
+    // Emit note collision hits as simulation time crosses hit.time
     for (const lane of run.lanes) {
       for (let hIdx = 0; hIdx < lane.hits.length; hIdx++) {
         const hit = lane.hits[hIdx];
-        const obj = run.objects.find((o) => o.id === hit.objectId);
+        const isTriggered = (prevTime === 0 ? hit.time >= 0 : hit.time > prevTime) && hit.time <= currTime;
+        if (isTriggered) {
+          const obj = run.objects.find((o) => o.id === hit.objectId);
+          world.eventBus.emit({
+            id: world.customState.eventIdCounter++,
+            type: 'ring',
+            time: hit.time,
+            impulse: (hit.note.velocity || 0.85) * 50,
+            position: {
+              x: 540 + (hit.note.lane === 1 ? -220 : hit.note.lane === 2 ? 220 : 0),
+              y: 960,
+            },
+            velocity: { x: 0, y: 150 },
+            ballId: lane.laneIndex,
+            noteIndex: hIdx,
+            extra: {
+              marbleMelodyHit: true,
+              melodyNote: hit.note,
+              objectType: obj?.type || 'glass_tube',
+            },
+          });
+        }
+      }
+    }
+
+    // Finale Downbeat event with triumphant chord burst
+    if (run.catcher) {
+      const isCatcherTriggered =
+        (prevTime === 0 ? run.catcher.catchTime >= 0 : run.catcher.catchTime > prevTime) &&
+        run.catcher.catchTime <= currTime;
+      if (isCatcherTriggered) {
         world.eventBus.emit({
-          id: eventIdCounter++,
-          type: 'ring',
-          time: hit.time,
-          impulse: (hit.note.velocity || 0.85) * 50,
-          position: {
-            x: 540 + (hit.note.lane === 1 ? -220 : hit.note.lane === 2 ? 220 : 0),
-            y: 960,
-          },
-          velocity: { x: 0, y: 150 },
-          ballId: lane.laneIndex,
-          noteIndex: hIdx,
+          id: world.customState.eventIdCounter++,
+          type: 'escape',
+          time: run.catcher.catchTime,
+          impulse: 100,
+          position: { x: 540, y: 1600 },
+          velocity: { x: 0, y: 300 },
+          ballId: 0,
+          noteIndex: 999,
           extra: {
             marbleMelodyHit: true,
-            melodyNote: hit.note,
-            objectType: obj?.type || 'glass_tube',
+            melodyNote: {
+              time: run.catcher.catchTime,
+              duration: 2.2,
+              midi: 72,
+              freq: 523.25,
+              pitchName: 'C5',
+              velocity: 0.95,
+              lane: 0,
+            },
+            objectType: 'final_catcher',
           },
         });
       }
     }
 
-    // Finale Downbeat event with triumphant chord burst
-    world.eventBus.emit({
-      id: eventIdCounter++,
-      type: 'escape',
-      time: run.catcher.catchTime,
-      impulse: 100,
-      position: { x: 540, y: 1600 },
-      velocity: { x: 0, y: 300 },
-      ballId: 0,
-      noteIndex: 999,
-      extra: {
-        marbleMelodyHit: true,
-        melodyNote: {
-          time: run.catcher.catchTime,
-          duration: 2.2,
-          midi: 72,
-          freq: 523.25,
-          pitchName: 'C5',
-          velocity: 0.95,
-          lane: 0,
-        },
-        objectType: 'final_catcher',
-      },
-    });
-  },
-
-  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
-    world.customState.currentTime = (world.customState.currentTime || 0) + dt;
-    const run = world.customState.marbleMelodyRun;
-    if (run && world.customState.currentTime >= run.duration) {
+    if (currTime >= run.duration) {
       world.isFinished = true;
     }
   },

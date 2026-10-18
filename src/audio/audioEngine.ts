@@ -193,6 +193,9 @@ export class AudioEngine {
   private readonly CHORD_ARP = [1.0, 1.2599, 1.4983, 2.0, 2.5198, 2.9966]; // Root, Major 3rd, 5th, Octave, 10th, 12th
 
   handleCollision(event: CollisionEvent): void {
+    if (!this.ctx) {
+      this.init();
+    }
     if (!this.ctx || this.isMuted) return;
     if (this.activeVoicesCount >= this.maxAllowedVoices) return;
     this.resume();

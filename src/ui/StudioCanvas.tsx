@@ -217,7 +217,7 @@ export const StudioCanvas: React.FC = () => {
       } else if (e.code === 'Space') {
         e.preventDefault();
         triggerHaptic(10);
-        togglePlay();
+        handleTogglePlay();
       } else if (e.code === 'KeyR') {
         e.preventDefault();
         triggerHaptic(15);
@@ -363,6 +363,16 @@ export const StudioCanvas: React.FC = () => {
     showToast('asmr sound unlocked');
   };
 
+  const handleTogglePlay = () => {
+    const audio = AudioEngine.getInstance();
+    audio.resume();
+    if (!audioUnlocked) setAudioUnlocked(true);
+    try {
+      sessionStorage.setItem('bounceforge_audio_unlocked', 'true');
+    } catch {}
+    togglePlay();
+  };
+
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     try {
@@ -412,7 +422,7 @@ export const StudioCanvas: React.FC = () => {
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement> | React.PointerEvent<HTMLCanvasElement>) => {
     if (interactMode === 'play') {
       triggerHaptic(10);
-      togglePlay();
+      handleTogglePlay();
       return;
     }
 
@@ -546,7 +556,7 @@ export const StudioCanvas: React.FC = () => {
             <div
               onClick={() => {
                 triggerHaptic(10);
-                togglePlay();
+                handleTogglePlay();
               }}
               className="absolute inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center cursor-pointer transition-opacity"
             >
@@ -598,7 +608,7 @@ export const StudioCanvas: React.FC = () => {
         {/* Playback Actions */}
         <div className="flex items-center gap-2">
           <button
-            onClick={togglePlay}
+            onClick={handleTogglePlay}
             className="btn-3d-cyan w-10 h-10 rounded-xl text-black flex items-center justify-center transition-all shadow-md shadow-cyan-500/20"
             title="Play / Pause (Space)"
           >
