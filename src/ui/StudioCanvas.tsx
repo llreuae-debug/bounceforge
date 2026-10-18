@@ -20,6 +20,7 @@ import {
   Disc,
   Zap,
   HelpCircle,
+  Hash,
 } from 'lucide-react';
 import { AdaptiveQualityManager } from '../platform/quality';
 import { triggerHaptic } from '../platform/haptics';
@@ -688,7 +689,10 @@ export const StudioCanvas: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setOverlays({ showSafeZone: !overlays.showSafeZone })}
+            onClick={() => {
+              triggerHaptic(10);
+              setOverlays({ showSafeZone: !overlays.showSafeZone });
+            }}
             className={`btn-3d-glass p-2 rounded-xl transition-all ${
               overlays.showSafeZone
                 ? 'border-red-500/50 text-red-300'
@@ -697,6 +701,21 @@ export const StudioCanvas: React.FC = () => {
             title="Toggle TikTok / Shorts Safe Zones"
           >
             <Shield className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => {
+              triggerHaptic(10);
+              setOverlays({ showCounter: !overlays.showCounter });
+            }}
+            className={`btn-3d-glass p-2 rounded-xl transition-all ${
+              overlays.showCounter
+                ? 'border-cyan-400/50 text-cyan-300 shadow-sm shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            title="Toggle Rings Left / Live Counter on screen"
+          >
+            <Hash className="w-4 h-4" />
           </button>
 
           <button

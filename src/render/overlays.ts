@@ -80,7 +80,7 @@ export const DEFAULT_OVERLAYS: OverlaySettings = {
   centerTextOpacity: 0.35,
   centerTextColor: '#ffffff',
 
-  showCounter: true,
+  showCounter: false,
   counterType: 'rings',
   counterFontSize: 36,
   counterColor: '#00f0ff',
@@ -278,9 +278,13 @@ export function drawOverlays(
     } else {
       switch (settings.counterType) {
         case 'rings':
-          counterText = customLabel
-            ? `${customLabel.toUpperCase()}: ${stats.ringsLeft}`
-            : overlayStrings.ringsLeft(stats.ringsLeft);
+          if (stats.ringsLeft <= 0 && !customLabel) {
+            counterText = '';
+          } else {
+            counterText = customLabel
+              ? `${customLabel.toUpperCase()}: ${stats.ringsLeft}`
+              : overlayStrings.ringsLeft(stats.ringsLeft);
+          }
           break;
         case 'balls':
           counterText = `${customLabel ? customLabel.toUpperCase() : overlayStrings.balls}: ${stats.ballsCount}`;
@@ -302,8 +306,10 @@ export function drawOverlays(
       }
     }
 
-    const counterPosY = arena.layout.counterY;
-    ctx.fillText(counterText, width / 2, counterPosY);
+    if (counterText) {
+      const counterPosY = arena.layout.counterY;
+      ctx.fillText(counterText, width / 2, counterPosY);
+    }
     ctx.restore();
   }
 

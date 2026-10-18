@@ -78,7 +78,7 @@ export const LandingPage: React.FC = () => {
           titleFontSize: 42,
           titleColor: '#ffffff',
           titleY: 8,
-          showCounter: true,
+          showCounter: false,
           counterType: 'rings',
           counterFontSize: 36,
           counterColor: '#00f0ff',

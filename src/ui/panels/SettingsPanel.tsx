@@ -1370,6 +1370,56 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                     </>
                   )}
                 </div>
+
+                {/* Rings Left / Live Counter On/Off Checkbox & Options */}
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-slate-200 block">Rings Left / Live Counter</span>
+                      <span className="text-[10px] text-slate-400">Show remaining rings, bounces, or stats on screen</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={overlays.showCounter ?? false}
+                      onChange={(e) => setOverlays({ showCounter: e.target.checked })}
+                      className="accent-cyan-400 rounded cursor-pointer"
+                    />
+                  </div>
+                  {overlays.showCounter && (
+                    <div className="space-y-2 pt-1 border-t border-white/5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-300">Counter Type</span>
+                        <select
+                          value={overlays.counterType || 'rings'}
+                          onChange={(e) => setOverlays({ counterType: e.target.value as any })}
+                          className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-cyan-300"
+                        >
+                          <option value="rings">Rings Left</option>
+                          <option value="bounces">Bounces</option>
+                          <option value="balls">Ball Count</option>
+                          <option value="timer">Timer</option>
+                          <option value="percent">Percent</option>
+                        </select>
+                      </div>
+                      <input
+                        type="text"
+                        value={overlays.counterCustomLabel || ''}
+                        onChange={(e) => setOverlays({ counterCustomLabel: e.target.value })}
+                        placeholder="Custom label (optional, e.g. RINGS LEFT)"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white outline-none focus:border-cyan-400"
+                      />
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 text-[11px]">Color</span>
+                        <input
+                          type="color"
+                          value={overlays.counterColor || '#00f0ff'}
+                          onChange={(e) => setOverlays({ counterColor: e.target.value })}
+                          className="w-6 h-6 rounded border border-white/10 bg-transparent cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
