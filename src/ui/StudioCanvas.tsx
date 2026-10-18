@@ -467,60 +467,62 @@ export const StudioCanvas: React.FC = () => {
   return (
     <div className="flex-1 h-[calc(100vh-4rem)] flex flex-col items-center justify-between p-3 sm:p-4 bg-[#050608] relative overflow-hidden select-none font-sans">
 
-      {/* Interactive Tool Selector Bar */}
-      <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md mb-2 shadow-sm">
-        <button
-          onClick={() => setInteractMode('play')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-            interactMode === 'play'
-              ? 'btn-3d-cyan text-black shadow-sm'
-              : 'btn-3d-glass text-slate-400 hover:text-white'
-          }`}
-          title="Click canvas to toggle Play / Pause"
-        >
-          <MousePointer className="w-3.5 h-3.5" />
-          <span>Click: Play/Pause</span>
-        </button>
+      {/* Interactive Tool Selector Bar & Outside UI Chips */}
+      <div className="flex items-center justify-between w-full max-w-md mb-1.5 gap-2 px-1">
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-sm">
+          <button
+            onClick={() => setInteractMode('play')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              interactMode === 'play'
+                ? 'btn-3d-cyan text-black shadow-sm'
+                : 'btn-3d-glass text-slate-400 hover:text-white'
+            }`}
+            title="Click canvas to toggle Play / Pause"
+          >
+            <MousePointer className="w-3.5 h-3.5" />
+            <span>Click: Play/Pause</span>
+          </button>
 
-        <button
-          onClick={() => setInteractMode('spawn')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-            interactMode === 'spawn'
-              ? 'btn-3d-purple text-white shadow-sm'
-              : 'btn-3d-glass text-slate-400 hover:text-white'
-          }`}
-          title="Click canvas to spawn an interactive bouncing ball"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Spawn Ball</span>
-        </button>
+          <button
+            onClick={() => setInteractMode('spawn')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              interactMode === 'spawn'
+                ? 'btn-3d-purple text-white shadow-sm'
+                : 'btn-3d-glass text-slate-400 hover:text-white'
+            }`}
+            title="Click canvas to spawn an interactive bouncing ball"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Spawn</span>
+          </button>
 
-        <button
-          onClick={() => setInteractMode('bumper')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-            interactMode === 'bumper'
-              ? 'btn-3d-lime text-black shadow-sm'
-              : 'btn-3d-glass text-slate-400 hover:text-white'
-          }`}
-          title="Click canvas to place a bouncy spring bumper peg"
-        >
-          <Disc className="w-3.5 h-3.5" />
-          <span>Place Bumper</span>
-        </button>
+          <button
+            onClick={() => setInteractMode('bumper')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              interactMode === 'bumper'
+                ? 'btn-3d-lime text-black shadow-sm'
+                : 'btn-3d-glass text-slate-400 hover:text-white'
+            }`}
+            title="Click canvas to place a bouncy spring bumper peg"
+          >
+            <Disc className="w-3.5 h-3.5" />
+            <span>Bumper</span>
+          </button>
+        </div>
+
+        {/* Quality Chip (Sits strictly OUTSIDE the preview frame above it, never over the video) */}
+        <div className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-[10.5px] font-mono text-cyan-300 flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
+          quality: {currentQualityTier} ({qualityMode === 'auto' ? 'auto' : 'manual'})
+        </div>
       </div>
 
       {/* 9:16 Canvas Frame */}
       <div className="flex-1 w-full flex items-center justify-center min-h-0 relative">
         <div className="h-full aspect-[9/16] rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-cyan-950/30 relative bg-[#090a0f] flex items-center justify-center">
-          {/* Quality Chip Overlay */}
-          <div className="absolute top-3 left-3 z-30 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-cyan-300 flex items-center gap-1.5 shadow-md pointer-events-none">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
-            quality: {currentQualityTier} ({qualityMode === 'auto' ? 'auto' : 'manual'})
-          </div>
-
           {/* Bounce Boost Energy Meter HUD */}
           {ballPhysics.bounceBoostEnabled && (
-            <div className="absolute top-10 left-3 z-30 px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md border border-amber-400/40 text-[10px] font-mono text-amber-300 flex items-center gap-1.5 shadow-md pointer-events-none">
+            <div className="absolute top-3 left-3 z-30 px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md border border-amber-400/40 text-[10px] font-mono text-amber-300 flex items-center gap-1.5 shadow-md pointer-events-none">
               <Zap className="w-3 h-3 text-amber-400 fill-amber-400 animate-pulse" />
               <span>boost: {Math.round(bounceBoostEnergy)}%</span>
             </div>

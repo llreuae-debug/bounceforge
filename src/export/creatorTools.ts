@@ -3,6 +3,8 @@ import { ALL_HOOKS, getRandomHook } from '../engine/hooksLibrary';
 import { BUILTIN_THEMES } from '../render/themes';
 import { BUILTIN_MELODIES } from '../audio/melodies';
 
+import { generateAutoViralTitles } from '../marble3d/viralTitles';
+
 export interface SocialCopy {
   shortsTitle: string;
   caption: string;
@@ -15,6 +17,27 @@ export interface SocialCopy {
 export function generateSocialCopy(modeName: string, hookLine: string = 'can it escape??'): SocialCopy {
   const cleanMode = modeName.toLowerCase();
   const cleanHook = hookLine.toLowerCase().replace(/[?!.]+$/, '');
+
+  if (cleanMode.includes('marble_melody') || cleanMode.includes('melody')) {
+    const melodyName = hookLine.includes('·') ? hookLine.split('·')[0].trim() : hookLine;
+    const titles = generateAutoViralTitles({
+      melodyName: melodyName.replace(/escape/gi, 'marble run'),
+      composer: 'Public Domain',
+      isPublicDomain: true,
+      totalNotes: 120,
+      marbleCount: 1,
+      objectFamilies: ['glass_tube', 'rainbow_xylophone'],
+      themePack: 'pastel_dream',
+      marbleStyle: 'glass_swirl',
+      durationSeconds: 56,
+      seed: Math.abs(cleanHook.length * 31),
+    });
+    return {
+      shortsTitle: titles.youtubeTitle,
+      caption: titles.tiktokCaption,
+      hashtags: titles.tiktokHashtags.join(' '),
+    };
+  }
 
   const titles = [
     `${cleanHook.toUpperCase()}?? ⚡ (Satisfying ASMR Physics)`,

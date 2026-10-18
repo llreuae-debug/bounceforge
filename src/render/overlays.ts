@@ -144,23 +144,47 @@ export function drawOverlays(
   const arena = getSafeArena(width, height, settings.safeZonePlatform);
   const scale = width / 1080;
 
-  // 1. Top Progress Bar
+  // 1. Top Progress Bar (Inset within frame's inner padding so rounded corners never cut it)
   if (settings.showProgressBar) {
     const progress = Math.min(1, stats.elapsedTime / settings.targetDuration);
     const barHeight = Math.max(4, Math.round(8 * scale));
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.fillRect(0, 0, width, barHeight);
+    const padX = Math.round(48 * scale);
+    const barY = Math.round(20 * scale);
+    const barW = width - padX * 2;
+    const radius = barHeight / 2;
 
-    ctx.fillStyle = settings.progressBarColor;
-    ctx.shadowColor = settings.progressBarColor;
-    ctx.shadowBlur = Math.round(10 * scale);
-    ctx.fillRect(0, 0, width * progress, barHeight);
-    ctx.shadowBlur = 0;
+    ctx.save();
+    // Track background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(padX, barY, barW, barHeight, radius) : ctx.rect(padX, barY, barW, barHeight);
+    ctx.fill();
+
+    // Progress fill
+    if (progress > 0) {
+      ctx.fillStyle = settings.progressBarColor;
+      ctx.shadowColor = settings.progressBarColor;
+      ctx.shadowBlur = Math.round(10 * scale);
+      ctx.beginPath();
+      const fillW = Math.max(radius * 2, barW * progress);
+      ctx.roundRect ? ctx.roundRect(padX, barY, fillW, barHeight, radius) : ctx.rect(padX, barY, fillW, barHeight);
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   // 2. Hook Title (Between 12% and 22% of frame height, centered, auto-shrinks to fit in safe box)
   let titleBox: { x: number; y: number; width: number; height: number } | null = null;
-  const rawTitle = settings.titleText || overlayStrings.defaultHook;
+  let rawTitle = settings.titleText || overlayStrings.defaultHook;
+  // If marble melody is running and title is ring escape default, substitute with melody hook
+  if (stats.customCounters?.modeFamily === 'marble_melody') {
+    if (!settings.titleText || settings.titleText.toLowerCase().includes('escape')) {
+      rawTitle = stats.customCounters.songTitle
+        ? `${stats.customCounters.songTitle} · marble run`
+        : 'satisfying 3D marble melody';
+    }
+  }
+
   if (settings.showTitle && rawTitle) {
     ctx.save();
     ctx.textAlign = 'center';
@@ -201,6 +225,36 @@ export function drawOverlays(
     };
   }
 
+  // Song Title Card for Marble Melody (2.5s at the start)
+  if (stats.customCounters?.modeFamily === 'marble_melody' && stats.customCounters?.songTitle && stats.elapsedTime <= 2.5) {
+    const alpha = Math.min(1, Math.max(0, (2.5 - stats.elapsedTime) / 0.5));
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const cardW = Math.min(arena.safeBox.width * 0.85, 720 * scale);
+    const cardH = 88 * scale;
+    const cardX = (width - cardW) / 2;
+    const cardY = arena.safeBox.y + 48 * scale;
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2 * scale;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(cardX, cardY, cardW, cardH, 16 * scale) : ctx.rect(cardX, cardY, cardW, cardH);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `bold ${Math.round(26 * scale)}px ${scriptFont}`;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(String(stats.customCounters.songTitle).toUpperCase(), width / 2, cardY + 30 * scale);
+
+    ctx.font = `600 ${Math.round(15 * scale)}px ${scriptFont}`;
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText('PUBLIC DOMAIN COMPOSITION · 3D MARBLE RUN', width / 2, cardY + 62 * scale);
+    ctx.restore();
+  }
+
   // Part Series Badge (Inside safe box, mirrored to top-right in RTL)
   if (settings.showPartSeries) {
     ctx.save();
@@ -230,8 +284,12 @@ export function drawOverlays(
     ctx.restore();
   }
 
-  // Prediction Intro (2-second "pick ur color" card at start of match)
-  if (settings.showPredictionIntro && stats.elapsedTime <= (settings.predictionDuration || 2.0)) {
+  // Prediction Intro (2-second "pick ur color" card at start of match - escape modes only)
+  if (
+    settings.showPredictionIntro &&
+    stats.customCounters?.modeFamily !== 'marble_melody' &&
+    stats.elapsedTime <= (settings.predictionDuration || 2.0)
+  ) {
     const alpha = Math.min(1, Math.max(0, (settings.predictionDuration || 2.0) - stats.elapsedTime));
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -278,7 +336,9 @@ export function drawOverlays(
     } else {
       switch (settings.counterType) {
         case 'rings':
-          if (stats.ringsLeft <= 0 && !customLabel) {
+          if (stats.customCounters?.modeFamily === 'marble_melody') {
+            counterText = `${customLabel || 'NOTES'}: ${stats.customCounters.counterValue || '0/100'}`;
+          } else if (stats.ringsLeft <= 0 && !customLabel) {
             counterText = '';
           } else {
             counterText = customLabel

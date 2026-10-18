@@ -126,6 +126,13 @@ export const MarbleMelodyControls: React.FC = () => {
     showToast(`Reset ${section} settings to default`);
   };
 
+  const [selectedGroup, setSelectedGroup] = useState<'ALL' | 'A' | 'B' | 'C' | 'D' | 'E'>('ALL');
+  const [selectedVariant, setSelectedVariant] = useState<'chill' | 'viral' | 'insane'>('viral');
+
+  const filteredPresets = selectedGroup === 'ALL'
+    ? MARBLE_MELODY_PRESETS
+    : MARBLE_MELODY_PRESETS.filter((p) => p.group === selectedGroup);
+
   return (
     <div className="space-y-4 text-xs select-none">
       {/* Top Action Bar: Shuffle & 10 Variations */}
@@ -146,38 +153,93 @@ export const MarbleMelodyControls: React.FC = () => {
         </button>
       </div>
 
-      {/* Preset Fast Picker */}
-      <div className="p-3 bg-white/[0.03] border border-white/10 rounded-2xl space-y-2">
+      {/* 50 Presets Fast Picker with Group Tabs & Chill/Viral/Insane Variants */}
+      <div className="p-3 bg-white/[0.03] border border-white/10 rounded-2xl space-y-2.5">
         <div className="flex items-center justify-between">
           <span className="font-bold text-slate-200 flex items-center gap-1.5">
             <Disc className="w-3.5 h-3.5 text-lime-400" />
-            12 Flagship Presets
+            50 Copyright-Safe Presets
           </span>
+
+          {/* Variant Selector */}
+          <div className="flex items-center gap-1 bg-white/5 p-0.5 rounded-lg border border-white/10">
+            {(['chill', 'viral', 'insane'] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => {
+                  triggerHaptic(10);
+                  setSelectedVariant(v);
+                }}
+                className={`px-2 py-0.5 text-[9.5px] font-bold rounded capitalize transition-all ${
+                  selectedVariant === v
+                    ? 'bg-lime-400 text-black shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-1">
-          {MARBLE_MELODY_PRESETS.map((preset) => (
+
+        {/* Group Filter Tabs */}
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[10px] font-bold">
+          {[
+            { id: 'ALL', label: 'All 50' },
+            { id: 'A', label: 'A: Classical' },
+            { id: 'B', label: 'B: Classics 2' },
+            { id: 'C', label: 'C: Traditional' },
+            { id: 'D', label: 'D: Festive' },
+            { id: 'E', label: 'E: Original Vibes' },
+          ].map((tab) => (
             <button
-              key={preset.id}
+              key={tab.id}
               onClick={() => {
-                triggerHaptic(10);
-                setSeed(preset.baseSeed);
-                const viral = preset.variants.viral;
-                updateModeSetting('melodyId', preset.melodyId);
-                Object.keys(viral).forEach((k) => {
-                  updateModeSetting(k, (viral as any)[k]);
-                });
-                showToast(`Loaded ${preset.name} (Viral 56-58s)`);
+                triggerHaptic(5);
+                setSelectedGroup(tab.id as any);
               }}
-              className={`p-2 rounded-xl text-left border transition-all ${
-                config.melodyId === preset.melodyId
-                  ? 'bg-lime-400/10 border-lime-400 text-lime-300'
-                  : 'bg-white/[0.02] border-white/5 text-slate-300 hover:border-white/20'
+              className={`px-2 py-1 rounded-lg border whitespace-nowrap transition-all ${
+                selectedGroup === tab.id
+                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
+                  : 'bg-white/[0.02] border-white/5 text-slate-400 hover:text-white'
               }`}
             >
-              <div className="font-bold truncate text-[11px]">{preset.name}</div>
-              <div className="text-[9px] text-slate-400 truncate">{preset.description}</div>
+              {tab.label}
             </button>
           ))}
+        </div>
+
+        {/* Presets Grid */}
+        <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
+          {filteredPresets.map((preset) => {
+            const variantCfg = preset.variants[selectedVariant];
+            return (
+              <button
+                key={preset.id}
+                onClick={() => {
+                  triggerHaptic(10);
+                  setSeed(preset.baseSeed + (selectedVariant === 'insane' ? 99 : 0));
+                  updateModeSetting('melodyId', preset.melodyId);
+                  Object.keys(variantCfg).forEach((k) => {
+                    updateModeSetting(k, (variantCfg as any)[k]);
+                  });
+                  showToast(`Loaded #${preset.presetNumber} ${preset.name} (${selectedVariant})`);
+                }}
+                className={`p-2 rounded-xl text-left border transition-all ${
+                  config.melodyId === preset.melodyId
+                    ? 'bg-lime-400/10 border-lime-400 text-lime-300'
+                    : 'bg-white/[0.02] border-white/5 text-slate-300 hover:border-white/20'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-bold truncate text-[11px]">
+                    {preset.presetNumber.toString().padStart(2, '0')}. {preset.name}
+                  </span>
+                </div>
+                <div className="text-[9px] text-slate-400 truncate">{preset.exampleHook}</div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -501,20 +563,36 @@ export const MarbleMelodyControls: React.FC = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-slate-400">Wall Color</label>
+            <label className="text-[10px] font-semibold text-slate-400">3D Wall Surface</label>
             <select
               value={config.wallBackground}
               onChange={(e) => updateModeSetting('wallBackground', e.target.value as WallBackground)}
               className="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-slate-200 outline-none"
             >
-              <option value="pastel_peach">Pastel Peach</option>
-              <option value="pastel_mint">Pastel Mint</option>
-              <option value="pastel_lavender">Pastel Lavender</option>
-              <option value="pastel_sky">Pastel Sky Blue</option>
-              <option value="cream">Soft Cream</option>
-              <option value="blush">Blush Pink</option>
-              <option value="sand">Warm Sand</option>
-              <option value="soft_grey">Studio Grey</option>
+              <optgroup label="3D PBR Materials">
+                <option value="matte_plaster">Matte Plaster</option>
+                <option value="soft_paper">Soft Paper</option>
+                <option value="fine_stucco">Fine Stucco</option>
+                <option value="satin_paint">Satin Paint</option>
+                <option value="light_wood">Light Wood Grain</option>
+                <option value="frosted_acrylic">Frosted Acrylic</option>
+                <option value="soft_fabric">Soft Fabric</option>
+              </optgroup>
+              <optgroup label="Theme Palettes">
+                <option value="pastel_peach">Pastel Peach</option>
+                <option value="pastel_mint">Pastel Mint</option>
+                <option value="pastel_lavender">Pastel Lavender</option>
+                <option value="pastel_sky">Pastel Sky Blue</option>
+                <option value="candy_pink">Candy Pink</option>
+                <option value="cream">Soft Cream</option>
+                <option value="blush">Blush Pink</option>
+                <option value="sand">Warm Sand</option>
+                <option value="lilac">Lilac Mist</option>
+                <option value="deep_teal">Deep Teal</option>
+                <option value="night_blue">Night Blue</option>
+                <option value="neon_grid">Neon Grid</option>
+                <option value="starfield">Starfield Galaxy</option>
+              </optgroup>
             </select>
           </div>
         </div>

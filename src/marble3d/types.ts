@@ -48,6 +48,15 @@ export type ThemePack =
   | 'winter_crystal'
   | 'festive';
 
+export type WallTexture =
+  | 'matte_plaster'
+  | 'soft_paper'
+  | 'fine_stucco'
+  | 'satin_paint'
+  | 'light_wood'
+  | 'frosted_acrylic'
+  | 'soft_fabric';
+
 export type WallBackground =
   | 'pastel_peach'
   | 'pastel_mint'
@@ -56,7 +65,23 @@ export type WallBackground =
   | 'cream'
   | 'blush'
   | 'sand'
-  | 'soft_grey';
+  | 'soft_grey'
+  | 'matte_plaster'
+  | 'soft_paper'
+  | 'fine_stucco'
+  | 'satin_paint'
+  | 'light_wood'
+  | 'frosted_acrylic'
+  | 'soft_fabric'
+  | 'neon_grid'
+  | 'starfield'
+  | 'amber_wood'
+  | 'red_gold'
+  | 'deep_teal'
+  | 'lilac'
+  | 'mint'
+  | 'candy_pink'
+  | 'night_blue';
 
 export type LightingStyle =
   | 'soft_studio'
@@ -232,3 +257,29 @@ export interface MarbleMelodyRun {
     skimmingObjectId: string;
   };
 }
+
+export interface AutoViralTitles {
+  onScreenHook: string;
+  hookAlternatives: {
+    hook: string;
+    recommended?: boolean;
+    formula: string;
+  }[];
+  tiktokCaption: string;
+  tiktokHashtags: string[];
+  youtubeTitle: string;
+  reelsCaption: string;
+  reelsHashtags: string[];
+  pinnedComment: string;
+}
+
+export interface MelodyCopyrightInfo {
+  melodyId: string;
+  name: string;
+  composer: string;
+  deathYearOrOrigin: string;
+  source: 'original score notes' | 'original composition';
+  publicDomain: boolean;
+  legalNotice: string;
+}
+

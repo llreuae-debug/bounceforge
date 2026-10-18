@@ -30,7 +30,7 @@ class LcgRng {
   }
 }
 
-// Act object families order
+// Object family order for acts
 const ACT_FAMILIES: TunedObjectType[] = [
   'glass_tube',
   'metal_tack',
@@ -63,9 +63,13 @@ const FAMILY_COLORS: Record<TunedObjectType, string[]> = {
   final_catcher: ['#fbcfe8', '#e0f2fe', '#fef08a'],
 };
 
+// Play corridor constants: 60% of safe-box width (frame width ~2.32, safe ~1.85, 60% corridor = ±0.55)
+export const PLAY_CORRIDOR_HALF_WIDTH = 0.55;
+export const MAX_SAFE_X = 0.62;
+
 export class MusicToLayoutSolver {
   /**
-   * Solves a complete deterministic 3D marble melody run
+   * Solves a complete deterministic 3D marble melody run with centered framing
    */
   static solveRun(config: MarbleMelodyConfig, rawNotes?: MelodyNote[]): MarbleMelodyRun {
     const rng = new LcgRng(config.seed);
@@ -106,30 +110,28 @@ export class MusicToLayoutSolver {
       })
       .sort((a, b) => a.time - b.time);
 
-    // Filter <90ms overlaps: route notes to secondary marble lanes if closer than 90ms
     const marbleCount = config.marbleCount || 1;
     const laneNotes: MelodyNote[][] = Array.from({ length: marbleCount }, () => []);
 
+    // Filter <180ms overlaps: route notes to secondary marble lanes if closer than 180ms
     for (const note of filteredNotes) {
-      // Determine lane: if note has explicit lane matching active marbles, use it;
-      // otherwise, if too close to previous note on lane 0 (<90ms), spill to lane 1 or 2
       let targetLane = Math.min(marbleCount - 1, note.lane || 0);
       const prevOnTarget = laneNotes[targetLane][laneNotes[targetLane].length - 1];
 
-      if (prevOnTarget && Math.abs(note.time - prevOnTarget.time) < 0.09) {
-        // Try other lanes
+      if (prevOnTarget && Math.abs(note.time - prevOnTarget.time) < 0.18) {
         let placed = false;
         for (let l = 0; l < marbleCount; l++) {
           const prevL = laneNotes[l][laneNotes[l].length - 1];
-          if (!prevL || Math.abs(note.time - prevL.time) >= 0.09) {
+          if (!prevL || Math.abs(note.time - prevL.time) >= 0.18) {
             targetLane = l;
             placed = true;
             break;
           }
         }
         if (!placed) {
-          // If all lanes full at this instant, skip micro-chord duplicate to preserve clean physical bounce
-          continue;
+          // If all lanes active within 180ms, space note forward slightly
+          const minSpacing = 0.18;
+          note.time = parseFloat((prevOnTarget.time + minSpacing).toFixed(4));
         }
       }
 
@@ -139,14 +141,42 @@ export class MusicToLayoutSolver {
       });
     }
 
+    // Density Guard: Ensure gaps between consecutive hits are between 0.18s and 0.75s
+    // If a gap > 0.75s exists, insert guide/rhythm notes so 3-6 objects remain ahead and screen never empties
+    for (let l = 0; l < marbleCount; l++) {
+      const denseList: MelodyNote[] = [];
+      const current = laneNotes[l];
+      for (let i = 0; i < current.length; i++) {
+        denseList.push(current[i]);
+        const next = current[i + 1];
+        if (next && next.time - current[i].time > 0.75) {
+          let insertTime = current[i].time + 0.50;
+          while (insertTime < next.time - 0.25) {
+            const interpolatedMidi = Math.round((current[i].midi + next.midi) / 2);
+            denseList.push({
+              time: parseFloat(insertTime.toFixed(4)),
+              duration: 0.35,
+              midi: interpolatedMidi,
+              freq: 440 * Math.pow(2, (interpolatedMidi - 69) / 12),
+              pitchName: 'G4',
+              velocity: 0.75,
+              lane: l,
+            });
+            insertTime += 0.55;
+          }
+        }
+      }
+      laneNotes[l] = denseList.sort((a, b) => a.time - b.time);
+    }
+
     const lastNoteTime = Math.max(
       ...laneNotes.flatMap((ln) => ln.map((n) => n.time)),
       10.0
     );
-    const catchTime = lastNoteTime + 0.2;
+    const catchTime = lastNoteTime + 0.25;
     const duration = lastNoteTime + 1.2;
 
-    // 2. Setup Acts (6-10s each)
+    // 2. Setup Acts (5 acts across duration)
     const actCount = config.actCount || 5;
     const actDuration = duration / actCount;
     const acts = [];
@@ -167,13 +197,15 @@ export class MusicToLayoutSolver {
     const lanes: MarbleRunLane[] = [];
     const marbleColors = ['#f472b6', '#38bdf8', '#facc15'];
 
-    // 3. Solve Physics & Path for each lane
-    // Lane X center offset (keeps 1, 2, 3 marbles separated horizontally without collision)
+    // 3. Centered Play Corridor Offsets:
+    // Single marble: centered at 0, swings ±0.30
+    // 2 marbles: [-0.28, +0.28], swings ±0.08
+    // 3 marbles: [-0.38, 0, +0.38], swings ±0.06
     const laneXOffsets = marbleCount === 1
       ? [0]
       : marbleCount === 2
-      ? [-2.5, 2.5]
-      : [-3.8, 0, 3.8];
+      ? [-0.28, 0.28]
+      : [-0.38, 0, 0.38];
 
     for (let laneIdx = 0; laneIdx < marbleCount; laneIdx++) {
       const currentNotes = laneNotes[laneIdx];
@@ -181,10 +213,9 @@ export class MusicToLayoutSolver {
       const lanePoints: MarblePathPoint[] = [];
       const laneHits: { objectId: string; time: number; note: MelodyNote }[] = [];
 
-      // Starting Position
       let posX = laneXBase;
-      let posY = 2.0; // wall top
-      let posZ = 0.35;
+      let posY = 1.8; // wall top
+      let posZ = 0.32;
       let velX = 0;
       let velY = 0;
       let velZ = 0;
@@ -198,23 +229,22 @@ export class MusicToLayoutSolver {
       let noteIdx = 0;
       let nextNote = currentNotes[noteIdx];
 
-      // Initial fall to first note
-      const firstNoteTime = nextNote ? nextNote.time : 1.0;
-
       while (currentTime < duration) {
         if (nextNote && currentTime >= nextNote.time - dt * 0.5) {
-          // HIT EVENT: Impact on tuned object!
+          // HIT EVENT: Impact on tuned object
           const act = acts.find((a) => currentTime >= a.startTime && currentTime <= a.endTime) || acts[0];
           const objectType = act.family;
           const colors = FAMILY_COLORS[objectType] || ['#38bdf8'];
           const color = colors[noteIdx % colors.length];
 
-          // Object placement with collision check
-          const objId = `obj_${laneIdx}_${noteIdx}_${currentTime.toFixed(3)}`;
-          const objectPos = { x: posX, y: posY, z: posZ - 0.1 };
+          // Clamp object position strictly inside play corridor: |x| <= 0.52
+          const clampedX = Math.max(-PLAY_CORRIDOR_HALF_WIDTH, Math.min(PLAY_CORRIDOR_HALF_WIDTH, posX));
+          posX = clampedX;
 
-          // Pitch ratio for scaling (e.g. crystal water height or chime length)
-          const pitchRatio = Math.max(0.4, Math.min(2.5, nextNote.freq / 440));
+          const objId = `obj_${laneIdx}_${noteIdx}_${currentTime.toFixed(3)}`;
+          const objectPos = { x: posX, y: posY, z: posZ - 0.08 };
+
+          const pitchRatio = Math.max(0.6, Math.min(1.8, nextNote.freq / 440));
 
           const objectInstance: TunedObjectInstance = {
             id: objId,
@@ -222,15 +252,15 @@ export class MusicToLayoutSolver {
             x: objectPos.x,
             y: objectPos.y,
             z: objectPos.z,
-            rotationX: rng.range(-0.15, 0.15),
-            rotationY: rng.range(-0.25, 0.25),
-            rotationZ: rng.range(-0.35, 0.35),
+            rotationX: rng.range(-0.08, 0.08),
+            rotationY: rng.range(-0.12, 0.12),
+            rotationZ: rng.range(-0.18, 0.18),
             scaleX: 1.0,
             scaleY: 1.0 / pitchRatio,
             scaleZ: 1.0,
             pinX: objectPos.x,
-            pinY: objectPos.y + 0.1,
-            pinZ: objectPos.z - 0.15,
+            pinY: objectPos.y + 0.08,
+            pinZ: objectPos.z - 0.12,
             note: nextNote,
             color,
             hitTime: currentTime,
@@ -239,22 +269,19 @@ export class MusicToLayoutSolver {
             pitchRatio,
           };
 
-          // Collision & Overlap check against previously placed objects
-          let hasOverlap = false;
+          // Clearance & non-overlap check
           for (const existing of allObjects) {
             const dx = existing.x - objectInstance.x;
             const dy = existing.y - objectInstance.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 0.45) {
-              hasOverlap = true;
-              break;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 0.32) {
+              // Nudge vertically or horizontally while staying within corridor
+              objectInstance.x = Math.max(
+                -PLAY_CORRIDOR_HALF_WIDTH,
+                Math.min(PLAY_CORRIDOR_HALF_WIDTH, objectInstance.x + (dx > 0 ? -0.1 : 0.1))
+              );
+              objectInstance.y -= 0.12;
             }
-          }
-
-          if (hasOverlap) {
-            // Deterministic nudge
-            objectInstance.x += rng.range(-0.25, 0.25);
-            objectInstance.y += rng.range(-0.1, 0.1);
           }
 
           allObjects.push(objectInstance);
@@ -265,34 +292,33 @@ export class MusicToLayoutSolver {
           nextNote = currentNotes[noteIdx];
 
           if (nextNote) {
-            const timeToNext = Math.max(0.08, nextNote.time - currentTime);
-            // Targeted trajectory: solve vX and vY to land smoothly at next note
-            // Next note X target oscillates in pathStyle (zigzag, scurve, etc.)
+            const timeToNext = Math.max(0.12, nextNote.time - currentTime);
+            // Targeted trajectory: nextTargetX strictly inside corridor
             let nextTargetX = laneXBase;
-            const maxSwing = marbleCount === 1 ? 1.8 : 0.85;
+            const maxSwing = marbleCount === 1 ? 0.32 : marbleCount === 2 ? 0.08 : 0.05;
+
             if (config.pathStyle === 'zigzag') {
-              nextTargetX += (noteIdx % 2 === 0 ? 1 : -1) * rng.range(0.3, maxSwing);
+              nextTargetX += (noteIdx % 2 === 0 ? 1 : -1) * rng.range(0.02, maxSwing);
             } else if (config.pathStyle === 'scurve') {
-              nextTargetX += Math.sin(noteIdx * 0.8) * maxSwing;
-            } else if (config.pathStyle === 'wide_swings') {
-              nextTargetX += (noteIdx % 2 === 0 ? 1 : -1) * rng.range(0.4, maxSwing);
+              nextTargetX += Math.sin(noteIdx * 0.9) * maxSwing;
             } else {
               nextTargetX += rng.range(-maxSwing, maxSwing);
             }
 
-            // Downward step per note
-            const targetY = posY - rng.range(0.8, 1.6);
+            // Keep target strictly inside corridor
+            nextTargetX = Math.max(-PLAY_CORRIDOR_HALF_WIDTH, Math.min(PLAY_CORRIDOR_HALF_WIDTH, nextTargetX));
+
+            // Downward step per note (0.45 - 0.95 units)
+            const targetY = posY - rng.range(0.48, 0.95);
             velX = (nextTargetX - posX) / timeToNext;
-            // Parabolic kinematic solve: deltaY = velY * t + 0.5 * g * t^2
             const gravity = -9.8;
             velY = (targetY - posY - 0.5 * gravity * timeToNext * timeToNext) / timeToNext;
           } else {
-            // Finale bounce into catcher
-            velX = (laneXBase - posX) * 0.8;
-            velY = 2.0;
+            // Finale bounce into centered catcher
+            velX = (laneXBase - posX) * 0.9;
+            velY = 1.8;
           }
 
-          // Record Hit Point
           lanePoints.push({
             time: parseFloat(currentTime.toFixed(4)),
             x: parseFloat(posX.toFixed(4)),
@@ -308,15 +334,23 @@ export class MusicToLayoutSolver {
             hitObjectId: objId,
           });
         } else {
-          // Guided ballistic motion with rolling spin
+          // Guided ballistic trajectory
           const gravity = -9.8;
           velY += gravity * dt;
           posX += velX * dt;
           posY += velY * dt;
-          posZ = 0.35 + Math.sin(currentTime * 4) * 0.05;
+          posZ = 0.32 + Math.sin(currentTime * 3.5) * 0.03;
 
-          // Rolling spin angular velocity
-          const marbleRadius = config.marbleSize === 'small' ? 0.12 : config.marbleSize === 'large' ? 0.22 : 0.16;
+          // Corridor soft boundary spring
+          if (posX > PLAY_CORRIDOR_HALF_WIDTH) {
+            posX = PLAY_CORRIDOR_HALF_WIDTH;
+            velX = -Math.abs(velX) * 0.6;
+          } else if (posX < -PLAY_CORRIDOR_HALF_WIDTH) {
+            posX = -PLAY_CORRIDOR_HALF_WIDTH;
+            velX = Math.abs(velX) * 0.6;
+          }
+
+          const marbleRadius = config.marbleSize === 'small' ? 0.06 : config.marbleSize === 'large' ? 0.09 : 0.075;
           rotX += (velY / marbleRadius) * dt;
           rotZ -= (velX / marbleRadius) * dt;
 
@@ -341,23 +375,23 @@ export class MusicToLayoutSolver {
       lanes.push({
         laneIndex: laneIdx,
         marbleColor: marbleColors[laneIdx % marbleColors.length],
-        marbleRadius: config.marbleSize === 'small' ? 0.12 : config.marbleSize === 'large' ? 0.22 : 0.16,
+        marbleRadius: config.marbleSize === 'small' ? 0.06 : config.marbleSize === 'large' ? 0.09 : 0.075,
         points: lanePoints,
         hits: laneHits,
       });
     }
 
-    // 4. Finale Catcher (placed at bottom of wall)
+    // 4. Finale Catcher (centered at bottom)
     const lowestY = Math.min(...allObjects.map((o) => o.y), -10);
     const catcher = {
       type: 'glass_cup' as const,
       x: 0,
-      y: lowestY - 1.5,
-      z: 0.3,
+      y: lowestY - 1.2,
+      z: 0.28,
       catchTime: parseFloat(catchTime.toFixed(2)),
     };
 
-    // 5. Decor Props (100% Original: Mascot in dome, toy doors, potted plants, toy cars, origami, planets, candies)
+    // 5. Decor Props (Placed OUTSIDE the play corridor, |x| >= 0.72)
     const decor: DecorInstance[] = [];
     if (config.decorEnabled !== false) {
       const decorTypes: Array<DecorInstance['type']> = [
@@ -370,26 +404,29 @@ export class MusicToLayoutSolver {
         'candy_lozenge',
         'toy_car',
       ];
-      const count = Math.floor(12 * (config.decorDensity || 0.8));
+      const count = Math.floor(14 * (config.decorDensity || 0.8));
       for (let i = 0; i < count; i++) {
         const dType = decorTypes[i % decorTypes.length];
-        const decorY = rng.range(lowestY + 1.0, 1.5);
-        const decorX = rng.range(-4.2, 4.2);
+        const decorY = rng.range(lowestY + 1.0, 1.2);
+        // Kept outside play corridor so props never block the marble path
+        const sideSign = i % 2 === 0 ? 1 : -1;
+        const decorX = sideSign * rng.range(0.74, 1.05);
+
         decor.push({
           id: `decor_${i}`,
           type: dType,
           x: decorX,
           y: decorY,
-          z: 0.15,
+          z: 0.12,
           rotationX: rng.range(-0.1, 0.1),
-          rotationY: rng.range(-0.3, 0.3),
-          rotationZ: rng.range(-0.2, 0.2),
-          scale: rng.range(0.7, 1.1),
+          rotationY: rng.range(-0.25, 0.25),
+          rotationZ: rng.range(-0.15, 0.15),
+          scale: rng.range(0.75, 1.05),
         });
       }
     }
 
-    // 6. Embossed 3D @handle text on the wall (soft shadow, inside safe area, repeating vertically)
+    // 6. Embossed 3D @handle text on the wall
     const embossedHandles: EmbossedHandleInstance[] = [];
     const handleText = config.handleText || '@BounceForge';
     const totalWallHeight = Math.abs(lowestY) + 4;
@@ -398,23 +435,23 @@ export class MusicToLayoutSolver {
       embossedHandles.push({
         id: `handle_${i}`,
         text: handleText,
-        x: (i % 2 === 0 ? -1.8 : 1.8),
+        x: i % 2 === 0 ? -0.72 : 0.72,
         y: 0.5 - i * 6.0,
         z: 0.02,
       });
     }
 
-    // 7. Near Miss Tease before finale (skims an object without hitting it)
-    const nearMissTime = duration - 3.5;
+    // 7. Near Miss Tease before finale
+    const nearMissTime = duration - 3.2;
     const nearMissTease = {
       time: nearMissTime,
-      x: 0.4,
-      y: lowestY + 0.5,
-      z: 0.35,
+      x: 0.22,
+      y: lowestY + 0.4,
+      z: 0.32,
       skimmingObjectId: 'near_miss_pin',
     };
 
-    return {
+    const run: MarbleMelodyRun = {
       seed: config.seed,
       duration,
       config,
@@ -425,5 +462,71 @@ export class MusicToLayoutSolver {
       embossedHandles,
       nearMissTease,
     };
+
+    // Automated Framing Verification Check
+    const framingCheck = MusicToLayoutSolver.verifyFraming(run);
+    if (!framingCheck.passed) {
+      console.warn('Framing check notice:', framingCheck.reason);
+    }
+
+    return run;
+  }
+
+  /**
+   * Automated Framing Verification:
+   * Checks that marble and all objects stay within safe boundaries
+   * and that no more than 35% empty frame occurs for >1.0s.
+   */
+  static verifyFraming(run: MarbleMelodyRun): { passed: boolean; reason?: string } {
+    // 1. Check all object positions stay inside MAX_SAFE_X
+    for (const obj of run.objects) {
+      if (Math.abs(obj.x) > MAX_SAFE_X) {
+        return {
+          passed: false,
+          reason: `Object ${obj.id} at x=${obj.x.toFixed(3)} exceeds safe corridor (${MAX_SAFE_X})`,
+        };
+      }
+    }
+
+    // 2. Sample trajectory frames (60fps)
+    const dt = 1 / 60;
+    const sampleCount = Math.floor(run.duration / dt);
+    let emptySeconds = 0;
+
+    for (let i = 0; i < sampleCount; i++) {
+      const t = i * dt;
+      const ptIdx = Math.min(run.lanes[0].points.length - 1, Math.floor(t * 240));
+      const pt = run.lanes[0].points[ptIdx];
+
+      if (!pt) continue;
+
+      // Ball within safe corridor
+      if (Math.abs(pt.x) > MAX_SAFE_X) {
+        return {
+          passed: false,
+          reason: `Marble at t=${t.toFixed(2)}s wandered to x=${pt.x.toFixed(3)} outside safe corridor`,
+        };
+      }
+
+      // Density check: count visible objects in current vertical viewport (height ~3.8 units)
+      const camY = pt.y - 0.6;
+      const visibleObjects = run.objects.filter(
+        (o) => Math.abs(o.y - camY) < 2.0
+      );
+
+      if (visibleObjects.length < 2 && t < run.duration - 2.5) {
+        emptySeconds += dt;
+        if (emptySeconds > 1.0) {
+          return {
+            passed: false,
+            reason: `Sparse area detected at t=${t.toFixed(2)}s (>1s with <2 objects)`,
+          };
+        }
+      } else {
+        emptySeconds = 0;
+      }
+    }
+
+    return { passed: true };
   }
 }

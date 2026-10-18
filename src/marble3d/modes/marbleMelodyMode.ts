@@ -65,6 +65,12 @@ export const MarbleMelodyMode: SimulationMode = {
     world.customState.currentTime = 0;
     world.customState.eventIdCounter = 1;
     world.customState.is3D = true;
+    world.customState.modeFamily = 'marble_melody';
+    world.customState.songTitle = config.customMidiName || config.melodyId.replace(/_/g, ' ');
+    world.customState.counterLabel = 'NOTES';
+    world.customState.totalNotes = run.objects.length;
+    world.customState.hitsSoFar = 0;
+    world.customState.counterValue = `0/${run.objects.length}`;
 
     // Instantiate and prepare 3D Three.js renderer
     const renderer3D = new MarbleMelodyRenderer();
@@ -105,6 +111,16 @@ export const MarbleMelodyMode: SimulationMode = {
     if (!world.customState.eventIdCounter) {
       world.customState.eventIdCounter = 1;
     }
+
+    // Count hits up to current time
+    let hitsSoFar = 0;
+    for (const lane of run.lanes) {
+      for (const h of lane.hits) {
+        if (h.time <= currTime) hitsSoFar++;
+      }
+    }
+    world.customState.hitsSoFar = hitsSoFar;
+    world.customState.counterValue = `${hitsSoFar}/${run.objects.length}`;
 
     // Emit note collision hits as simulation time crosses hit.time
     for (const lane of run.lanes) {
