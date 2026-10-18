@@ -29,6 +29,8 @@ export const DEFAULT_MARBLE_MELODY_CONFIG: MarbleMelodyConfig = {
   trimStartSeconds: 0,
   trimEndSeconds: 60,
   targetDuration: 56, // Default Viral Reel Time
+  reelSpeed: 0.5, // 0.5x Slow Motion Default
+  slowMoMode: 'calm_tempo', // Calm Tempo Choice A Default
 
   actCount: 5,
   acts: [

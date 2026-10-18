@@ -52,7 +52,18 @@ const WALL_COLOR_SWATCHES = [
 ];
 
 export const MarbleMelodyControls: React.FC = () => {
-  const { modeSettings, updateModeSetting, seed, setSeed, showToast, targetDuration, setTargetDuration } = useStudioStore();
+  const {
+    modeSettings,
+    updateModeSetting,
+    seed,
+    setSeed,
+    showToast,
+    targetDuration,
+    setTargetDuration,
+    reelSpeed,
+    marbleMelodySlowMoMode,
+    setMarbleMelodySlowMoMode,
+  } = useStudioStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -323,6 +334,53 @@ export const MarbleMelodyControls: React.FC = () => {
               onChange={(e) => updateModeSetting('transposeSemitones', parseInt(e.target.value))}
               className="w-full accent-purple-400 cursor-pointer"
             />
+          </div>
+        </div>
+
+        {/* Slow-Motion Melody Choice: Calm Tempo vs Normal Tempo (Part 4) */}
+        <div className="pt-2 border-t border-white/5 space-y-1.5">
+          <div className="flex justify-between items-center text-[10px]">
+            <span className="font-bold text-slate-300">Slow-Motion Melody Mode</span>
+            <span className="text-purple-300 font-mono text-[9.5px]">Reel: {reelSpeed ?? 0.5}x</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              onClick={() => {
+                triggerHaptic(10);
+                setMarbleMelodySlowMoMode('calm_tempo');
+                updateModeSetting('marbleMelodySlowMoMode', 'calm_tempo');
+                updateModeSetting('slowMoMode', 'calm_tempo');
+              }}
+              className={`p-2 rounded-xl text-left transition-all ${
+                (marbleMelodySlowMoMode ?? 'calm_tempo') === 'calm_tempo'
+                  ? 'btn-3d-purple text-white shadow-sm'
+                  : 'btn-3d-glass text-slate-400 hover:text-white'
+              }`}
+            >
+              <div className="text-[11px] font-black">Calm Tempo (Default)</div>
+              <div className="text-[9.5px] opacity-80 leading-tight mt-0.5">
+                Half-tempo melody, peaceful ASMR spacing
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                triggerHaptic(10);
+                setMarbleMelodySlowMoMode('normal_tempo');
+                updateModeSetting('marbleMelodySlowMoMode', 'normal_tempo');
+                updateModeSetting('slowMoMode', 'normal_tempo');
+              }}
+              className={`p-2 rounded-xl text-left transition-all ${
+                marbleMelodySlowMoMode === 'normal_tempo'
+                  ? 'btn-3d-purple text-white shadow-sm'
+                  : 'btn-3d-glass text-slate-400 hover:text-white'
+              }`}
+            >
+              <div className="text-[11px] font-black">Normal Tempo</div>
+              <div className="text-[9.5px] opacity-80 leading-tight mt-0.5">
+                Original tempo with compact object spacing
+              </div>
+            </button>
           </div>
         </div>
       </div>

@@ -124,9 +124,8 @@ export class MarbleMelodyRenderer {
     // 5. Light Leak Mesh (gentle warm colored vignette drifting across the wall)
     const leakGeo = new THREE.PlaneGeometry(8, 8);
     const leakCanvas = this.createLightLeakCanvas();
-    const leakTexture = new THREE.CanvasTexture(leakCanvas);
     const leakMat = new THREE.MeshBasicMaterial({
-      map: leakTexture,
+      map: leakCanvas ? new THREE.CanvasTexture(leakCanvas) : null,
       transparent: true,
       opacity: 0.18,
       blending: THREE.AdditiveBlending,
@@ -238,11 +237,13 @@ export class MarbleMelodyRenderer {
   /**
    * Creates subtle colored light leak gradient canvas
    */
-  private createLightLeakCanvas(): HTMLCanvasElement {
+  private createLightLeakCanvas(): HTMLCanvasElement | null {
+    if (typeof document === 'undefined') return null;
     const c = document.createElement('canvas');
     c.width = 128;
     c.height = 128;
-    const ctx = c.getContext('2d')!;
+    const ctx = c.getContext('2d');
+    if (!ctx) return c;
 
     const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64);
     grad.addColorStop(0, 'rgba(251, 146, 60, 0.85)');
@@ -271,17 +272,22 @@ export class MarbleMelodyRenderer {
     geo.setAttribute('position', new THREE.BufferAttribute(this.dustPositions, 3));
 
     // Soft round bokeh texture
-    const c = document.createElement('canvas');
-    c.width = 64;
-    c.height = 64;
-    const ctx = c.getContext('2d')!;
-    const g = ctx.createRadialGradient(32, 32, 4, 32, 32, 30);
-    g.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-    g.addColorStop(0.5, 'rgba(254, 240, 138, 0.25)');
-    g.addColorStop(1, 'rgba(254, 240, 138, 0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 64, 64);
-    const tex = new THREE.CanvasTexture(c);
+    let tex: THREE.CanvasTexture | null = null;
+    if (typeof document !== 'undefined') {
+      const c = document.createElement('canvas');
+      c.width = 64;
+      c.height = 64;
+      const ctx = c.getContext('2d');
+      if (ctx) {
+        const g = ctx.createRadialGradient(32, 32, 4, 32, 32, 30);
+        g.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+        g.addColorStop(0.5, 'rgba(254, 240, 138, 0.25)');
+        g.addColorStop(1, 'rgba(254, 240, 138, 0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 64, 64);
+        tex = new THREE.CanvasTexture(c);
+      }
+    }
 
     const mat = new THREE.PointsMaterial({
       map: tex,

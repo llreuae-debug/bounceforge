@@ -41,6 +41,10 @@ export interface StudioProject {
   asmrSettings: AsmrMixSettings;
   customNotes?: NoteItem[];
   targetDuration?: number;
+  reelSpeed?: number;
+  slowMoSoundFeel?: boolean;
+  speedRampFinale?: boolean;
+  marbleMelodySlowMoMode?: 'calm_tempo' | 'normal_tempo';
 }
 
 export type StudioRoute =
@@ -80,6 +84,10 @@ interface StudioState {
   playbackSpeed: number;
   isMuted: boolean;
   targetDuration: number; // seconds the animation should complete in
+  reelSpeed: number; // 0.25, 0.5, 0.75, 1.0, 1.25. DEFAULT = 0.5
+  slowMoSoundFeel: boolean;
+  speedRampFinale: boolean;
+  marbleMelodySlowMoMode: 'calm_tempo' | 'normal_tempo';
 
   // Ball Physics & Custom Ball
   ballPhysics: BallPhysicsSettings;
@@ -139,6 +147,10 @@ interface StudioState {
   setPlaybackSpeed: (speed: number) => void;
   setIsMuted: (muted: boolean) => void;
   setTargetDuration: (seconds: number) => void;
+  setReelSpeed: (speed: number) => void;
+  setSlowMoSoundFeel: (enabled: boolean) => void;
+  setSpeedRampFinale: (enabled: boolean) => void;
+  setMarbleMelodySlowMoMode: (mode: 'calm_tempo' | 'normal_tempo') => void;
 
   // Ball & Wall Setters
   setBallPhysics: (updates: Partial<BallPhysicsSettings>) => void;
@@ -216,6 +228,10 @@ export const useStudioStore = create<StudioState>((set, get) => {
     playbackSpeed: 1.0,
     isMuted: false,
     targetDuration: DEFAULT_TARGET_DURATION,
+    reelSpeed: 0.5, // 0.25, 0.5, 0.75, 1.0, 1.25. DEFAULT = 0.5
+    slowMoSoundFeel: false,
+    speedRampFinale: false,
+    marbleMelodySlowMoMode: 'calm_tempo',
 
     // Ball Physics & Custom Ball
     ballPhysics: {
@@ -392,6 +408,22 @@ export const useStudioStore = create<StudioState>((set, get) => {
       set({ targetDuration: Math.max(1, Math.round(seconds)) });
       get().saveToIndexedDB();
     },
+    setReelSpeed: (speed) => {
+      set({ reelSpeed: speed });
+      get().saveToIndexedDB();
+    },
+    setSlowMoSoundFeel: (enabled) => {
+      set({ slowMoSoundFeel: enabled });
+      get().saveToIndexedDB();
+    },
+    setSpeedRampFinale: (enabled) => {
+      set({ speedRampFinale: enabled });
+      get().saveToIndexedDB();
+    },
+    setMarbleMelodySlowMoMode: (mode) => {
+      set({ marbleMelodySlowMoMode: mode });
+      get().saveToIndexedDB();
+    },
 
     // Ball & Wall Setters
     setBallPhysics: (updates) =>
@@ -425,6 +457,10 @@ export const useStudioStore = create<StudioState>((set, get) => {
           customBall: state.customBall,
           targetDuration: state.targetDuration,
           resolution: state.resolution,
+          reelSpeed: state.reelSpeed,
+          slowMoSoundFeel: state.slowMoSoundFeel,
+          speedRampFinale: state.speedRampFinale,
+          marbleMelodySlowMoMode: state.marbleMelodySlowMoMode,
         },
         userId
       );
@@ -451,6 +487,10 @@ export const useStudioStore = create<StudioState>((set, get) => {
         customBall: { ...preset.customBall },
         targetDuration: preset.targetDuration,
         resolution: preset.resolution || '1080',
+        reelSpeed: preset.reelSpeed !== undefined ? preset.reelSpeed : 0.5,
+        slowMoSoundFeel: preset.slowMoSoundFeel ?? false,
+        speedRampFinale: preset.speedRampFinale ?? false,
+        marbleMelodySlowMoMode: preset.marbleMelodySlowMoMode ?? 'calm_tempo',
       });
       get().showToast(`Loaded preset "${preset.name}"!`);
     },
@@ -667,6 +707,11 @@ export const useStudioStore = create<StudioState>((set, get) => {
         generativeScale: 'pentatonic',
         generativeMood: 'dreamy',
         customNotes: [],
+        targetDuration: DEFAULT_TARGET_DURATION,
+        reelSpeed: 0.5,
+        slowMoSoundFeel: false,
+        speedRampFinale: false,
+        marbleMelodySlowMoMode: 'calm_tempo',
         undoSnapshot: null,
         toast: null,
       });
@@ -686,6 +731,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
         audioSettings: undoSnapshot.audioSettings ?? s.audioSettings,
         asmrSettings: undoSnapshot.asmrSettings ?? s.asmrSettings,
         playbackSpeed: undoSnapshot.playbackSpeed ?? s.playbackSpeed,
+        reelSpeed: undoSnapshot.reelSpeed ?? s.reelSpeed,
         undoSnapshot: null,
       }));
 
@@ -708,6 +754,10 @@ export const useStudioStore = create<StudioState>((set, get) => {
         asmrSettings: state.asmrSettings,
         customNotes: state.customNotes,
         targetDuration: state.targetDuration,
+        reelSpeed: state.reelSpeed,
+        slowMoSoundFeel: state.slowMoSoundFeel,
+        speedRampFinale: state.speedRampFinale,
+        marbleMelodySlowMoMode: state.marbleMelodySlowMoMode,
       };
       await setIDB('bounceforge_active_project', project);
     },
@@ -726,6 +776,10 @@ export const useStudioStore = create<StudioState>((set, get) => {
           asmrSettings: saved.asmrSettings ?? get().asmrSettings,
           customNotes: saved.customNotes || [],
           targetDuration: saved.targetDuration ?? DEFAULT_TARGET_DURATION,
+          reelSpeed: saved.reelSpeed !== undefined ? saved.reelSpeed : 0.5,
+          slowMoSoundFeel: saved.slowMoSoundFeel ?? false,
+          speedRampFinale: saved.speedRampFinale ?? false,
+          marbleMelodySlowMoMode: saved.marbleMelodySlowMoMode ?? 'calm_tempo',
         });
       }
     },
@@ -740,6 +794,10 @@ export const useStudioStore = create<StudioState>((set, get) => {
         overlays: state.overlays,
         audio: state.audioSettings,
         duration: state.targetDuration,
+        rs: state.reelSpeed ?? 0.5,
+        sm: state.slowMoSoundFeel ?? false,
+        rf: state.speedRampFinale ?? false,
+        msm: state.marbleMelodySlowMoMode ?? 'calm_tempo',
       };
       const b64 = btoa(encodeURIComponent(JSON.stringify(payload)));
       return `${window.location.origin}${window.location.pathname}#preset=${b64}`;
@@ -767,6 +825,10 @@ export const useStudioStore = create<StudioState>((set, get) => {
             overlays: data.overlays || get().overlays,
             audioSettings: data.audio || data.audioSettings || get().audioSettings,
             targetDuration: data.duration || data.targetDuration || DEFAULT_TARGET_DURATION,
+            reelSpeed: data.rs !== undefined ? data.rs : (data.reelSpeed !== undefined ? data.reelSpeed : 0.5),
+            slowMoSoundFeel: data.sm ?? data.slowMoSoundFeel ?? false,
+            speedRampFinale: data.rf ?? data.speedRampFinale ?? false,
+            marbleMelodySlowMoMode: data.msm || data.marbleMelodySlowMoMode || 'calm_tempo',
             currentRoute: 'studio',
           });
           return true;

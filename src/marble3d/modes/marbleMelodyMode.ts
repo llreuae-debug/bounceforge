@@ -57,6 +57,8 @@ export const MarbleMelodyMode: SimulationMode = {
       ...DEFAULT_MARBLE_MELODY_CONFIG,
       ...settings,
       seed,
+      reelSpeed: world.reelSpeed !== undefined ? world.reelSpeed : (settings.reelSpeed ?? 0.5),
+      slowMoMode: settings.marbleMelodySlowMoMode || settings.slowMoMode || 'calm_tempo',
     };
 
     // Solve complete 3D layout run deterministically
@@ -100,10 +102,9 @@ export const MarbleMelodyMode: SimulationMode = {
   },
 
   step: (world: PhysicsWorld, dt: number, _settings: Record<string, any>) => {
-    const prevTime = world.customState.currentTime || 0;
+    const prevTime = world.videoTime || 0;
     const currTime = prevTime + dt;
     world.customState.currentTime = currTime;
-    world.time = currTime;
 
     const run = world.customState.marbleMelodyRun;
     if (!run) return;

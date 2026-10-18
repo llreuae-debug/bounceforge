@@ -48,6 +48,11 @@ export const ExportModal: React.FC = () => {
     customNotes,
     targetDuration,
     setTargetDuration,
+    reelSpeed,
+    setReelSpeed,
+    slowMoSoundFeel,
+    speedRampFinale,
+    marbleMelodySlowMoMode,
     ballPhysics,
     wallControls,
     customBall,
@@ -225,6 +230,10 @@ export const ExportModal: React.FC = () => {
           wallControls,
           customBall,
           customNotes,
+          reelSpeed,
+          slowMoSoundFeel,
+          speedRampFinale,
+          marbleMelodySlowMoMode,
           fileHandle,
         },
         (p) => setProgress(p)
@@ -333,6 +342,10 @@ export const ExportModal: React.FC = () => {
             visuals: itemVisuals,
             overlays: itemOverlays,
             audioSettings: itemAudio,
+            reelSpeed,
+            slowMoSoundFeel,
+            speedRampFinale,
+            marbleMelodySlowMoMode,
           },
           (p) => setProgress(p)
         );
@@ -568,6 +581,42 @@ export const ExportModal: React.FC = () => {
                     <span className="text-xs font-bold text-cyan-300 block">All Platforms</span>
                     <span className="text-[10px] text-slate-400 block">safest boundary</span>
                   </button>
+                </div>
+              </div>
+
+              {/* Reel Speed Selection */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                    <span>🎬 Reel Speed</span>
+                    {reelSpeed === 0.5 && (
+                      <span className="text-[9.5px] uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-purple-500/30 text-purple-200 font-black">
+                        Default Slow-Mo
+                      </span>
+                    )}
+                  </span>
+                  <span className="font-mono text-purple-300 font-bold text-xs">{reelSpeed}x</span>
+                </div>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[
+                    { val: 0.25, label: '0.25x' },
+                    { val: 0.5, label: '0.5x' },
+                    { val: 0.75, label: '0.75x' },
+                    { val: 1.0, label: '1.0x' },
+                    { val: 1.25, label: '1.25x' },
+                  ].map((pill) => (
+                    <button
+                      key={pill.val}
+                      onClick={() => setReelSpeed(pill.val)}
+                      className={`py-1.5 rounded-xl text-xs font-bold transition-all text-center ${
+                        reelSpeed === pill.val
+                          ? 'btn-3d-purple text-white shadow-sm'
+                          : 'btn-3d-glass text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {pill.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 

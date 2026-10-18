@@ -12,6 +12,12 @@ class ProceduralTextureFactory {
   static getTexture(type: string): THREE.CanvasTexture {
     if (this.cache.has(type)) return this.cache.get(type)!;
 
+    if (typeof document === 'undefined') {
+      const tex = new THREE.CanvasTexture({ width: 1, height: 1 } as any);
+      this.cache.set(type, tex);
+      return tex;
+    }
+
     const canvas = document.createElement('canvas');
     const size = 1024;
     canvas.width = size;

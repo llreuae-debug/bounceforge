@@ -9,6 +9,7 @@ export interface SeedFinderRequest {
   startSeed: number;
   totalSeedsToSearch: number;
   settings: Record<string, any>;
+  reelSpeed?: number;
 }
 
 export interface CandidateResult {
@@ -41,6 +42,9 @@ export function createSeedSimulator(req: SeedFinderRequest): (seed: number) => S
 
   const mode = getModeById(req.modeId);
   const world = new PhysicsWorld(1080, 1920, req.startSeed);
+  world.reelSpeed = req.reelSpeed !== undefined ? req.reelSpeed : 0.5;
+  world.targetDuration = req.targetTimeMax;
+
   if (mode.onCollision) {
     const onCol = mode.onCollision;
     world.eventBus.subscribe((ev) => {
@@ -49,6 +53,7 @@ export function createSeedSimulator(req: SeedFinderRequest): (seed: number) => S
   }
 
   return (seed) => {
+    world.reset(seed);
     mode.setup(world, req.settings, seed);
     let lastBounceTime = 0;
     let maxEventGap = 0;
@@ -56,14 +61,15 @@ export function createSeedSimulator(req: SeedFinderRequest): (seed: number) => S
     let lastLeader: string | undefined = undefined;
 
     for (let frame = 0; frame < maxFrames; frame++) {
-      if (mode.step) mode.step(world, FIXED_DT, req.settings);
+      const effectiveSpeed = world.getEffectiveSpeed();
+      if (mode.step) mode.step(world, FIXED_DT * effectiveSpeed, req.settings);
       world.step(FIXED_DT);
 
-      // Track event gap pacing
+      // Track event gap pacing in video time
       if (world.bounces > 0) {
-        const gap = world.time - lastBounceTime;
+        const gap = world.videoTime - lastBounceTime;
         if (gap > maxEventGap) maxEventGap = gap;
-        lastBounceTime = world.time;
+        lastBounceTime = world.videoTime;
       }
 
       // Track lead changes for race/battle modes
@@ -77,7 +83,7 @@ export function createSeedSimulator(req: SeedFinderRequest): (seed: number) => S
 
       if (world.isFinished || mode.isFinished(world, settings)) {
         return {
-          finishTime: world.time,
+          finishTime: world.videoTime,
           nearMisses: world.customState.nearMisses || 0,
           leadChanges,
           bounces: world.bounces,

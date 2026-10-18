@@ -279,6 +279,8 @@ export interface MarbleMelodyConfig {
   trimStartSeconds: number;
   trimEndSeconds: number;
   targetDuration: number;
+  reelSpeed?: number; // 0.25, 0.5, 0.75, 1.0, 1.25. DEFAULT = 0.5
+  slowMoMode?: 'calm_tempo' | 'normal_tempo'; // Choice A ('calm_tempo') or Choice B ('normal_tempo'). DEFAULT = 'calm_tempo'
 
   actCount: number;
   acts: ActConfig[];

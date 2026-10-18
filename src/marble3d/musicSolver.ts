@@ -109,11 +109,21 @@ export class MusicToLayoutSolver {
       }
     }
 
-    // Apply Transpose & Tempo Multiplier
-    const tempo = config.tempoMultiplier || 1.0;
+    // Apply Transpose, Reel Speed & Tempo Multiplier
+    const rawTempo = config.tempoMultiplier || 1.0;
+    const slowMoMode = config.slowMoMode || 'calm_tempo';
+    const reelSpeed = config.reelSpeed !== undefined ? config.reelSpeed : 0.5;
+
+    // Choice A ("calm tempo", default): melody plays at half tempo (scaled by reelSpeed), marble moves at half speed, peaceful ASMR
+    // Choice B ("normal tempo, slow marble"): melody keeps normal tempo, marble moves at half speed, objects placed closer together
+    const tempo = slowMoMode === 'calm_tempo' ? rawTempo * reelSpeed : rawTempo;
     const transpose = config.transposeSemitones || 0;
     const trimStart = config.trimStartSeconds || 0;
-    const trimEnd = config.trimEndSeconds || Infinity;
+
+    // The video length stays as chosen (e.g. 56s viral target or targetDuration); the slowed run fills it.
+    // In calm_tempo (0.5x), targetDuration * reelSpeed of melody source fills targetDuration of video time.
+    const maxSourceDuration = (config.targetDuration || 56) * (slowMoMode === 'calm_tempo' ? reelSpeed : 1.0);
+    const trimEnd = Math.min(config.trimEndSeconds ?? Infinity, trimStart + maxSourceDuration);
 
     const filteredNotes = notes
       .filter((n) => n.time >= trimStart && n.time <= trimEnd)
@@ -135,24 +145,26 @@ export class MusicToLayoutSolver {
     const marbleCount = config.marbleCount || 1;
     const laneNotes: MelodyNote[][] = Array.from({ length: marbleCount }, () => []);
 
-    // Filter <180ms overlaps: route notes to secondary marble lanes if closer than 180ms
+    // Minimum note spacing: in normal tempo slow marble, notes land faster in video time so allow tighter 120ms spacing
+    const minSpacing = slowMoMode === 'normal_tempo' ? 0.12 : 0.18;
+
+    // Filter overlaps: route notes to secondary marble lanes if closer than minSpacing
     for (const note of filteredNotes) {
       let targetLane = Math.min(marbleCount - 1, note.lane || 0);
       const prevOnTarget = laneNotes[targetLane][laneNotes[targetLane].length - 1];
 
-      if (prevOnTarget && Math.abs(note.time - prevOnTarget.time) < 0.18) {
+      if (prevOnTarget && Math.abs(note.time - prevOnTarget.time) < minSpacing) {
         let placed = false;
         for (let l = 0; l < marbleCount; l++) {
           const prevL = laneNotes[l][laneNotes[l].length - 1];
-          if (!prevL || Math.abs(note.time - prevL.time) >= 0.18) {
+          if (!prevL || Math.abs(note.time - prevL.time) >= minSpacing) {
             targetLane = l;
             placed = true;
             break;
           }
         }
         if (!placed) {
-          // If all lanes active within 180ms, space note forward slightly
-          const minSpacing = 0.18;
+          // If all lanes active within minSpacing, space note forward slightly or merge
           note.time = parseFloat((prevOnTarget.time + minSpacing).toFixed(4));
         }
       }
@@ -331,7 +343,8 @@ export class MusicToLayoutSolver {
             const timeToNext = Math.max(0.12, nextNote.time - currentTime);
             // Targeted trajectory: nextTargetX strictly inside corridor
             let nextTargetX = laneXBase;
-            const maxSwing = marbleCount === 1 ? 0.32 : marbleCount === 2 ? 0.08 : 0.05;
+            const dropScale = slowMoMode === 'normal_tempo' ? 0.52 : 1.0;
+            const maxSwing = (marbleCount === 1 ? 0.32 : marbleCount === 2 ? 0.08 : 0.05) * dropScale;
 
             if (config.pathStyle === 'zigzag') {
               nextTargetX += (noteIdx % 2 === 0 ? 1 : -1) * rng.range(0.02, maxSwing);
@@ -344,8 +357,8 @@ export class MusicToLayoutSolver {
             // Keep target strictly inside corridor
             nextTargetX = Math.max(-PLAY_CORRIDOR_HALF_WIDTH, Math.min(PLAY_CORRIDOR_HALF_WIDTH, nextTargetX));
 
-            // Downward step per note (0.45 - 0.95 units)
-            const targetY = posY - rng.range(0.48, 0.95);
+            // Downward step per note (shorter paths, gentler arcs in normal_tempo slow marble)
+            const targetY = posY - rng.range(0.48 * dropScale, 0.95 * dropScale);
             velX = (nextTargetX - posX) / timeToNext;
             const gravity = -9.8;
             velY = (targetY - posY - 0.5 * gravity * timeToNext * timeToNext) / timeToNext;

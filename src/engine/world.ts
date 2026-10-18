@@ -35,6 +35,12 @@ export class PhysicsWorld {
   public shockwaves: Shockwave[] = [];
 
   public time: number = 0;
+  public videoTime: number = 0;
+  public reelSpeed: number = 0.5; // 0.25, 0.5, 0.75, 1.0, 1.25. DEFAULT = 0.5
+  public slowMoSoundFeel: boolean = false;
+  public speedRampFinale: boolean = false;
+  public targetDuration: number = 56;
+  public lastEventTime: number = 0;
   public bounces: number = 0;
   public escapes: number = 0;
   public activeRingIndex: number = 0;
@@ -44,6 +50,13 @@ export class PhysicsWorld {
 
   // Maximum particle capacity to prevent unbounded memory
   private maxParticles: number = 2000;
+
+  getEffectiveSpeed(): number {
+    if (this.speedRampFinale && this.videoTime >= this.targetDuration - 1.5) {
+      return 0.25;
+    }
+    return this.reelSpeed ?? 0.5;
+  }
 
   constructor(
     width: number = 1080,
@@ -82,6 +95,8 @@ export class PhysicsWorld {
     this.particles = [];
     this.shockwaves = [];
     this.time = 0;
+    this.videoTime = 0;
+    this.lastEventTime = 0;
     this.bounces = 0;
     this.escapes = 0;
     this.activeRingIndex = 0;
@@ -269,11 +284,15 @@ export class PhysicsWorld {
   }
 
   step(dt: number): void {
-    const subDt = dt / this.config.substeps;
+    const effectiveSpeed = this.getEffectiveSpeed();
+    const dtPhysics = dt * effectiveSpeed;
+    const subDt = dtPhysics / this.config.substeps;
+    const subVideoDt = dt / this.config.substeps;
     const maxSpeedCap = this.config.maxSpeedCap || 2600;
 
     for (let stepIdx = 0; stepIdx < this.config.substeps; stepIdx++) {
       this.time += subDt;
+      this.videoTime += subVideoDt;
 
       // 1. Advance rotating rings
       for (let i = 0; i < this.rings.length; i++) {
@@ -339,14 +358,15 @@ export class PhysicsWorld {
           }
         }
 
-        // Ring collisions
+        // Ring collisions (logged at videoTime for frame-accurate audio alignment)
         for (let r = 0; r < this.rings.length; r++) {
           const ring = this.rings[r];
           if (ring.isShattered) continue;
 
-          const res = checkBallArcRingCollision(b, ring, this.time);
+          const res = checkBallArcRingCollision(b, ring, this.videoTime);
           if (res.escaped) {
             this.escapes++;
+            this.lastEventTime = this.videoTime;
             // Reset bounce boost on escape!
             if (b.bounceBoostEnabled && b.initialRestitution !== undefined) {
               b.restitution = b.initialRestitution;
@@ -362,6 +382,7 @@ export class PhysicsWorld {
           } else if (res.collided) {
             b.bounces++;
             this.bounces++;
+            this.lastEventTime = this.videoTime;
 
             // Bounce boost: increase bounciness by set amount per wall hit (e.g. +2%)
             if (b.bounceBoostEnabled) {
@@ -391,6 +412,7 @@ export class PhysicsWorld {
           if (dist < b.radius + 8 && b.tag !== 'frozen') {
             b.bounces++;
             this.bounces++;
+            this.lastEventTime = this.videoTime;
             // Bounce back along normal from spike tip to ball
             const nx = dist > 0.001 ? (b.x - tipX) / dist : 0;
             const ny = dist > 0.001 ? (b.y - tipY) / dist : -1;
@@ -403,7 +425,7 @@ export class PhysicsWorld {
             this.spawnExplosion(tipX, tipY, '#ff0033', 18, 220);
             this.eventBus.emit({
               id: Math.floor(Math.random() * 1000000),
-              time: this.time,
+              time: this.videoTime,
               type: 'spike',
               position: { x: tipX, y: tipY },
               velocity: { x: b.vx, y: b.vy },
@@ -417,10 +439,11 @@ export class PhysicsWorld {
         // Line collisions
         for (let l = 0; l < this.lines.length; l++) {
           const line = this.lines[l];
-          const col = checkBallLineCollision(b, line, this.time);
+          const col = checkBallLineCollision(b, line, this.videoTime);
           if (col) {
             b.bounces++;
             this.bounces++;
+            this.lastEventTime = this.videoTime;
             this.eventBus.emit(col);
             this.spawnExplosion(col.position.x, col.position.y, line.color, 10, 160);
           }
@@ -433,11 +456,12 @@ export class PhysicsWorld {
           const other = this.balls[otherIdx];
           if (!other || !other.isAlive) continue;
 
-          const col = checkBallBallCollision(b, other, this.time);
+          const col = checkBallBallCollision(b, other, this.videoTime);
           if (col) {
             b.bounces++;
             other.bounces++;
             this.bounces++;
+            this.lastEventTime = this.videoTime;
             this.eventBus.emit(col);
             this.spawnExplosion(col.position.x, col.position.y, b.color, 14, 200);
           }
@@ -467,6 +491,19 @@ export class PhysicsWorld {
         if (sw.radius >= sw.maxRadius) {
           this.shockwaves.splice(s, 1);
         }
+      }
+    }
+
+    // Pacing & Retention Guard: ensure an event occurs at least every <= 10s of video time
+    if (this.videoTime - this.lastEventTime >= 9.8) {
+      const activeBall = this.balls.find((b) => b.isAlive);
+      if (activeBall) {
+        const randAngle = this.prng.next() * Math.PI * 2;
+        const impulse = this.config.antiStallImpulse * 1.5;
+        activeBall.vx += Math.cos(randAngle) * impulse;
+        activeBall.vy += Math.sin(randAngle) * impulse;
+        this.lastEventTime = this.videoTime;
+        console.log(`[Retention Guard] Event gap reached ${(this.videoTime - this.lastEventTime).toFixed(2)}s in video time at ${this.reelSpeed}x; applied pacing impulse to ball #${activeBall.id}`);
       }
     }
   }

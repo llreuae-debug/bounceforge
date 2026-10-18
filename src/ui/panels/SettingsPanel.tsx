@@ -80,6 +80,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
     audioSettings,
     targetDuration,
     setTargetDuration,
+    reelSpeed,
+    setReelSpeed,
+    slowMoSoundFeel,
+    setSlowMoSoundFeel,
+    speedRampFinale,
+    setSpeedRampFinale,
     resolution,
     setResolution,
     setExportOpen,
@@ -1598,6 +1604,83 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Reel Speed (Slow Motion - Default 0.5x) */}
+                <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                  <div className="flex justify-between items-center text-slate-300 mb-1">
+                    <span className="font-bold flex items-center gap-1.5 text-purple-300">
+                      <span>🎬 Reel Speed</span>
+                      {reelSpeed === 0.5 && (
+                        <span className="text-[9.5px] uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-purple-500/30 text-purple-200 font-black">
+                          Default Slow-Mo
+                        </span>
+                      )}
+                    </span>
+                    <span className="font-mono text-purple-300 font-black text-sm">{reelSpeed}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.25"
+                    max="1.25"
+                    step="0.25"
+                    value={reelSpeed}
+                    onChange={(e) => setReelSpeed(parseFloat(e.target.value))}
+                    className="w-full accent-purple-400"
+                  />
+                  <div className="flex items-center gap-1.5 mt-2">
+                    {[
+                      { val: 0.25, label: '0.25x' },
+                      { val: 0.5, label: '0.5x' },
+                      { val: 0.75, label: '0.75x' },
+                      { val: 1.0, label: '1.0x' },
+                      { val: 1.25, label: '1.25x' },
+                    ].map((pill) => (
+                      <button
+                        key={pill.val}
+                        onClick={() => setReelSpeed(pill.val)}
+                        className={`flex-1 py-1 rounded-lg text-xs font-bold transition-all ${
+                          reelSpeed === pill.val
+                            ? 'btn-3d-purple text-white shadow-sm'
+                            : 'btn-3d-glass text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {pill.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1.5 leading-snug">
+                    Real physical slow motion (true 60fps render, smooth 240Hz physics). Default is 0.5x for relaxing viral reels.
+                  </p>
+                </div>
+
+                {/* Slow-Motion Toggles */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <label className="flex items-center justify-between p-2 rounded-xl bg-white/[0.03] border border-white/5 cursor-pointer hover:bg-white/[0.06] transition-all">
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-200">Slow-Mo Sound Feel</div>
+                      <div className="text-[9.5px] text-slate-400 leading-tight">Dreamy lowpass &amp; longer reverb</div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={slowMoSoundFeel}
+                      onChange={(e) => setSlowMoSoundFeel(e.target.checked)}
+                      className="accent-purple-400 w-4 h-4 rounded cursor-pointer"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between p-2 rounded-xl bg-white/[0.03] border border-white/5 cursor-pointer hover:bg-white/[0.06] transition-all">
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-200">Finale Speed Ramp</div>
+                      <div className="text-[9.5px] text-slate-400 leading-tight">Dips to 0.25x for final 1.5s payoff</div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={speedRampFinale}
+                      onChange={(e) => setSpeedRampFinale(e.target.checked)}
+                      className="accent-purple-400 w-4 h-4 rounded cursor-pointer"
+                    />
+                  </label>
                 </div>
 
                 {/* Resolution Pills */}

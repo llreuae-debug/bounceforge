@@ -13,7 +13,8 @@ export async function renderOfflineAudio(
   events: CollisionEvent[],
   duration: number,
   settings: AudioSettings,
-  customNotes?: NoteItem[]
+  customNotes?: NoteItem[],
+  slowMoSoundFeel: boolean = false
 ): Promise<AudioBuffer> {
   const sampleRate = 48000;
   const lengthInSamples = Math.ceil(duration * sampleRate);
@@ -31,7 +32,17 @@ export async function renderOfflineAudio(
   const masterGain = offlineCtx.createGain();
   masterGain.gain.setValueAtTime(settings.masterVolume, 0);
 
-  limiter.connect(masterGain);
+  // Optional "slow-mo sound feel": gentle low-pass (2600Hz) and extended reverb decay
+  if (slowMoSoundFeel) {
+    const lowpass = offlineCtx.createBiquadFilter();
+    lowpass.type = 'lowpass';
+    lowpass.frequency.setValueAtTime(2600, 0);
+    lowpass.Q.setValueAtTime(0.707, 0);
+    limiter.connect(lowpass);
+    lowpass.connect(masterGain);
+  } else {
+    limiter.connect(masterGain);
+  }
   masterGain.connect(offlineCtx.destination);
 
   // Determine melody notes
@@ -134,12 +145,17 @@ export async function renderOfflineAudio(
         vol = Math.min(1.0, Math.max(0.3, ev.impulse / 400));
       }
 
+      let finalDuration = noteDuration;
+      if (slowMoSoundFeel) {
+        finalDuration *= 1.35;
+      }
+
       SoundSynthesizer.playNote(
         offlineCtx,
         limiter,
         freq,
         t,
-        noteDuration,
+        finalDuration,
         settings.instrument,
         vol,
         pan

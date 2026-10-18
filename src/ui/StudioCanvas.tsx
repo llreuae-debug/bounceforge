@@ -50,6 +50,9 @@ export const StudioCanvas: React.FC = () => {
     dismissToast,
     targetDuration,
     setTargetDuration,
+    reelSpeed,
+    slowMoSoundFeel,
+    speedRampFinale,
     qualityMode,
     currentQualityTier,
     setCurrentQualityTier,
@@ -83,6 +86,10 @@ export const StudioCanvas: React.FC = () => {
   const initSimulation = () => {
     const mode = getModeById(currentModeId);
     const world = new PhysicsWorld(1080, 1920, seed);
+    world.reelSpeed = reelSpeed;
+    world.slowMoSoundFeel = slowMoSoundFeel;
+    world.speedRampFinale = speedRampFinale;
+    world.targetDuration = targetDuration;
     mode.setup(world, modeSettings, seed);
     world.applyGlobalModifiers(ballPhysics, wallControls, customBall);
 
@@ -112,7 +119,7 @@ export const StudioCanvas: React.FC = () => {
   useEffect(() => {
     initSimulation();
     setSeedInput(seed.toString());
-  }, [currentModeId, seed, modeSettings, targetDuration, ballPhysics, wallControls, customBall]);
+  }, [currentModeId, seed, modeSettings, targetDuration, ballPhysics, wallControls, customBall, reelSpeed, slowMoSoundFeel, speedRampFinale]);
 
   // Pressing play after the animation completed replays it from the start
   useEffect(() => {
@@ -269,20 +276,21 @@ export const StudioCanvas: React.FC = () => {
       const mode = getModeById(currentModeId);
 
       if (world && isPlaying && !world.isFinished) {
+        const effectiveSpeed = world.getEffectiveSpeed();
         const simDt = deltaSec * playbackSpeed;
         if (mode.step) {
-          mode.step(world, simDt, modeSettings);
+          mode.step(world, simDt * effectiveSpeed, modeSettings);
         }
         world.step(simDt);
 
         // Complete the animation at the chosen target duration (or earlier if the mode ends)
         const done =
           world.isFinished ||
-          world.time >= targetDuration ||
+          world.videoTime >= targetDuration ||
           mode.isFinished(world, withTargetDuration(modeSettings, targetDuration));
         if (done) {
           world.isFinished = true;
-          setSimTime(Math.min(world.time, targetDuration));
+          setSimTime(Math.min(world.videoTime, targetDuration));
           setIsComplete(true);
           setIsPlaying(false);
           triggerHaptic(20);
@@ -292,7 +300,7 @@ export const StudioCanvas: React.FC = () => {
         localTimer += deltaSec;
         if (localTimer > 0.1 && !done) {
           localTimer = 0;
-          setSimTime(world.time);
+          setSimTime(world.videoTime);
           if (world.getBounceBoostEnergy) {
             setBounceBoostEnergy(world.getBounceBoostEnergy());
           }
@@ -331,16 +339,17 @@ export const StudioCanvas: React.FC = () => {
         cancelAnimationFrame(animFrameRef.current);
       }
     };
-  }, [isPlaying, playbackSpeed, visuals, overlays, currentModeId, modeSettings, targetDuration]);
+  }, [isPlaying, playbackSpeed, visuals, overlays, currentModeId, modeSettings, targetDuration, reelSpeed, speedRampFinale]);
 
   const handleStepFrame = () => {
     const world = worldRef.current;
     const mode = getModeById(currentModeId);
     if (world && !world.isFinished) {
       const dt = 1 / 60;
-      if (mode.step) mode.step(world, dt, modeSettings);
+      const effectiveSpeed = world.getEffectiveSpeed();
+      if (mode.step) mode.step(world, dt * effectiveSpeed, modeSettings);
       world.step(dt);
-      setSimTime(world.time);
+      setSimTime(world.videoTime);
     }
   };
 

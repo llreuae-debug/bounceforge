@@ -26,6 +26,10 @@ export interface ExportConfig {
   customBall?: Partial<CustomBallConfig>;
   customNotes?: NoteItem[];
   bitrate?: number;
+  reelSpeed?: number;
+  slowMoSoundFeel?: boolean;
+  speedRampFinale?: boolean;
+  marbleMelodySlowMoMode?: 'calm_tempo' | 'normal_tempo';
   fileHandle?: any; // FileSystemFileHandle for Chrome/Edge direct streaming
 }
 
@@ -131,6 +135,10 @@ export class VideoExporter {
     // Initialize 2D Simulation
     const mode = getModeById(modeId);
     const world = new PhysicsWorld(width, height, seed);
+    world.reelSpeed = config.reelSpeed !== undefined ? config.reelSpeed : 0.5;
+    world.slowMoSoundFeel = config.slowMoSoundFeel ?? false;
+    world.speedRampFinale = config.speedRampFinale ?? false;
+    world.targetDuration = duration;
     mode.setup(world, modeSettings, seed);
     world.applyGlobalModifiers(config.ballPhysics, config.wallControls, config.customBall);
     const renderer = new WorldRenderer();
@@ -341,7 +349,8 @@ export class VideoExporter {
         }
       }
 
-      if (mode.step) mode.step(world, dt, modeSettings);
+      const effectiveSpeed = world.getEffectiveSpeed();
+      if (mode.step) mode.step(world, dt * effectiveSpeed, modeSettings);
       world.step(dt);
       if (!world.isFinished && mode.isFinished(world, finishSettings)) {
         world.isFinished = true;
@@ -403,7 +412,13 @@ export class VideoExporter {
 
     try {
       const eventsLog = world.eventBus.getEventLog();
-      const audioBuffer = await renderOfflineAudio(eventsLog || [], duration, audioSettings, customNotes);
+      const audioBuffer = await renderOfflineAudio(
+        eventsLog || [],
+        duration,
+        audioSettings,
+        customNotes,
+        config.slowMoSoundFeel ?? false
+      );
 
       const audioEncoder = new AudioEncoder({
         output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
@@ -557,7 +572,8 @@ export class VideoExporter {
         throw new Error('Export cancelled');
       }
 
-      if (mode.step) mode.step(world, dt, modeSettings);
+      const effectiveSpeed = world.getEffectiveSpeed();
+      if (mode.step) mode.step(world, dt * effectiveSpeed, modeSettings);
       world.step(dt);
       renderer.render(ctx, world, visuals, overlays, width, height, true);
 

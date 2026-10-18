@@ -49,6 +49,10 @@ export interface SavedPreset {
   customBall: CustomBallConfig;
   targetDuration: number;
   resolution: '1080' | '1440' | '4k' | 'square' | 'landscape';
+  reelSpeed: number; // 0.25, 0.5, 0.75, 1.0, 1.25. DEFAULT = 0.5
+  slowMoSoundFeel?: boolean;
+  speedRampFinale?: boolean;
+  marbleMelodySlowMoMode?: 'calm_tempo' | 'normal_tempo';
 }
 
 const STORAGE_KEY_LOCAL = 'bounceforge_user_presets';
@@ -66,18 +70,22 @@ export class PresetService {
 
   /**
    * Load presets (local for guest, synced for user)
+   * Migrates any existing saved presets to default reelSpeed = 0.5x
    */
   async getPresets(userId?: string | null): Promise<SavedPreset[]> {
     try {
-      if (userId) {
-        // Logged-in user presets (cloud simulated in localStorage/IndexedDB with user key)
-        const cloudPresets = (await getIDB<SavedPreset[]>(`${STORAGE_KEY_CLOUD_PREFIX}${userId}`)) || [];
-        return cloudPresets;
-      } else {
-        // Guest presets (local IndexedDB)
-        const local = (await getIDB<SavedPreset[]>(STORAGE_KEY_LOCAL)) || [];
-        return local;
-      }
+      const rawList = userId
+        ? (await getIDB<SavedPreset[]>(`${STORAGE_KEY_CLOUD_PREFIX}${userId}`)) || []
+        : (await getIDB<SavedPreset[]>(STORAGE_KEY_LOCAL)) || [];
+
+      // Migrate existing presets to default 0.5x reel speed
+      return rawList.map((p) => ({
+        ...p,
+        reelSpeed: p.reelSpeed !== undefined ? p.reelSpeed : 0.5,
+        slowMoSoundFeel: p.slowMoSoundFeel ?? false,
+        speedRampFinale: p.speedRampFinale ?? false,
+        marbleMelodySlowMoMode: p.marbleMelodySlowMoMode ?? 'calm_tempo',
+      }));
     } catch (e) {
       console.warn('Could not read presets from IndexedDB:', e);
       return [];
@@ -221,7 +229,13 @@ export class PresetService {
     if (!parsed.modeId || !parsed.name) {
       throw new Error('Invalid BounceForge preset file format');
     }
-    return parsed as SavedPreset;
+    return {
+      ...parsed,
+      reelSpeed: parsed.reelSpeed !== undefined ? parsed.reelSpeed : 0.5,
+      slowMoSoundFeel: parsed.slowMoSoundFeel ?? false,
+      speedRampFinale: parsed.speedRampFinale ?? false,
+      marbleMelodySlowMoMode: parsed.marbleMelodySlowMoMode ?? 'calm_tempo',
+    } as SavedPreset;
   }
 
   /**
@@ -236,6 +250,10 @@ export class PresetService {
       v: preset.visuals,
       o: preset.overlays,
       d: preset.targetDuration,
+      rs: preset.reelSpeed ?? 0.5,
+      sm: preset.slowMoSoundFeel ?? false,
+      rf: preset.speedRampFinale ?? false,
+      msm: preset.marbleMelodySlowMoMode ?? 'calm_tempo',
     };
     const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
     return `${window.location.origin}/studio#preset=${b64}`;
