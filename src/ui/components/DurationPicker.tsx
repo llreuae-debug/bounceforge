@@ -26,24 +26,38 @@ export const DurationPicker: React.FC<DurationPickerProps> = ({
       title="How long the animation runs before it completes"
     >
       <Timer className={`${size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'} text-[#CCFF00] mx-1`} />
-      {DURATION_PRESETS.map((d) => (
-        <button
-          key={d}
-          id={`duration-${d}s-${size}`}
-          type="button"
-          role="radio"
-          aria-checked={value === d}
-          disabled={disabled}
-          onClick={() => onChange(d)}
-          className={`${pad} font-bold font-mono rounded-lg transition-all disabled:opacity-40 ${
-            value === d
-              ? 'btn-3d-lime text-black'
-              : 'btn-3d-glass text-slate-400 hover:text-white'
-          }`}
-        >
-          {d}s
-        </button>
-      ))}
+      {DURATION_PRESETS.map((d) => {
+        const isReel = d === 56;
+        const isSelected = value === d || (isReel && Math.abs(value - 56) <= 1.5);
+        return (
+          <button
+            key={d}
+            id={`duration-${d}s-${size}`}
+            type="button"
+            role="radio"
+            aria-checked={isSelected}
+            disabled={disabled}
+            onClick={() => onChange(d)}
+            title={isReel ? '56s Optimal Viral Reel / Shorts Time' : `${d}s Target Duration`}
+            className={`${pad} font-bold font-mono rounded-lg transition-all disabled:opacity-40 flex items-center gap-1 ${
+              isSelected
+                ? 'btn-3d-lime text-black shadow-sm'
+                : 'btn-3d-glass text-slate-400 hover:text-white'
+            }`}
+          >
+            <span>{d}s</span>
+            {isReel && (
+              <span
+                className={`px-1 py-0.5 text-[7.5px] font-black uppercase tracking-wider rounded ${
+                  isSelected ? 'bg-black/80 text-lime-400' : 'bg-lime-400/20 text-lime-300'
+                }`}
+              >
+                Reel
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 };

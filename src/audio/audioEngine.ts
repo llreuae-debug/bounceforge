@@ -197,25 +197,19 @@ export class AudioEngine {
       this.init();
     }
     if (!this.ctx || this.isMuted) return;
-    if (this.activeVoicesCount >= this.maxAllowedVoices) return;
     this.resume();
-
-    this.activeVoicesCount++;
-    setTimeout(() => {
-      this.activeVoicesCount = Math.max(0, this.activeVoicesCount - 1);
-    }, 450);
 
     const t = this.ctx.currentTime;
     const dest = this.limiter || this.ctx.destination;
-    this.bounceCount++;
 
     // Calculate spatial stereo pan (-1 to 1) based on collision point
     const pan = this.settings.stereoPanning !== false && event.position
       ? Math.max(-0.85, Math.min(0.85, (event.position.x - 540) / 540))
       : 0;
 
-    // Marble Melody 3D Physical Material Hit
+    // Marble Melody 3D Physical Material Hit - Guaranteed 100% note sync (never voice-capped)
     if (event.extra?.marbleMelodyHit && event.extra?.melodyNote) {
+      this.bounceCount++;
       const vol = event.extra.melodyNote.velocity || 0.85;
       MarbleAudioSynthesizer.playTunedHit(
         this.ctx,
@@ -228,6 +222,15 @@ export class AudioEngine {
       );
       return;
     }
+
+    if (this.activeVoicesCount >= this.maxAllowedVoices) return;
+
+    this.activeVoicesCount++;
+    setTimeout(() => {
+      this.activeVoicesCount = Math.max(0, this.activeVoicesCount - 1);
+    }, 450);
+
+    this.bounceCount++;
 
     if (event.type === 'escape') {
       // Escape: play glass shatter and triumphant high chord note

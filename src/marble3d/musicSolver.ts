@@ -284,6 +284,12 @@ export class MusicToLayoutSolver {
             }
           }
 
+          // Keep marble contact position precisely aligned with object location
+          posX = objectInstance.x;
+          posY = objectInstance.y;
+          objectInstance.pinX = objectInstance.x;
+          objectInstance.pinY = objectInstance.y + 0.08;
+
           allObjects.push(objectInstance);
           laneHits.push({ objectId: objId, time: currentTime, note: nextNote });
 

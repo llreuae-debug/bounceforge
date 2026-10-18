@@ -70,6 +70,9 @@ export class MarbleMelodyRenderer {
   // Object Impact Wobble State
   private objectWobbles: Map<string, { intensity: number; decay: number }> = new Map();
 
+  // Playback sync tracking
+  private lastUpdateTime: number = -1;
+
   constructor() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffedd5);
@@ -418,12 +421,13 @@ export class MarbleMelodyRenderer {
 
     this.initParticles();
 
-    // Reset Camera State
+    // Reset Camera & Timing State
     this.currentCamY = 1.0;
     this.currentCamX = 0;
     this.camVelY = 0;
     this.camVelX = 0;
     this.smoothedPathCenterX = 0;
+    this.lastUpdateTime = -1;
   }
 
   /**
@@ -496,32 +500,60 @@ export class MarbleMelodyRenderer {
   updateAtTime(time: number): void {
     if (!this.run) return;
 
+    // Determine interval for triggering hits with zero frame-skipping
+    const prevT = this.lastUpdateTime < 0 || time < this.lastUpdateTime ? time - 0.018 : this.lastUpdateTime;
+    this.lastUpdateTime = time;
+
     let targetCamY = 0;
     let rawMarbleX = 0;
 
-    // Update Marble Meshes
+    // Update Marble Meshes with silky smooth sub-frame interpolation
     for (let l = 0; l < this.run.lanes.length; l++) {
       const lane = this.run.lanes[l];
       const marble = this.marbleMeshes[l];
       if (!marble || lane.points.length === 0) continue;
 
-      const ptIdx = Math.min(lane.points.length - 1, Math.max(0, Math.floor(time * 240)));
-      const pt = lane.points[ptIdx];
+      // Sub-frame linear interpolation (lerp) between 240Hz physics points
+      const rawIdx = Math.max(0, Math.min(lane.points.length - 1, time * 240));
+      const idxA = Math.floor(rawIdx);
+      const idxB = Math.min(lane.points.length - 1, idxA + 1);
+      const frac = rawIdx - idxA;
 
-      marble.position.set(pt.x, pt.y, pt.z);
-      marble.rotation.set(pt.rotX, pt.rotY, pt.rotZ);
+      const ptA = lane.points[idxA];
+      const ptB = lane.points[idxB];
 
-      if (pt.state === 'hit') {
-        marble.scale.set(1.2, 0.8, 1.2);
-        this.triggerObjectHit(pt.hitObjectId || '', { x: pt.x, y: pt.y, z: pt.z }, lane.marbleColor);
+      const curX = ptA.x + (ptB.x - ptA.x) * frac;
+      const curY = ptA.y + (ptB.y - ptA.y) * frac;
+      const curZ = ptA.z + (ptB.z - ptA.z) * frac;
+      const curRotX = ptA.rotX + (ptB.rotX - ptA.rotX) * frac;
+      const curRotY = ptA.rotY + (ptB.rotY - ptA.rotY) * frac;
+      const curRotZ = ptA.rotZ + (ptB.rotZ - ptA.rotZ) * frac;
+
+      marble.position.set(curX, curY, curZ);
+      marble.rotation.set(curRotX, curRotY, curRotZ);
+
+      // Check all hits landing in (prevT, time] so no hit wobbles or sparkles are ever dropped
+      let hitInFrame = false;
+      for (const hit of lane.hits) {
+        if ((prevT <= 0 ? hit.time >= 0 : hit.time > prevT) && hit.time <= time) {
+          const obj = this.run.objects.find((o) => o.id === hit.objectId);
+          if (obj) {
+            this.triggerObjectHit(hit.objectId, { x: obj.x, y: obj.y, z: obj.z }, lane.marbleColor);
+            hitInFrame = true;
+          }
+        }
+      }
+
+      if (hitInFrame) {
+        marble.scale.set(1.22, 0.78, 1.22);
       } else {
-        marble.scale.lerp(new THREE.Vector3(1, 1, 1), 0.2);
+        marble.scale.lerp(new THREE.Vector3(1, 1, 1), 0.18);
       }
 
       if (l === 0) {
-        rawMarbleX = pt.x;
+        rawMarbleX = curX;
         // Look-ahead: Camera leads marble by 0.4s (approx 0.45 units downward)
-        targetCamY = pt.y - 0.45;
+        targetCamY = curY - 0.45;
       }
     }
 

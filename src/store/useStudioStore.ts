@@ -359,9 +359,11 @@ export const useStudioStore = create<StudioState>((set, get) => {
 
     setMode: (modeId) => {
       const mode = getModeById(modeId);
+      const isMelody = modeId === 'marble_melody_3d';
       set({
         currentModeId: modeId,
         modeSettings: { ...mode.defaultSettings },
+        targetDuration: isMelody ? 56 : (mode.defaultSettings?.targetDuration || DEFAULT_TARGET_DURATION),
       });
     },
 

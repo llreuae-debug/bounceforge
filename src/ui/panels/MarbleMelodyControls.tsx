@@ -33,11 +33,19 @@ import {
 } from 'lucide-react';
 
 export const MarbleMelodyControls: React.FC = () => {
-  const { modeSettings, updateModeSetting, seed, setSeed, showToast } = useStudioStore();
+  const { modeSettings, updateModeSetting, seed, setSeed, showToast, targetDuration, setTargetDuration } = useStudioStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [rightsChecked, setRightsChecked] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Auto-select 56s reel time by default when loading Marble Melody
+  React.useEffect(() => {
+    if (!targetDuration || targetDuration === 60) {
+      setTargetDuration(56);
+      updateModeSetting('targetDuration', 56);
+    }
+  }, []);
 
   // Current config or fallback to defaults
   const config: MarbleMelodyConfig = {
@@ -169,6 +177,9 @@ export const MarbleMelodyControls: React.FC = () => {
                 onClick={() => {
                   triggerHaptic(10);
                   setSelectedVariant(v);
+                  const dur = v === 'viral' ? 56 : v === 'chill' ? 60 : 45;
+                  setTargetDuration(dur);
+                  updateModeSetting('targetDuration', dur);
                 }}
                 className={`px-2 py-0.5 text-[9.5px] font-bold rounded capitalize transition-all ${
                   selectedVariant === v
@@ -223,7 +234,10 @@ export const MarbleMelodyControls: React.FC = () => {
                   Object.keys(variantCfg).forEach((k) => {
                     updateModeSetting(k, (variantCfg as any)[k]);
                   });
-                  showToast(`Loaded #${preset.presetNumber} ${preset.name} (${selectedVariant})`);
+                  const chosenDuration = variantCfg.targetDuration || (selectedVariant === 'viral' ? 56 : 60);
+                  setTargetDuration(chosenDuration);
+                  updateModeSetting('targetDuration', chosenDuration);
+                  showToast(`Loaded #${preset.presetNumber} ${preset.name} (${selectedVariant}) · ${chosenDuration}s`);
                 }}
                 className={`p-2 rounded-xl text-left border transition-all ${
                   config.melodyId === preset.melodyId

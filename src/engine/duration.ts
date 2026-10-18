@@ -7,8 +7,8 @@
  * hard-capped by the preview / export loops.
  */
 
-export const DURATION_PRESETS = [15, 30, 45, 60] as const;
-export const DEFAULT_TARGET_DURATION = 60;
+export const DURATION_PRESETS = [15, 30, 45, 56, 60] as const;
+export const DEFAULT_TARGET_DURATION = 56; // Viral Reel Time (56s)
 
 /** Read the target duration (seconds) from a settings object, falling back to 60s. */
 export function getTargetDuration(settings?: Record<string, any>): number {
