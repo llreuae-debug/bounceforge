@@ -5,7 +5,9 @@ import { MarbleMaterialLibrary } from './materials';
 
 // Studio Wall Background Base Colors
 const WALL_BACKGROUND_COLORS: Record<string, number> = {
-  pastel_peach: 0xffedd5,
+  pastel_peach: 0xf2d8cb,
+  pastel_peach_blush: 0xf2d8cb,
+  pastel_peach_gradient: 0xf2d8cb,
   pastel_mint: 0xdcfce7,
   pastel_lavender: 0xf3e8ff,
   pastel_sky: 0xe0f2fe,
@@ -245,10 +247,12 @@ export class MarbleMelodyRenderer {
     const ctx = c.getContext('2d');
     if (!ctx) return c;
 
-    const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64);
-    grad.addColorStop(0, 'rgba(251, 146, 60, 0.85)');
-    grad.addColorStop(0.5, 'rgba(244, 114, 182, 0.35)');
-    grad.addColorStop(1, 'rgba(244, 114, 182, 0)');
+    const grad = ctx.createRadialGradient(64, 64, 8, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255, 143, 184, 0.75)'); // pink #FF8FB8
+    grad.addColorStop(0.35, 'rgba(255, 230, 138, 0.45)'); // lemon #FFE68A
+    grad.addColorStop(0.7, 'rgba(156, 200, 255, 0.3)'); // sky #9CC8FF
+    grad.addColorStop(0.88, 'rgba(214, 180, 255, 0.2)'); // lilac #D6B4FF
+    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 128, 128);
@@ -674,13 +678,25 @@ export class MarbleMelodyRenderer {
     const actIndex = Math.floor(time / (this.run.duration / 5));
     const actTiltZ = (actIndex % 2 === 0 ? 1 : -1) * 0.025;
 
-    // Hero Moment every ~10s: close-up camera push for 0.6s
-    const cycle10 = time % 10.0;
-    const heroPush = cycle10 < 0.6 ? Math.sin((cycle10 / 0.6) * Math.PI) * 0.45 : 0;
+    // Seamless Loop: In the final 2.5 seconds, smooth camera drift back to the initial frame composition (t = 0)
+    // guaranteeing identical framing, angle, and position on loop restart
+    const loopDuration = this.run.duration;
+    let finalCamX = this.currentCamX;
+    let finalCamY = this.currentCamY;
+    let finalTiltZ = actTiltZ;
 
-    this.camera.position.set(this.currentCamX, this.currentCamY + camTiltYOffset, camDistZ - heroPush);
-    this.camera.lookAt(this.currentCamX, this.currentCamY - 0.35, 0);
-    this.camera.rotation.z = actTiltZ;
+    if (time >= loopDuration - 2.5 && loopDuration > 5.0) {
+      const loopBlend = (time - (loopDuration - 2.5)) / 2.5; // 0 to 1
+      const smoothBlend = loopBlend * loopBlend * (3 - 2 * loopBlend); // smoothstep
+      // Initial frame at t=0 has camX ≈ 0, camY ≈ 1.35, tiltZ = 0.025
+      finalCamX = THREE.MathUtils.lerp(this.currentCamX, 0, smoothBlend);
+      finalCamY = THREE.MathUtils.lerp(this.currentCamY, 1.35, smoothBlend);
+      finalTiltZ = THREE.MathUtils.lerp(actTiltZ, 0.025, smoothBlend);
+    }
+
+    this.camera.position.set(finalCamX, finalCamY + camTiltYOffset, camDistZ - heroPush);
+    this.camera.lookAt(finalCamX, finalCamY - 0.35, 0);
+    this.camera.rotation.z = finalTiltZ;
 
     // Hero Intro (first 0.8s): entrance light flare
     const introFlare = time < 0.8 ? Math.max(0, 1 - time / 0.8) * 1.2 : 0;

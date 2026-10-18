@@ -1008,6 +1008,23 @@ export const PUBLIC_DOMAIN_MELODIES: MelodyDefinition[] = [
       36
     ),
   },
+  {
+    id: 'toybox_run',
+    name: 'Pastel Toy-Box Run',
+    composer: 'BounceForge Originals',
+    deathYearOrOrigin: 'Original composition (2026)',
+    defaultBpm: 128,
+    description: 'Playful, cheerful original toy-box music box melody at 128 BPM matching the pastel marble run.',
+    publicDomain: true,
+    source: 'original composition',
+    notes: buildFullMelody(
+      [72, 74, 76, 79, 76, 74, 72, 67, 69, 71, 72, 74, 76, 74, 72, 71, 72, 76, 79, 84, 81, 79, 76, 74, 72, 67, 72],
+      0.35,
+      60,
+      [0, 2, 4, 5, 7, 9, 11],
+      36
+    ),
+  },
 ];
 
 // Procedural Melodic Generator for custom seeds

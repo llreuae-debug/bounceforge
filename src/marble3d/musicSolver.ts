@@ -210,26 +210,59 @@ export class MusicToLayoutSolver {
     const catchTime = lastNoteTime + 0.25;
     const duration = lastNoteTime + 1.2;
 
-    // 2. Setup Acts (5 acts across duration)
-    const actCount = config.actCount || 5;
-    const actDuration = duration / actCount;
-    const acts = [];
+    // 2. Setup Acts (Custom defined or distributed across duration)
     const formatDef = config.reelFormat ? ReelFormatService.getFormat(config.reelFormat) : undefined;
-    const availableFamilies = formatDef?.instrumentFamilies?.length
-      ? formatDef.instrumentFamilies
-      : ACT_FAMILIES;
+    let acts: any[] = [];
+    if (formatDef?.instrumentFamilies?.length) {
+      // Use format definition's dedicated instrument families (e.g. squeaky duck, wire rails, horns)
+      const actCount = config.actCount || 5;
+      const actDuration = duration / actCount;
+      const availableFamilies = formatDef.instrumentFamilies;
 
-    for (let i = 0; i < actCount; i++) {
-      const family = availableFamilies[(config.seed + i) % availableFamilies.length];
-      const colors = FAMILY_COLORS[family] || ['#38bdf8'];
-      acts.push({
-        actIndex: i,
-        family,
-        colorAccent: colors[i % colors.length],
-        pathShape: config.pathStyle,
-        startTime: i * actDuration,
-        endTime: (i + 1) * actDuration,
+      for (let i = 0; i < actCount; i++) {
+        const family = availableFamilies[(config.seed + i) % availableFamilies.length];
+        const colors = FAMILY_COLORS[family] || ['#38bdf8'];
+        acts.push({
+          actIndex: i,
+          family,
+          colorAccent: colors[i % colors.length],
+          pathShape: config.pathStyle,
+          startTime: i * actDuration,
+          endTime: (i + 1) * actDuration,
+        });
+      }
+    } else if (config.acts && config.acts.length > 0) {
+      // Scale configured acts proportionally to total duration
+      const totalConfigTime = Math.max(...config.acts.map((a) => a.endTime), 50.0);
+      const timeScale = duration / totalConfigTime;
+      acts = config.acts.map((a, idx) => {
+        const colors = FAMILY_COLORS[a.family] || ['#38bdf8'];
+        return {
+          actIndex: a.actIndex ?? idx,
+          family: a.family,
+          colorAccent: a.colorAccent || colors[idx % colors.length],
+          pathShape: a.pathShape || config.pathStyle,
+          startTime: parseFloat((a.startTime * timeScale).toFixed(3)),
+          endTime: parseFloat((a.endTime * timeScale).toFixed(3)),
+        };
       });
+    } else {
+      const actCount = config.actCount || 5;
+      const actDuration = duration / actCount;
+      const availableFamilies = ACT_FAMILIES;
+
+      for (let i = 0; i < actCount; i++) {
+        const family = availableFamilies[(config.seed + i) % availableFamilies.length];
+        const colors = FAMILY_COLORS[family] || ['#38bdf8'];
+        acts.push({
+          actIndex: i,
+          family,
+          colorAccent: colors[i % colors.length],
+          pathShape: config.pathStyle,
+          startTime: i * actDuration,
+          endTime: (i + 1) * actDuration,
+        });
+      }
     }
 
     const allObjects: TunedObjectInstance[] = [];
@@ -475,27 +508,68 @@ export class MusicToLayoutSolver {
       }
     }
 
-    // 6. Embossed 3D @handle text on the wall (Clean wall by default; only when enabled)
+    // 6. Embossed 3D @handle text on the wall
     const embossedHandles: EmbossedHandleInstance[] = [];
-    if (Boolean(config.showHandleText && config.handleText && config.handleText.trim().length > 0)) {
-      const handleText = config.handleText.trim();
-      const totalWallHeight = Math.abs(lowestY) + 4;
-      const handleCount = Math.max(2, Math.floor(totalWallHeight / 6.0));
+    const embossedWallTexts: EmbossedWallTextInstance[] = [];
+
+    // Check if handle is set or configured in channelStyle
+    const rawHandle = (config.handleText || config.channelStyle?.handle || '').trim();
+    const isPastelRun = config.themePack === 'pastel_dream' || config.wallBackground === 'pastel_peach_blush' || config.wallBackground === 'pastel_peach_gradient';
+    const hasExplicitHandle = rawHandle.length > 0;
+    const shouldShowHandle = Boolean(config.showHandleText || (hasExplicitHandle && isPastelRun) || config.embossedText?.enabled);
+    const userHandle = rawHandle || (shouldShowHandle && isPastelRun ? '@BounceForge' : '');
+
+    if (userHandle && userHandle.length > 0 && shouldShowHandle) {
+      // Appears 8–12 times along the path, at different angles slightly rotated,
+      // strictly inside safe area (|x| between 0.68 and 0.88), never on marble path (|x| <= 0.55)
+      const handleCount = 10;
+      const totalWallHeight = Math.abs(lowestY) + 3.0;
+      const stepY = totalWallHeight / handleCount;
+
       for (let i = 0; i < handleCount; i++) {
-        embossedHandles.push({
-          id: `handle_${i}`,
-          text: handleText,
-          x: i % 2 === 0 ? -0.72 : 0.72,
-          y: 0.5 - i * 6.0,
+        const sideSign = i % 2 === 0 ? 1 : -1;
+        const hX = sideSign * rng.range(0.70, 0.86);
+        const hY = 1.0 - i * stepY + rng.range(-0.4, 0.4);
+        const isRainbow = i === 4; // Exactly one appearance uses soft rainbow gradient fill
+
+        embossedWallTexts.push({
+          id: `handle_emboss_${i}`,
+          text: userHandle,
+          type: 'handle',
+          fontStyle: 'bold_italic_serif',
+          embossMode: 'embossed',
+          x: hX,
+          y: hY,
           z: 0.02,
+          scale: 0.78,
+          rainbowGradient: isRainbow,
+          color: isRainbow ? undefined : '#f2d8cb', // same peach color as wall, raised with soft shadow
         });
+      }
+
+      // Small embossed reminders: "like & subscribe" / "like & follow" 1–2 times inside safe area
+      const reminderTexts = ['like & subscribe', 'like & follow'];
+      for (let r = 0; r < reminderTexts.length; r++) {
+        const rY = -3.5 - r * (totalWallHeight * 0.45);
+        if (rY > lowestY + 1.2) {
+          embossedWallTexts.push({
+            id: `pastel_reminder_${r}`,
+            text: reminderTexts[r],
+            type: 'reminder',
+            fontStyle: 'bold_italic_serif',
+            embossMode: 'embossed',
+            x: r % 2 === 0 ? -0.74 : 0.74,
+            y: rY,
+            z: 0.02,
+            scale: 0.68,
+            color: '#f2d8cb',
+          });
+        }
       }
     }
 
     // 7. Embossed 3D Wall Text System (Format Titles, Reminders, Reveals, Act Labels)
-    // Clean wall by default; only populate if showBackgroundText is true or embossedText.enabled is true
     const activeFormat = config.reelFormat || 'f1_guess_tune';
-    const embossedWallTexts: EmbossedWallTextInstance[] = [];
     const wallTextEnabled = Boolean(config.showBackgroundText || config.embossedText?.enabled);
     if (wallTextEnabled) {
       const fontStyle =
@@ -504,7 +578,7 @@ export class MusicToLayoutSolver {
       const embossMode = config.embossedText?.embossMode || 'embossed';
 
       // Title Text (placed at top of wall)
-      const titleText = config.embossedText?.titleText || formatDef?.defaultTitle || 'marble melody';
+      const titleText = config.embossedText?.titleText || formatDef?.defaultTitle;
       if (titleText && titleText.trim().length > 0) {
         embossedWallTexts.push({
           id: 'title_main',

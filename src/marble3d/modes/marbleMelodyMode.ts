@@ -1,7 +1,7 @@
 import { SimulationMode } from '../../modes/types';
 import { PhysicsWorld } from '../../engine/world';
 import { CollisionEvent } from '../../engine/types';
-import { MARBLE_MELODY_PRESETS, DEFAULT_MARBLE_MELODY_CONFIG } from '../presets';
+import { MARBLE_MELODY_PRESETS, PASTEL_MARBLE_MUSIC_RUN_PRESETS, DEFAULT_MARBLE_MELODY_CONFIG } from '../presets';
 import { MusicToLayoutSolver } from '../musicSolver';
 import { MarbleMelodyConfig } from '../types';
 import { MarbleMelodyRenderer } from '../MarbleMelodyRenderer';
@@ -13,9 +13,9 @@ export const MarbleMelodyMode: SimulationMode = {
   description: '3D marble rolling down a vertical wall of tuned objects playing a real melody in sync.',
   defaultSettings: {
     ...DEFAULT_MARBLE_MELODY_CONFIG,
-    presetName: 'Pastel Glass Run (Viral)',
+    presetName: 'pastel toybox run (Viral)',
   },
-  presets: MARBLE_MELODY_PRESETS.flatMap((p) => [
+  presets: [...PASTEL_MARBLE_MUSIC_RUN_PRESETS, ...MARBLE_MELODY_PRESETS].flatMap((p) => [
     {
       name: `${p.name} (Chill)`,
       settings: {

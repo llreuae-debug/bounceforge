@@ -406,6 +406,60 @@ class ProceduralTextureFactory {
         break;
       }
 
+      case 'peach_blush_wall': {
+        // Continuous warm pastel PEACH-BLUSH wall:
+        // Base #F2D8CB, slightly lighter #F7E4DA toward top-left, slightly deeper #EBCBBE toward bottom-right
+        const grad = ctx.createLinearGradient(0, 0, size, size);
+        grad.addColorStop(0.0, '#F7E4DA');
+        grad.addColorStop(0.5, '#F2D8CB');
+        grad.addColorStop(1.0, '#EBCBBE');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+
+        // Very fine plaster micro-texture, almost invisible
+        const imgData = ctx.getImageData(0, 0, size, size);
+        for (let i = 0; i < imgData.data.length; i += 4) {
+          const noise = (Math.random() - 0.5) * 5;
+          imgData.data[i] = Math.max(0, Math.min(255, imgData.data[i] + noise));
+          imgData.data[i + 1] = Math.max(0, Math.min(255, imgData.data[i + 1] + noise));
+          imgData.data[i + 2] = Math.max(0, Math.min(255, imgData.data[i + 2] + noise));
+        }
+        ctx.putImageData(imgData, 0, 0);
+        break;
+      }
+
+      case 'cobalt_swirl': {
+        // Deep cobalt blue core with 2-3 white/light-blue swirl bands wrapping around it
+        ctx.fillStyle = '#1e3a8a'; // Deep cobalt blue base
+        ctx.fillRect(0, 0, size, size);
+
+        // 3 swirling ribbons wrapping diagonally across spherical UV map
+        const swirlColors = ['#ffffff', '#bae6fd', '#f0f9ff'];
+        for (let s = 0; s < 3; s++) {
+          ctx.strokeStyle = swirlColors[s];
+          ctx.lineWidth = 42;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          const startY = (s * 340) % size;
+          ctx.moveTo(0, startY);
+          ctx.bezierCurveTo(
+            size * 0.35,
+            startY + 160,
+            size * 0.65,
+            startY - 160,
+            size,
+            (startY + 300) % size
+          );
+          ctx.stroke();
+
+          // Delicate crisp inner white stripe
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 14;
+          ctx.stroke();
+        }
+        break;
+      }
+
       default: {
         // 8K Architectural Venetian plaster with natural micro-pores
         ctx.fillStyle = '#f8fafc';
@@ -1004,7 +1058,26 @@ export class MarbleMaterialLibrary {
         });
         break;
 
-      case 'swirl_glass':
+      case 'swirl_glass': {
+        // Deep cobalt blue core with 2-3 white/light-blue swirl bands wrapping around it,
+        // strong specular highlight, slight transparency at edges
+        const swirlTex = ProceduralTextureFactory.getTexture('cobalt_swirl');
+        mat = new THREE.MeshPhysicalMaterial({
+          color: new THREE.Color('#1e40af'), // deep cobalt blue
+          map: swirlTex,
+          transmission: 0.72,
+          roughness: 0.04,
+          metalness: 0.05,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.02,
+          ior: 1.54,
+          thickness: 0.55,
+          transparent: true,
+          opacity: 0.96,
+        });
+        break;
+      }
+
       default:
         mat = new THREE.MeshPhysicalMaterial({
           color: new THREE.Color(accentColor),
@@ -1033,6 +1106,19 @@ export class MarbleMaterialLibrary {
     const normPlaster = ProceduralTextureFactory.getTexture('plaster');
 
     switch (wallType) {
+      case 'pastel_peach_blush':
+      case 'pastel_peach_gradient': {
+        const peachTex = ProceduralTextureFactory.getTexture('peach_blush_wall');
+        mat = new THREE.MeshStandardMaterial({
+          map: peachTex,
+          bumpMap: normPlaster,
+          bumpScale: 0.015, // Very fine plaster texture, almost invisible
+          roughness: 0.88,
+          metalness: 0.02,
+        });
+        break;
+      }
+
       // 01 · Pastel Für Elise / Peach Plaster
       case 'matte_plaster':
       case 'peach_plaster':

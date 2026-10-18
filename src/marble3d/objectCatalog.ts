@@ -705,36 +705,80 @@ export class ObjectCatalog3D {
 
     switch (decor.type) {
       case 'mascot_dome': {
-        // ORIGINAL BounceForge mascot figurine in clear glass cloche dome
-        const baseGeo = new THREE.CylinderGeometry(0.18, 0.2, 0.04, 20);
-        const baseMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.5 });
+        // ORIGINAL BounceForge mascot figurines under clear glass cloche dome on round black base
+        // Alternates between robot-ball character and friendly kid figurine based on decor.id
+        const isKidFigurine = decor.id.charCodeAt(decor.id.length - 1) % 2 === 1;
+
+        // Solid black round pedestal base
+        const baseGeo = new THREE.CylinderGeometry(0.19, 0.21, 0.045, 24);
+        const baseMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.35, metalness: 0.15 });
         const base = new THREE.Mesh(baseGeo, baseMat);
         base.castShadow = true;
         group.add(base);
 
-        const headGeo = new THREE.SphereGeometry(0.09, 16, 16);
-        const headMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3 });
-        const head = new THREE.Mesh(headGeo, headMat);
-        head.position.y = 0.11;
-        group.add(head);
+        if (isKidFigurine) {
+          // Original friendly stylized kid figure in orange sweater, teal pants and round cap
+          const bodyGeo = new THREE.CylinderGeometry(0.045, 0.065, 0.12, 16);
+          const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.6 }); // Orange sweater
+          const body = new THREE.Mesh(bodyGeo, bodyMat);
+          body.position.y = 0.09;
+          body.castShadow = true;
+          group.add(body);
 
-        const visorGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.02, 16);
-        visorGeo.rotateX(Math.PI / 2);
-        const visorMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
-        const visor = new THREE.Mesh(visorGeo, visorMat);
-        visor.position.set(0, 0.12, 0.07);
-        group.add(visor);
+          const headGeo = new THREE.SphereGeometry(0.055, 16, 16);
+          const headMat = new THREE.MeshStandardMaterial({ color: 0xfed7aa, roughness: 0.4 }); // Peach skin tone
+          const head = new THREE.Mesh(headGeo, headMat);
+          head.position.y = 0.19;
+          head.castShadow = true;
+          group.add(head);
 
-        const domeGeo = new THREE.SphereGeometry(0.17, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2);
+          const capGeo = new THREE.SphereGeometry(0.058, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+          const capMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.5 }); // Cyan cap
+          const cap = new THREE.Mesh(capGeo, capMat);
+          cap.position.y = 0.20;
+          cap.castShadow = true;
+          group.add(cap);
+        } else {
+          // Original friendly BounceForge robot-ball mascot
+          const botBodyGeo = new THREE.SphereGeometry(0.095, 20, 20);
+          const botBodyMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.25, metalness: 0.1 });
+          const botBody = new THREE.Mesh(botBodyGeo, botBodyMat);
+          botBody.position.y = 0.11;
+          botBody.castShadow = true;
+          group.add(botBody);
+
+          // Glowing friendly digital visor
+          const visorGeo = new THREE.CylinderGeometry(0.065, 0.065, 0.02, 16);
+          visorGeo.rotateX(Math.PI / 2);
+          const visorMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
+          const visor = new THREE.Mesh(visorGeo, visorMat);
+          visor.position.set(0, 0.12, 0.075);
+          group.add(visor);
+
+          // Antenna with tiny ball on top
+          const antGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.05, 8);
+          const antMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 });
+          const ant = new THREE.Mesh(antGeo, antMat);
+          ant.position.set(0, 0.21, 0);
+          const tipGeo = new THREE.SphereGeometry(0.015, 8, 8);
+          const tipMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+          const tip = new THREE.Mesh(tipGeo, tipMat);
+          tip.position.set(0, 0.24, 0);
+          group.add(ant, tip);
+        }
+
+        // Clear glass cloche bell jar dome
+        const domeGeo = new THREE.SphereGeometry(0.18, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2);
         const domeMat = new THREE.MeshPhysicalMaterial({
           color: 0xffffff,
-          transmission: 0.9,
+          transmission: 0.94,
           transparent: true,
-          roughness: 0.08,
-          ior: 1.5,
+          roughness: 0.04,
+          ior: 1.52,
+          thickness: 0.2,
         });
         const dome = new THREE.Mesh(domeGeo, domeMat);
-        dome.position.y = 0.02;
+        dome.position.y = 0.025;
         group.add(dome);
         break;
       }
@@ -758,18 +802,56 @@ export class ObjectCatalog3D {
       }
 
       case 'toy_door': {
-        // Miniature arched door with brass handle
-        const doorGeo = new THREE.BoxGeometry(0.24, 0.38, 0.03);
-        const doorMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.35 });
+        // Original rounded-arch door in pastel mint or lilac with brass handle and window
+        const isLilac = decor.id.charCodeAt(decor.id.length - 1) % 2 === 1;
+        const doorColor = isLilac ? 0xd8b4fe : 0xa7f3d0; // Lilac or Mint
+        const frameColor = isLilac ? 0xc084fc : 0x6ee7b7;
+
+        // Rounded arch door slab
+        const doorGeo = new THREE.BoxGeometry(0.26, 0.42, 0.035);
+        const doorMat = new THREE.MeshStandardMaterial({ color: doorColor, roughness: 0.38 });
         const door = new THREE.Mesh(doorGeo, doorMat);
         door.castShadow = true;
         group.add(door);
 
-        const knobGeo = new THREE.SphereGeometry(0.016, 10, 10);
-        const knobMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.9, roughness: 0.15 });
-        const knob = new THREE.Mesh(knobGeo, knobMat);
-        knob.position.set(0.08, 0, 0.02);
-        group.add(knob);
+        // Top arch round trim
+        const archGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.038, 20, 1, false, 0, Math.PI);
+        archGeo.rotateZ(Math.PI / 2);
+        const archMat = new THREE.MeshStandardMaterial({ color: frameColor, roughness: 0.4 });
+        const arch = new THREE.Mesh(archGeo, archMat);
+        arch.position.y = 0.21;
+        arch.castShadow = true;
+        group.add(arch);
+
+        // Circular porthole glass window with brass rim
+        const winGeo = new THREE.CircleGeometry(0.048, 18);
+        const winMat = new THREE.MeshPhysicalMaterial({
+          color: 0xe0f2fe,
+          transmission: 0.85,
+          transparent: true,
+          roughness: 0.1,
+          ior: 1.5,
+        });
+        const win = new THREE.Mesh(winGeo, winMat);
+        win.position.set(0, 0.08, 0.02);
+        group.add(win);
+
+        const winRimGeo = new THREE.TorusGeometry(0.049, 0.008, 8, 20);
+        const brassMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.92, roughness: 0.18 });
+        const winRim = new THREE.Mesh(winRimGeo, brassMat);
+        winRim.position.set(0, 0.08, 0.02);
+        group.add(winRim);
+
+        // Polished brass door lever handle
+        const handleStem = new THREE.CylinderGeometry(0.006, 0.006, 0.025, 8);
+        handleStem.rotateX(Math.PI / 2);
+        const stem = new THREE.Mesh(handleStem, brassMat);
+        stem.position.set(0.085, -0.04, 0.025);
+        const leverGeo = new THREE.BoxGeometry(0.045, 0.012, 0.01);
+        const lever = new THREE.Mesh(leverGeo, brassMat);
+        lever.position.set(0.095, -0.04, 0.038);
+        lever.castShadow = true;
+        group.add(stem, lever);
         break;
       }
 
@@ -930,6 +1012,7 @@ export class ObjectCatalog3D {
     let fontFace = 'sans-serif';
     let fontSize = isActNumber ? 120 : isTitle ? 72 : 36;
     let fontWeight = 'bold';
+    let fontStylePrefix = '';
 
     if (fontStyle === 'script') {
       fontFace = '"Brush Script MT", "Caveat", "Dancing Script", "Pacifico", "Segoe Script", cursive, sans-serif';
@@ -939,13 +1022,19 @@ export class ObjectCatalog3D {
       fontFace = '"Titan One", "Comic Sans MS", "Arial Rounded MT Bold", "Fredoka One", cursive, sans-serif';
       fontWeight = '900';
       fontSize = isActNumber ? 130 : isTitle ? 76 : 38;
+    } else if (fontStyle === 'bold_italic_serif') {
+      // Open-license bold italic serif (Playfair, Georgia, Merriweather, Garamond)
+      fontFace = '"Playfair Display", "Merriweather", "Georgia", "Baskerville", "Times New Roman", serif';
+      fontWeight = '800';
+      fontStylePrefix = 'italic ';
+      fontSize = isActNumber ? 125 : isTitle ? 78 : 40;
     } else {
       fontFace = '"Inter", "Helvetica Neue", Arial, sans-serif';
       fontWeight = '800';
       fontSize = isActNumber ? 110 : isTitle ? 68 : 34;
     }
 
-    ctx.font = `${fontWeight} ${fontSize}px ${fontFace}`;
+    ctx.font = `${fontStylePrefix}${fontWeight} ${fontSize}px ${fontFace}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -992,8 +1081,18 @@ export class ObjectCatalog3D {
           ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
           ctx.fillText(lineText, cx - offset * 0.8, cy - offset * 0.8);
 
-          // 4. Face fill (matches wall color or custom tint)
-          if (inst.color) {
+          // 4. Face fill (matches wall color, rainbow gradient, or custom tint)
+          if (inst.rainbowGradient) {
+            // Soft rainbow gradient fill (pink -> yellow -> green -> blue)
+            const textMetrics = ctx.measureText(lineText);
+            const halfW = textMetrics.width / 2;
+            const grad = ctx.createLinearGradient(cx - halfW, cy, cx + halfW, cy);
+            grad.addColorStop(0.0, '#ff8fb8');
+            grad.addColorStop(0.33, '#ffe68a');
+            grad.addColorStop(0.66, '#86efac');
+            grad.addColorStop(1.0, '#9cc8ff');
+            ctx.fillStyle = grad;
+          } else if (inst.color) {
             ctx.fillStyle = inst.color;
           } else {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';

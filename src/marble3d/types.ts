@@ -44,9 +44,9 @@ export type ReelFormatId =
   | 'f11_split_screen'
   | 'f12_interior_scene';
 
-export type EmbossFontStyle = 'script' | 'bold_cartoon' | 'clean_sans';
+export type EmbossFontStyle = 'script' | 'bold_cartoon' | 'clean_sans' | 'bold_italic_serif';
 export type EmbossMode = 'embossed' | 'debossed';
-export type EmbossColorMode = 'same_as_wall' | 'slightly_lighter' | 'slightly_darker' | 'colored';
+export type EmbossColorMode = 'same_as_wall' | 'slightly_lighter' | 'slightly_darker' | 'colored' | 'rainbow_gradient';
 
 export interface EmbossedTextConfig {
   enabled?: boolean;
@@ -100,6 +100,7 @@ export interface EmbossedWallTextInstance {
   z: number;
   scale: number;
   color?: string;
+  rainbowGradient?: boolean;
   revealAtTime?: number;
 }
 
@@ -210,6 +211,7 @@ export type WallTexture =
 
 export type WallBackground =
   | 'pastel_peach'
+  | 'pastel_peach_gradient'
   | 'pastel_mint'
   | 'pastel_lavender'
   | 'pastel_sky'

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
-import { MARBLE_MELODY_PRESETS, MarbleMelodyPresetDefinition } from '../../marble3d/presets';
+import { MARBLE_MELODY_PRESETS, PASTEL_MARBLE_MUSIC_RUN_PRESETS, MarbleMelodyPresetDefinition } from '../../marble3d/presets';
 import { PresetMood, MaterialCategory } from '../../marble3d/types';
 import { triggerHaptic } from '../../platform/haptics';
 import {
@@ -107,16 +107,18 @@ export const MarblePresetGallery: React.FC<MarblePresetGalleryProps> = ({
     }
   };
 
+  const allPresets = useMemo(() => [...PASTEL_MARBLE_MUSIC_RUN_PRESETS, ...MARBLE_MELODY_PRESETS], []);
+
   const handleSurpriseMe = () => {
     triggerHaptic(30);
-    const randomIndex = Math.floor(Math.random() * MARBLE_MELODY_PRESETS.length);
-    const randomPreset = MARBLE_MELODY_PRESETS[randomIndex];
+    const randomIndex = Math.floor(Math.random() * allPresets.length);
+    const randomPreset = allPresets[randomIndex];
     handleSelectWorld(randomPreset);
   };
 
   // Filtered Presets
   const filteredPresets = useMemo(() => {
-    return MARBLE_MELODY_PRESETS.filter((p) => {
+    return allPresets.filter((p) => {
       if (selectedGroup !== 'ALL' && p.group !== selectedGroup) return false;
       if (favoritesOnly && !favorites.includes(p.id)) return false;
 
