@@ -172,9 +172,9 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) 
 
               {/* Presets */}
               {mode.id === 'marble_melody_3d' ? (
-                <div className="flex items-center gap-1.5 text-[10.5px] text-cyan-300 font-semibold bg-cyan-500/10 px-2.5 py-1 rounded-xl border border-cyan-500/25 shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>50 3D Worlds (Crystal, Ice, Metal, Candy...)</span>
+                <div className="flex items-center gap-1.5 text-[10.5px] text-pink-300 font-semibold bg-gradient-to-r from-pink-500/15 to-purple-500/15 px-2.5 py-1 rounded-xl border border-pink-500/30 shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                  <span>Pastel Marble Run (Peach Blush · Frosted Glass · Toybox 50s)</span>
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-1">

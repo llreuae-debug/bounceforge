@@ -379,7 +379,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
       set({
         currentModeId: modeId,
         modeSettings: { ...mode.defaultSettings },
-        targetDuration: isMelody ? 56 : (mode.defaultSettings?.targetDuration || DEFAULT_TARGET_DURATION),
+        targetDuration: isMelody ? 50 : (mode.defaultSettings?.targetDuration || DEFAULT_TARGET_DURATION),
       });
     },
 

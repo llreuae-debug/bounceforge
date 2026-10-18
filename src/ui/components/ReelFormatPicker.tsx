@@ -71,6 +71,16 @@ export const ReelFormatPicker: React.FC<ReelFormatPickerProps> = ({ onFormatSele
     updateModeSetting('wallBackground', preset.wallPalette);
     updateModeSetting('signatureMarble', preset.signatureMarble);
 
+    if (preset.formatId === 'f1_guess_tune') {
+      updateModeSetting('marbleStyle', 'swirl_glass');
+      updateModeSetting('swirlColor', preset.signatureMarble.coreColor);
+      updateModeSetting('actCount', 10);
+      updateModeSetting('themePack', 'pastel_dream');
+      updateModeSetting('lightingStyle', 'soft_studio');
+      updateModeSetting('cameraStyle', 'tilted_follow');
+      updateModeSetting('wallBackground', 'pastel_peach_blush');
+    }
+
     const curEmbossed = modeSettings.embossedText || {};
     updateModeSetting('embossedText', {
       ...curEmbossed,
@@ -79,11 +89,13 @@ export const ReelFormatPicker: React.FC<ReelFormatPickerProps> = ({ onFormatSele
       enabled: isWallTextOn,
     });
 
-    const duration = selectedVariant === 'chill' ? 45 : selectedVariant === 'insane' ? 68 : 56;
+    const duration = preset.formatId === 'f1_guess_tune'
+      ? 50
+      : selectedVariant === 'chill' ? 45 : selectedVariant === 'insane' ? 68 : 56;
     setTargetDuration(duration);
     updateModeSetting('targetDuration', duration);
 
-    showToast(`🎬 Loaded format preset: "${preset.name}" (${duration}s 4K)`);
+    showToast(`🎬 Loaded preset: "${preset.name}" (${duration}s 4K)`);
   };
 
   return (

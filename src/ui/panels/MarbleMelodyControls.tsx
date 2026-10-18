@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 
 const WALL_COLOR_SWATCHES = [
+  { name: 'Peach Blush (Style Match)', color: '#F2D8CB' },
   { name: 'Peach', color: '#fed7aa' },
   { name: 'Mint', color: '#a7f3d0' },
   { name: 'Sky', color: '#bae6fd' },
@@ -88,11 +89,11 @@ export const MarbleMelodyControls: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // Auto-select 56s reel time by default when loading Marble Melody
+  // Auto-select 50s reel time by default when loading Marble Melody (reference template)
   React.useEffect(() => {
-    if (!targetDuration || targetDuration === 60) {
-      setTargetDuration(56);
-      updateModeSetting('targetDuration', 56);
+    if (!targetDuration || targetDuration === 60 || targetDuration === 56) {
+      setTargetDuration(50);
+      updateModeSetting('targetDuration', 50);
     }
   }, []);
 

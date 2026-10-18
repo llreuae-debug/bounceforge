@@ -23,22 +23,28 @@ export interface MarbleMelodyPresetDefinition {
 }
 
 export const DEFAULT_MARBLE_MELODY_CONFIG: MarbleMelodyConfig = {
-  melodyId: 'fur_elise',
+  melodyId: 'toybox_run',
   tempoMultiplier: 1.0,
   transposeSemitones: 0,
   trimStartSeconds: 0,
-  trimEndSeconds: 60,
-  targetDuration: 56, // Default Viral Reel Time
+  trimEndSeconds: 50,
+  targetDuration: 50, // Default 50s reference length
   reelSpeed: 0.5, // 0.5x Slow Motion Default
   slowMoMode: 'calm_tempo', // Calm Tempo Choice A Default
 
-  actCount: 5,
+  actCount: 10,
   acts: [
-    { actIndex: 0, family: 'glass_tube', colorAccent: '#38bdf8', pathShape: 'zigzag', startTime: 0, endTime: 12 },
-    { actIndex: 1, family: 'metal_tack', colorAccent: '#a855f7', pathShape: 'zigzag', startTime: 12, endTime: 24 },
-    { actIndex: 2, family: 'crystal_glass', colorAccent: '#f43f5e', pathShape: 'zigzag', startTime: 24, endTime: 36 },
-    { actIndex: 3, family: 'rainbow_xylophone', colorAccent: '#22c55e', pathShape: 'zigzag', startTime: 36, endTime: 48 },
-    { actIndex: 4, family: 'glass_tube', colorAccent: '#fbbf24', pathShape: 'zigzag', startTime: 48, endTime: 60 },
+    { actIndex: 0, family: 'wire_rail', colorAccent: '#cbd5e1', pathShape: 'scurve', startTime: 0.0, endTime: 3.0 },
+    { actIndex: 1, family: 'glass_tube', colorAccent: '#FF8FB8', pathShape: 'scurve', startTime: 3.0, endTime: 8.0 },
+    { actIndex: 2, family: 'metal_tack', colorAccent: '#94a3b8', pathShape: 'zigzag', startTime: 8.0, endTime: 11.0 },
+    { actIndex: 3, family: 'rainbow_xylophone', colorAccent: '#FFE68A', pathShape: 'scurve', startTime: 11.0, endTime: 16.0 },
+    { actIndex: 4, family: 'drum', colorAccent: '#881337', pathShape: 'zigzag', startTime: 16.0, endTime: 19.0 },
+    { actIndex: 5, family: 'dark_tube', colorAccent: '#18181b', pathShape: 'zigzag', startTime: 19.0, endTime: 25.0 },
+    { actIndex: 6, family: 'drum', colorAccent: '#9f1239', pathShape: 'zigzag', startTime: 25.0, endTime: 29.0 },
+    { actIndex: 7, family: 'glass_tube', colorAccent: '#D6B4FF', pathShape: 'scurve', startTime: 29.0, endTime: 37.0 },
+    { actIndex: 8, family: 'wire_rail', colorAccent: '#9CC8FF', pathShape: 'scurve', startTime: 37.0, endTime: 42.0 },
+    { actIndex: 9, family: 'metal_tack', colorAccent: '#e2e8f0', pathShape: 'scurve', startTime: 42.0, endTime: 47.5 },
+    { actIndex: 10, family: 'wire_rail', colorAccent: '#cbd5e1', pathShape: 'scurve', startTime: 47.5, endTime: 50.0 },
   ],
 
   pathStyle: 'zigzag',
@@ -46,12 +52,12 @@ export const DEFAULT_MARBLE_MELODY_CONFIG: MarbleMelodyConfig = {
   wallWidth: 2.2,
 
   marbleCount: 1,
-  marbleStyle: 'glass_swirl',
+  marbleStyle: 'swirl_glass',
   marbleSize: 'medium',
-  swirlColor: '#f43f5e',
+  swirlColor: '#1e3a8a',
 
   themePack: 'pastel_dream',
-  wallBackground: 'pastel_peach',
+  wallBackground: 'pastel_peach_blush',
   lightingStyle: 'soft_studio',
   cameraStyle: 'tilted_follow',
 
@@ -60,7 +66,7 @@ export const DEFAULT_MARBLE_MELODY_CONFIG: MarbleMelodyConfig = {
   handleText: '',
   showHandleText: false,
   showBackgroundText: false,
-  seed: 10101,
+  seed: 50101,
 
   locks: {},
 };

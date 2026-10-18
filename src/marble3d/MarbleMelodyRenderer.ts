@@ -361,7 +361,7 @@ export class MarbleMelodyRenderer {
     } else if (run.config.wallBackground && WALL_BACKGROUND_COLORS[run.config.wallBackground]) {
       wallColorHex = WALL_BACKGROUND_COLORS[run.config.wallBackground];
     }
-    const wallType = run.config.world?.wallSurface || run.config.wallBackground || 'charcoal_studio';
+    const wallType = run.config.world?.wallSurface || run.config.wallBackground || 'pastel_peach_blush';
 
     if (run.config.customWallImage) {
       const textureLoader = new THREE.TextureLoader();
