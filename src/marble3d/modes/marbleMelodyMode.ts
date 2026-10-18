@@ -80,8 +80,8 @@ export const MarbleMelodyMode: SimulationMode = {
     // Offscreen render canvas for blitting to 2D canvas context
     const offCanvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
     if (offCanvas) {
-      offCanvas.width = 1080;
-      offCanvas.height = 1920;
+      offCanvas.width = world.width || 1080;
+      offCanvas.height = world.height || 1920;
       renderer3D.attachCanvas(offCanvas);
     }
 

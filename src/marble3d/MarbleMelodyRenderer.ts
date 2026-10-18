@@ -312,8 +312,11 @@ export class MarbleMelodyRenderer {
         alpha: false,
         powerPreference: 'high-performance',
       });
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.0));
-      this.renderer.setSize(canvas.clientWidth || 540, canvas.clientHeight || 960, false);
+      const isOffscreen = !canvas.parentElement;
+      this.renderer.setPixelRatio(isOffscreen ? 1.0 : Math.min(window.devicePixelRatio || 1, 2.0));
+      const initialW = canvas.clientWidth || canvas.width || 1080;
+      const initialH = canvas.clientHeight || canvas.height || 1920;
+      this.renderer.setSize(initialW, initialH, false);
       this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;

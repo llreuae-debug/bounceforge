@@ -180,26 +180,44 @@ export async function detectCapabilities(): Promise<DeviceCapabilities> {
     } catch {}
 
     try {
-      // 4K30 (Level 5.1)
-      const res4k30 = await VideoEncoder.isConfigSupported({
+      // 4K30 (Level 5.1 High or Main)
+      let res4k30 = await VideoEncoder.isConfigSupported({
         codec: 'avc1.640033',
         width: 2160,
         height: 3840,
         bitrate: 45000000,
         framerate: 30,
       });
+      if (!res4k30.supported) {
+        res4k30 = await VideoEncoder.isConfigSupported({
+          codec: 'avc1.4d4033',
+          width: 2160,
+          height: 3840,
+          bitrate: 45000000,
+          framerate: 30,
+        });
+      }
       supportedCodecs.h264_4k30 = !!res4k30.supported;
     } catch {}
 
     try {
-      // 4K60 (Level 5.2)
-      const res4k60 = await VideoEncoder.isConfigSupported({
+      // 4K60 (Level 5.2 High or Main)
+      let res4k60 = await VideoEncoder.isConfigSupported({
         codec: 'avc1.640034',
         width: 2160,
         height: 3840,
         bitrate: 60000000,
         framerate: 60,
       });
+      if (!res4k60.supported) {
+        res4k60 = await VideoEncoder.isConfigSupported({
+          codec: 'avc1.4d4034',
+          width: 2160,
+          height: 3840,
+          bitrate: 60000000,
+          framerate: 60,
+        });
+      }
       supportedCodecs.h264_4k60 = !!res4k60.supported;
     } catch {}
   }

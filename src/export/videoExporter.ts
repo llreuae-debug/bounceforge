@@ -163,36 +163,46 @@ export class VideoExporter {
     }
 
     // Codec Negotiation Strategy for Apple QuickTime Player & broad player compatibility:
-    // H.264 Levels:
+    // H.264 Levels for 4K:
     // - 2160x3840 @ 60fps: "avc1.640034" (High 5.2) -> "avc1.4d4034" (Main 5.2) -> "avc1.420034" (Baseline 5.2)
     // - 2160x3840 @ 30fps: "avc1.640033" (High 5.1) -> "avc1.4d4033" (Main 5.1) -> "avc1.420033" (Baseline 5.1)
     // - 1440x2560: "avc1.640032" (High 5.0) -> "avc1.4d4032" (Main 5.0)
-    // - 1080x1920 @ 60fps: "avc1.64002A" (High 4.2) -> "avc1.4d402A" (Main 4.2)
-    // - 1080x1920 @ 30fps: "avc1.640028" (High 4.0) -> "avc1.4d4028" (Main 4.0)
+    // - 1080x1920: "avc1.64002A" (High 4.2) -> "avc1.4d402A" (Main 4.2) -> "avc1.42002A" (Baseline 4.2)
     let candidateCodecs: Array<{ codec: string; hw: 'prefer-hardware' | 'no-preference'; label: string }>;
     if (width >= 2160) {
-      const topLevel = fps >= 60 ? '640034' : '640033';
-      const mainLevel = fps >= 60 ? '4d4034' : '4d4033';
-      const baseLevel = fps >= 60 ? '420034' : '420033';
       candidateCodecs = [
-        { codec: `avc1.${topLevel}`, hw: 'prefer-hardware', label: `h.264 4k high ${fps}fps (hw)` },
-        { codec: `avc1.${topLevel}`, hw: 'no-preference', label: `h.264 4k high ${fps}fps` },
-        { codec: `avc1.${mainLevel}`, hw: 'no-preference', label: `h.264 4k main ${fps}fps` },
-        { codec: `avc1.${baseLevel}`, hw: 'no-preference', label: `h.264 4k baseline ${fps}fps` },
+        // 60fps High 5.2
+        { codec: 'avc1.640034', hw: 'prefer-hardware', label: `h.264 4k high 5.2 (hw)` },
+        { codec: 'avc1.640034', hw: 'no-preference', label: `h.264 4k high 5.2` },
+        // 60fps Main 5.2
+        { codec: 'avc1.4d4034', hw: 'no-preference', label: `h.264 4k main 5.2` },
+        // 30fps High 5.1 (widely supported across all 4K GPUs)
+        { codec: 'avc1.640033', hw: 'prefer-hardware', label: `h.264 4k high 5.1 (hw)` },
+        { codec: 'avc1.640033', hw: 'no-preference', label: `h.264 4k high 5.1` },
+        // 30fps Main 5.1
+        { codec: 'avc1.4d4033', hw: 'no-preference', label: `h.264 4k main 5.1` },
+        // Baseline 5.1
+        { codec: 'avc1.420033', hw: 'no-preference', label: `h.264 4k baseline 5.1` },
+        // Universal 4.2 fallback
+        { codec: 'avc1.64002a', hw: 'no-preference', label: `h.264 4k high 4.2` },
+        { codec: 'avc1.4d402a', hw: 'no-preference', label: `h.264 4k main 4.2` },
       ];
     } else if (width >= 1440) {
       candidateCodecs = [
         { codec: 'avc1.640032', hw: 'prefer-hardware', label: 'h.264 1440p high (hw)' },
         { codec: 'avc1.640032', hw: 'no-preference', label: 'h.264 1440p high' },
         { codec: 'avc1.4d4032', hw: 'no-preference', label: 'h.264 1440p main' },
+        { codec: 'avc1.420032', hw: 'no-preference', label: 'h.264 1440p baseline' },
       ];
     } else {
       const topLevel = fps >= 60 ? '64002A' : '640028';
       const mainLevel = fps >= 60 ? '4d402A' : '4d4028';
+      const baseLevel = fps >= 60 ? '42002A' : '420028';
       candidateCodecs = [
         { codec: `avc1.${topLevel}`, hw: 'prefer-hardware', label: `h.264 1080p high ${fps}fps (hw)` },
         { codec: `avc1.${topLevel}`, hw: 'no-preference', label: `h.264 1080p high ${fps}fps` },
         { codec: `avc1.${mainLevel}`, hw: 'no-preference', label: `h.264 1080p main ${fps}fps` },
+        { codec: `avc1.${baseLevel}`, hw: 'no-preference', label: `h.264 1080p baseline ${fps}fps` },
       ];
     }
 
@@ -200,7 +210,8 @@ export class VideoExporter {
     let chosenCodecLabel = 'h.264';
 
     for (const c of candidateCodecs) {
-      const testConfig: VideoEncoderConfig = {
+      // Test 1: Full quality AVC configuration
+      const testConfig1: VideoEncoderConfig = {
         codec: c.codec,
         width,
         height,
@@ -213,17 +224,42 @@ export class VideoExporter {
       };
 
       try {
-        const support = await VideoEncoder.isConfigSupported(testConfig);
+        const support = await VideoEncoder.isConfigSupported(testConfig1);
         if (support.supported) {
           chosenEncoderConfig = {
-            ...(support.config || testConfig),
+            ...(support.config || testConfig1),
             avc: { format: 'avc' },
           };
           chosenCodecLabel = c.label;
           break;
         }
       } catch {
-        // Continue fallback chain
+        // Continue to relaxed test
+      }
+
+      // Test 2: Relaxed AVC configuration (without strict latencyMode / bitrateMode constraints)
+      const testConfig2: VideoEncoderConfig = {
+        codec: c.codec,
+        width,
+        height,
+        bitrate,
+        framerate: fps,
+        hardwareAcceleration: c.hw,
+        avc: { format: 'avc' },
+      };
+
+      try {
+        const support = await VideoEncoder.isConfigSupported(testConfig2);
+        if (support.supported) {
+          chosenEncoderConfig = {
+            ...(support.config || testConfig2),
+            avc: { format: 'avc' },
+          };
+          chosenCodecLabel = c.label;
+          break;
+        }
+      } catch {
+        // Continue
       }
     }
 
@@ -235,8 +271,6 @@ export class VideoExporter {
         bitrate,
         framerate: fps,
         hardwareAcceleration: 'no-preference',
-        latencyMode: 'quality',
-        bitrateMode: 'variable',
         avc: { format: 'avc' },
       };
       chosenCodecLabel = candidateCodecs[0].label;
@@ -367,53 +401,57 @@ export class VideoExporter {
       codecChosen: chosenCodecLabel,
     });
 
-    const eventsLog = world.eventBus.getEventLog();
-    const audioBuffer = await renderOfflineAudio(eventsLog || [], duration, audioSettings, customNotes);
+    try {
+      const eventsLog = world.eventBus.getEventLog();
+      const audioBuffer = await renderOfflineAudio(eventsLog || [], duration, audioSettings, customNotes);
 
-    const audioEncoder = new AudioEncoder({
-      output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
-      error: (e) => console.error('AudioEncoder error:', e),
-    });
-
-    audioEncoder.configure({
-      codec: 'mp4a.40.2',
-      sampleRate: 48000,
-      numberOfChannels: 2,
-      bitrate: 192000, // 192 kbps AAC-LC standard
-    });
-
-    // Exact length match: duration * 48000 samples
-    const totalRequiredSamples = Math.round(duration * 48000);
-    const left = audioBuffer.getChannelData(0);
-    const right = audioBuffer.getChannelData(1);
-    const samplesPerChunk = 2048;
-
-    for (let offset = 0; offset < totalRequiredSamples; offset += samplesPerChunk) {
-      const chunkSamples = Math.min(samplesPerChunk, totalRequiredSamples - offset);
-      const interleaved = new Float32Array(chunkSamples * 2);
-
-      for (let s = 0; s < chunkSamples; s++) {
-        const sampleIdx = offset + s;
-        interleaved[s * 2] = sampleIdx < left.length ? left[sampleIdx] : 0;
-        interleaved[s * 2 + 1] = sampleIdx < right.length ? right[sampleIdx] : 0;
-      }
-
-      const timestampMicros = Math.round((offset * 1000000) / 48000);
-      const audioData = new AudioData({
-        format: 'f32',
-        sampleRate: 48000,
-        numberOfFrames: chunkSamples,
-        numberOfChannels: 2,
-        timestamp: timestampMicros,
-        data: interleaved,
+      const audioEncoder = new AudioEncoder({
+        output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
+        error: (e) => console.error('AudioEncoder error:', e),
       });
 
-      audioEncoder.encode(audioData);
-      audioData.close();
-    }
+      audioEncoder.configure({
+        codec: 'mp4a.40.2',
+        sampleRate: 48000,
+        numberOfChannels: 2,
+        bitrate: 192000, // 192 kbps AAC-LC standard
+      });
 
-    await audioEncoder.flush();
-    audioEncoder.close();
+      // Exact length match: duration * 48000 samples
+      const totalRequiredSamples = Math.round(duration * 48000);
+      const left = audioBuffer.getChannelData(0);
+      const right = audioBuffer.getChannelData(1);
+      const samplesPerChunk = 2048;
+
+      for (let offset = 0; offset < totalRequiredSamples; offset += samplesPerChunk) {
+        const chunkSamples = Math.min(samplesPerChunk, totalRequiredSamples - offset);
+        const interleaved = new Float32Array(chunkSamples * 2);
+
+        for (let s = 0; s < chunkSamples; s++) {
+          const sampleIdx = offset + s;
+          interleaved[s * 2] = sampleIdx < left.length ? left[sampleIdx] : 0;
+          interleaved[s * 2 + 1] = sampleIdx < right.length ? right[sampleIdx] : 0;
+        }
+
+        const timestampMicros = Math.round((offset * 1000000) / 48000);
+        const audioData = new AudioData({
+          format: 'f32',
+          sampleRate: 48000,
+          numberOfFrames: chunkSamples,
+          numberOfChannels: 2,
+          timestamp: timestampMicros,
+          data: interleaved,
+        });
+
+        audioEncoder.encode(audioData);
+        audioData.close();
+      }
+
+      await audioEncoder.flush();
+      audioEncoder.close();
+    } catch (audioErr) {
+      console.warn('Audio rendering/encoding notice (continuing video finalization):', audioErr);
+    }
 
     // 4. Finalize MP4
     onProgress({

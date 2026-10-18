@@ -60,10 +60,10 @@ export const ExportModal: React.FC = () => {
   const { currentUser, openUpgradeModal, openAuthModal } = useAuthStore();
   const isGuest = !currentUser;
 
-  const [resolution, setResolution] = useState<'720' | '1080' | '1440' | '4k' | '8k' | 'square' | 'landscape'>('1080');
+  const [resolution, setResolution] = useState<'720' | '1080' | '1440' | '4k' | '8k' | 'square' | 'landscape'>('4k');
   const [fps, setFps] = useState<30 | 60>(60);
   const [duration, setDuration] = useState<number>(targetDuration);
-  const [useDiskStreaming, setUseDiskStreaming] = useState<boolean>(true);
+  const [useDiskStreaming, setUseDiskStreaming] = useState<boolean>(false);
 
   const [isExporting, setIsExporting] = useState(false);
   const [progress, setProgress] = useState<ExportProgress | null>(null);
@@ -108,24 +108,10 @@ export const ExportModal: React.FC = () => {
   useEffect(() => {
     if (isExportOpen) {
       checkBatteryStatus().then(setBatteryInfo);
-
-      if (isGuest) {
-        setResolution('720');
-        setDuration(Math.min(30, targetDuration));
-      } else {
-        setDuration(targetDuration);
-        const isMobile = capabilities?.isTouch || window.innerWidth < 768;
-        const lowMem = capabilities?.deviceMemoryGB !== null && capabilities?.deviceMemoryGB !== undefined && capabilities.deviceMemoryGB < 4;
-        if (isMobile || lowMem) {
-          setResolution('1080');
-        } else if (capabilities?.supportedCodecs.h264_4k30 || capabilities?.supportedCodecs.h264_4k60) {
-          setResolution('4k');
-        } else {
-          setResolution('1080');
-        }
-      }
+      setDuration(targetDuration);
+      setResolution('4k');
     }
-  }, [isExportOpen, targetDuration, capabilities, isGuest]);
+  }, [isExportOpen, targetDuration]);
 
   if (!isExportOpen) return null;
 
@@ -161,14 +147,14 @@ export const ExportModal: React.FC = () => {
   };
 
   const handleStartExport = async () => {
-    let width = 1080;
-    let height = 1920;
-    if (isGuest) {
+    let width = 2160;
+    let height = 3840;
+    if (resolution === '720') {
       width = 720;
       height = 1280;
-    } else if (resolution === '720') {
-      width = 720;
-      height = 1280;
+    } else if (resolution === '1080') {
+      width = 1080;
+      height = 1920;
     } else if (resolution === '1440') {
       width = 1440;
       height = 2560;
@@ -186,10 +172,8 @@ export const ExportModal: React.FC = () => {
       height = 1080;
     }
 
-    const effectiveDuration = isGuest ? Math.min(30, duration) : duration;
-    const effectiveOverlays = isGuest
-      ? { ...overlays, showWatermark: true, watermarkText: 'BounceForge' }
-      : overlays;
+    const effectiveDuration = duration;
+    const effectiveOverlays = overlays;
 
     const defaultFilename = `bounceforge_${currentModeId}_${seed}_${width}x${height}_${fps}fps.mp4`;
 
@@ -251,9 +235,22 @@ export const ExportModal: React.FC = () => {
         setThumbnailUrl(URL.createObjectURL(result.thumbnailBlob));
         setCoverBlob(result.thumbnailBlob);
       }
-      if (!didDirectStream) {
-        setDownloadUrl(URL.createObjectURL(result.blob));
-        setExportBlob(result.blob);
+
+      // Always set downloadUrl and exportBlob so video preview and download button are always available
+      const blobUrl = URL.createObjectURL(result.blob);
+      setDownloadUrl(blobUrl);
+      setExportBlob(result.blob);
+
+      // Auto-trigger browser download so video saves immediately to Downloads
+      try {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = result.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (dlErr) {
+        console.warn('Auto-download notice:', dlErr);
       }
 
       // Generate SEO Pack
@@ -580,15 +577,24 @@ export const ExportModal: React.FC = () => {
                   Resolution Options
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {/* 1080x1920 FHD (Default) */}
+                  {/* 2160x3840 4K UHD (Primary Default) */}
                   <button
-                    onClick={() => {
-                      if (isGuest) {
-                        openUpgradeModal('1080p FHD Export');
-                        return;
-                      }
-                      setResolution('1080');
-                    }}
+                    onClick={() => setResolution('4k')}
+                    className={`p-2.5 rounded-2xl border text-center transition-all ${
+                      resolution === '4k'
+                        ? 'bg-purple-500/25 border-purple-400 text-purple-200 shadow-md shadow-purple-500/20 ring-1 ring-purple-400/50'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-xs font-black">2160 × 3840</span>
+                    </div>
+                    <span className="text-[10px] text-purple-300 font-bold block">4K UHD (Default)</span>
+                  </button>
+
+                  {/* 1080x1920 FHD */}
+                  <button
+                    onClick={() => setResolution('1080')}
                     className={`p-2.5 rounded-2xl border text-center transition-all ${
                       resolution === '1080'
                         ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
@@ -597,20 +603,13 @@ export const ExportModal: React.FC = () => {
                   >
                     <div className="flex items-center justify-center gap-1">
                       <span className="text-xs font-extrabold">1080 × 1920</span>
-                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
                     </div>
-                    <span className="text-[10px] text-slate-400 block">FHD (Default)</span>
+                    <span className="text-[10px] text-slate-400 block">FHD (1080p)</span>
                   </button>
 
                   {/* 1440x2560 2K */}
                   <button
-                    onClick={() => {
-                      if (isGuest) {
-                        openUpgradeModal('1440p 2K Export');
-                        return;
-                      }
-                      setResolution('1440');
-                    }}
+                    onClick={() => setResolution('1440')}
                     className={`p-2.5 rounded-2xl border text-center transition-all ${
                       resolution === '1440'
                         ? 'bg-indigo-500/20 border-indigo-400 text-indigo-200'
@@ -619,70 +618,28 @@ export const ExportModal: React.FC = () => {
                   >
                     <div className="flex items-center justify-center gap-1">
                       <span className="text-xs font-extrabold">1440 × 2560</span>
-                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
                     </div>
                     <span className="text-[10px] text-slate-400 block">2K QHD</span>
                   </button>
 
-                  {/* 2160x3840 4K UHD */}
-                  <button
-                    disabled={!canDo4K && !isGuest}
-                    onClick={() => {
-                      if (isGuest) {
-                        openUpgradeModal('4K UHD Video Export');
-                        return;
-                      }
-                      canDo4K && setResolution('4k');
-                    }}
-                    className={`p-2.5 rounded-2xl border text-center transition-all ${
-                      !canDo4K && !isGuest
-                        ? 'opacity-40 cursor-not-allowed bg-white/5 border-white/5 text-slate-500'
-                        : resolution === '4k'
-                        ? 'bg-purple-500/20 border-purple-400 text-purple-200 shadow-md shadow-purple-500/20'
-                        : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-1">
-                      <span className="text-xs font-extrabold">2160 × 3840</span>
-                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
-                    </div>
-                    <span className="text-[10px] text-slate-400 block">{canDo4K || isGuest ? '4K UHD' : 'unsupported'}</span>
-                  </button>
-
                   {/* 4320x7680 8K UHD */}
                   <button
-                    disabled={!canDo4K && !isGuest}
-                    onClick={() => {
-                      if (isGuest) {
-                        openUpgradeModal('8K Ultra HD Video Export');
-                        return;
-                      }
-                      canDo4K && setResolution('8k');
-                    }}
+                    onClick={() => setResolution('8k')}
                     className={`p-2.5 rounded-2xl border text-center transition-all ${
-                      !canDo4K && !isGuest
-                        ? 'opacity-40 cursor-not-allowed bg-white/5 border-white/5 text-slate-500'
-                        : resolution === '8k'
+                      resolution === '8k'
                         ? 'bg-gradient-to-r from-amber-500/30 to-yellow-500/30 border-amber-400 text-amber-200 shadow-md shadow-amber-500/20'
                         : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center justify-center gap-1">
                       <span className="text-xs font-extrabold">4320 × 7680</span>
-                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
                     </div>
                     <span className="text-[10px] text-amber-400 font-bold block">8K Ultra HD</span>
                   </button>
 
                   {/* 1080x1080 Square */}
                   <button
-                    onClick={() => {
-                      if (isGuest) {
-                        openUpgradeModal('Square 1:1 Video Export');
-                        return;
-                      }
-                      setResolution('square');
-                    }}
+                    onClick={() => setResolution('square')}
                     className={`p-2.5 rounded-2xl border text-center transition-all ${
                       resolution === 'square'
                         ? 'bg-amber-500/20 border-amber-400 text-amber-200'
@@ -691,20 +648,13 @@ export const ExportModal: React.FC = () => {
                   >
                     <div className="flex items-center justify-center gap-1">
                       <span className="text-xs font-extrabold">1080 × 1080</span>
-                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
                     </div>
                     <span className="text-[10px] text-slate-400 block">Square (1:1)</span>
                   </button>
 
                   {/* 1920x1080 Landscape */}
                   <button
-                    onClick={() => {
-                      if (isGuest) {
-                        openUpgradeModal('Landscape 16:9 Video Export');
-                        return;
-                      }
-                      setResolution('landscape');
-                    }}
+                    onClick={() => setResolution('landscape')}
                     className={`p-2.5 rounded-2xl border text-center transition-all ${
                       resolution === 'landscape'
                         ? 'bg-pink-500/20 border-pink-400 text-pink-200'
@@ -713,12 +663,11 @@ export const ExportModal: React.FC = () => {
                   >
                     <div className="flex items-center justify-center gap-1">
                       <span className="text-xs font-extrabold">1920 × 1080</span>
-                      {isGuest && <Lock className="w-3 h-3 text-amber-400" />}
                     </div>
                     <span className="text-[10px] text-slate-400 block">Landscape (16:9)</span>
                   </button>
 
-                  {/* 720x1280 Free / Guest HD */}
+                  {/* 720x1280 Free / Compact HD */}
                   <button
                     onClick={() => setResolution('720')}
                     className={`p-2.5 rounded-2xl border text-center transition-all ${
@@ -728,7 +677,7 @@ export const ExportModal: React.FC = () => {
                     }`}
                   >
                     <span className="text-xs font-extrabold block">720 × 1280</span>
-                    <span className="text-[10px] text-slate-400 block">{isGuest ? 'Free Guest' : 'Compact HD'}</span>
+                    <span className="text-[10px] text-slate-400 block">Compact HD</span>
                   </button>
                 </div>
               </div>
@@ -739,7 +688,7 @@ export const ExportModal: React.FC = () => {
                   onClick={handleStartExport}
                   className="btn-3d-lime w-full py-3.5 rounded-2xl text-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-lime-500/20"
                 >
-                  <Sparkles className="w-4 h-4 text-black" /> Export Single Video ({resolution === '4k' ? '4K' : resolution})
+                  <Sparkles className="w-4 h-4 text-black" /> Export Video ({resolution === '4k' ? '4K UHD' : resolution})
                 </button>
 
                 {/* Batch Export ("Make 10 Videos") */}
@@ -844,13 +793,28 @@ export const ExportModal: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-2">
-                {downloadUrl && (
+                {(downloadUrl || exportBlob) && (
                   <a
-                    href={downloadUrl}
+                    href={downloadUrl || '#'}
                     download={exportFilename}
-                    className="btn-3d-lime w-full py-3 rounded-2xl text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-lime-500/20"
+                    onClick={() => {
+                      if (exportBlob) {
+                        try {
+                          const url = URL.createObjectURL(exportBlob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = exportFilename;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                        } catch (err) {
+                          console.warn('Click download fallback notice:', err);
+                        }
+                      }
+                    }}
+                    className="btn-3d-lime w-full py-3.5 rounded-2xl text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-lime-500/20 cursor-pointer"
                   >
-                    <Download className="w-4 h-4" /> Download Video (MP4)
+                    <Download className="w-4 h-4 stroke-[2.5]" /> Download Video (MP4)
                   </a>
                 )}
 
