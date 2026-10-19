@@ -255,7 +255,7 @@ export const Header: React.FC = () => {
             </button>
             <button
               onClick={() => setRoute('pricing')}
-              className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-cyan-500/20 cursor-pointer whitespace-nowrap shrink-0 flex items-center justify-center"
+              className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-cyan-500/20 cursor-pointer whitespace-nowrap shrink-0 hidden sm:flex items-center justify-center"
             >
               Pricing
             </button>

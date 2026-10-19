@@ -287,12 +287,19 @@ html, body, #root {
    3D TACTILE BUTTONS DESIGN SYSTEM (ALL APP)
    ===================================================================== */
 
+/* Layout defaults live in the base layer so Tailwind display utilities (hidden, sm:flex, flex-col…) still win */
+@layer base {
+  button,
+  .btn-3d {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 button,
 .btn-3d {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   user-select: none;
   -webkit-user-select: none;
   transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1),

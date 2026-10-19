@@ -26,6 +26,10 @@ export class PhysicsWorld {
   public height: number;
   public config: PhysicsWorldConfig;
   public prng: Mulberry32;
+  /** Optional separate stream for spark particles so visual effects never shift physics randomness */
+  public fxPrng: Mulberry32 | null = null;
+  /** Headless runs (e.g. MIDI dry runs) may skip spark particles entirely; requires fxPrng */
+  public skipFx = false;
   public eventBus: PhysicsEventBus;
   public spatialHash: SpatialHashGrid;
   public breakEffects: BreakEffectType[] = [];
@@ -91,6 +95,7 @@ export class PhysicsWorld {
     if (seed !== undefined) {
       this.prng.setSeed(seed);
     }
+    this.fxPrng = null;
     this.balls = [];
     this.rings = [];
     this.lines = [];
@@ -173,18 +178,20 @@ export class PhysicsWorld {
   }
 
   spawnExplosion(x: number, y: number, color: string, count: number = 30, speed: number = 350): void {
+    if (this.skipFx && this.fxPrng) return;
+    const rng = this.fxPrng || this.prng;
     for (let i = 0; i < count; i++) {
       if (this.particles.length >= this.maxParticles) break;
-      const angle = this.prng.next() * Math.PI * 2;
-      const spd = speed * (0.3 + 0.7 * this.prng.next());
-      const life = 0.6 + this.prng.next() * 0.8;
+      const angle = rng.next() * Math.PI * 2;
+      const spd = speed * (0.3 + 0.7 * rng.next());
+      const life = 0.6 + rng.next() * 0.8;
       this.particles.push({
         x,
         y,
         vx: Math.cos(angle) * spd,
         vy: Math.sin(angle) * spd,
         color,
-        size: 2 + this.prng.next() * 4,
+        size: 2 + rng.next() * 4,
         alpha: 1,
         maxLife: life,
         life,
@@ -445,8 +452,10 @@ export class PhysicsWorld {
           const peg = this.pegs[p];
           const dx = b.x - peg.x;
           const dy = b.y - peg.y;
-          const dist = Math.hypot(dx, dy);
           const minDist = b.radius + peg.radius;
+          // Cheap bounding-box reject before the exact distance (identical results, far fewer hypot calls)
+          if (dx > minDist || dx < -minDist || dy > minDist || dy < -minDist) continue;
+          const dist = Math.hypot(dx, dy);
 
           if (dist < minDist && dist > 0.0001) {
             const nx = dx / dist;
@@ -516,9 +525,11 @@ export class PhysicsWorld {
         }
       }
 
-      // 4. Update particles
-      for (let p = this.particles.length - 1; p >= 0; p--) {
-        const part = this.particles[p];
+      // 4. Update particles (in-place compaction keeps order; splice per dead particle was O(n²))
+      const parts = this.particles;
+      let keep = 0;
+      for (let p = 0; p < parts.length; p++) {
+        const part = parts[p];
         part.x += part.vx * subDt;
         part.y += part.vy * subDt + (part.type === 'confetti' ? 120 : 300) * subDt; // gentle gravity
         if (part.angularVelocity && part.rotation !== undefined) {
@@ -526,10 +537,9 @@ export class PhysicsWorld {
         }
         part.life -= subDt;
         part.alpha = Math.max(0, part.life / part.maxLife);
-        if (part.life <= 0) {
-          this.particles.splice(p, 1);
-        }
+        if (part.life > 0) parts[keep++] = part;
       }
+      parts.length = keep;
 
       // 5. Update shockwaves
       for (let s = this.shockwaves.length - 1; s >= 0; s--) {

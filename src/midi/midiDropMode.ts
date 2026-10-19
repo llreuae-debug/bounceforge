@@ -3,6 +3,7 @@ import type { PhysicsWorld } from '../engine/world';
 import type { CollisionEvent, LineSegment, Peg } from '../engine/types';
 import type { DropAction, DropKind, ReelPhysicsSettings, ReelPlan } from './types';
 import { DEFAULT_PHYSICS } from './types';
+import { Mulberry32 } from '../engine/prng';
 import { drawReelForeground } from './reelRender';
 
 /**
@@ -85,6 +86,8 @@ export const MidiDropMode: SimulationMode = {
 
   setup: (world: PhysicsWorld, settings: Record<string, any>, seed: number) => {
     world.reset(seed);
+    // Sparks get their own random stream: a headless dry run can skip them and stay identical to preview/export
+    world.fxPrng = new Mulberry32(seed ^ 0x5f3759df);
     // The layout is in 1080x1920 world units; exports at 4K render this scaled up
     world.width = W;
     world.height = H;

@@ -47,16 +47,22 @@ export function dryRunReel(
   physics: ReelPhysicsSettings,
   seed: number,
   until?: number,
-  fps: number = REEL_FPS
+  fps: number = REEL_FPS,
+  onProgress?: (fraction: number) => void
 ): ReelDryRun {
   const { world, settings } = createReelWorld(plan, physics, seed);
+  world.skipFx = true; // sparks are visual only and use their own random stream
   const events: CollisionEvent[] = [];
   world.eventBus.subscribe((ev) => {
     events.push(ev);
     MidiDropMode.onCollision!(world, ev, settings);
   });
   const end = Math.min(until ?? plan.duration, plan.duration);
-  while (world.videoTime < end - 1e-6) stepReel(world, settings, 1 / fps);
+  let frame = 0;
+  while (world.videoTime < end - 1e-6) {
+    stepReel(world, settings, 1 / fps);
+    if (onProgress && ++frame % fps === 0) onProgress(world.videoTime / end);
+  }
   const impacts: ReelImpact[] = world.customState.impacts || [];
   return {
     events,
@@ -77,4 +83,18 @@ export function measureAlignment(plan: ReelPlan, impacts: ReelImpact[], until: n
     maxErrorMs: errors.length ? Math.max(...errors) : 0,
     meanErrorMs: errors.length ? errors.reduce((a, b) => a + b, 0) / errors.length : 0,
   };
+}
+
+/** What the studio UI keeps from a dry run (small enough to post back from a worker). */
+export interface ReelDrySummary {
+  impacts: ReelImpact[];
+  alignment: ReelAlignment;
+  collisions: number;
+  /** Video times of real (non-marker) collisions, for the timeline */
+  collisionTimes: Float64Array;
+}
+
+export function summarizeDryRun(d: ReelDryRun): ReelDrySummary {
+  const times = d.events.filter((e) => !e.extra?.midiReel).map((e) => e.time);
+  return { impacts: d.impacts, alignment: d.alignment, collisions: d.collisions, collisionTimes: Float64Array.from(times) };
 }

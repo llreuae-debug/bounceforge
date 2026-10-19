@@ -25,7 +25,8 @@ import { Header } from '../Header';
 import { analyzeMidi, MidiParseError } from '../../midi/analyzeMidi';
 import { BUILTIN_MIDI_TRACKS, buildBuiltinMidi } from '../../midi/builtinMidi';
 import { buildReelPlan, defaultReelOptions } from '../../midi/reelPlan';
-import { dryRunReel, type ReelDryRun } from '../../midi/reelSimulation';
+import { dryRunReel, type ReelDrySummary } from '../../midi/reelSimulation';
+import { simulateReel } from '../../midi/dryRunClient';
 import { ReelPlayer, type PlayerState } from '../../midi/reelPlayer';
 import { renderReelAudio } from '../../midi/reelAudio';
 import { MidiDropMode } from '../../midi/midiDropMode';
@@ -60,12 +61,12 @@ import { MidiTimeline, DROP_COLORS } from './MidiTimeline';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
-const STEPS: { id: Step; label: string }[] = [
-  { id: 1, label: 'Select MIDI' },
-  { id: 2, label: 'Analyze' },
-  { id: 3, label: 'Generate' },
-  { id: 4, label: 'Preview & sync' },
-  { id: 5, label: 'Export' },
+const STEPS: { id: Step; label: string; short: string }[] = [
+  { id: 1, label: 'Select MIDI', short: 'MIDI' },
+  { id: 2, label: 'Analyze', short: 'Analyze' },
+  { id: 3, label: 'Generate', short: 'Generate' },
+  { id: 4, label: 'Preview & sync', short: 'Preview' },
+  { id: 5, label: 'Export', short: 'Export' },
 ];
 
 const TOGGLE_LABELS: { key: keyof SyncToggles; label: string; hint: string }[] = [
@@ -150,7 +151,8 @@ export const MidiStudioPage: React.FC = () => {
 
   // Generated
   const [plan, setPlan] = useState<ReelPlan | null>(null);
-  const [dry, setDry] = useState<ReelDryRun | null>(null);
+  const [dry, setDry] = useState<ReelDrySummary | null>(null);
+  const [genProgress, setGenProgress] = useState(0);
   const [generating, setGenerating] = useState(false);
 
   // Playback
@@ -300,15 +302,19 @@ export const MidiStudioPage: React.FC = () => {
     drops: p.drops.map((d) => (edits[d.id] ? { ...d, ...edits[d.id] } : d)),
   });
 
+  const genRun = useRef(0);
   const generate = async (opts = options, phys = physics, edits = dropEdits) => {
     if (!analysis || !opts) return;
+    const run = ++genRun.current;
     setGenerating(true);
+    setGenProgress(0);
     setError(null);
-    await new Promise((r) => setTimeout(r, 30)); // let the spinner paint
     try {
       const base = buildReelPlan(analysis, opts);
       const p = applyEdits(base, edits);
-      const d = dryRunReel(p, phys, opts.seed);
+      // Physics runs in a worker so the page stays responsive; a newer generate() cancels this one
+      const d = await simulateReel(p, phys, opts.seed, (f) => run === genRun.current && setGenProgress(f));
+      if (run !== genRun.current) return;
       setPlan(p);
       setDry(d);
       const player = getPlayer();
@@ -317,9 +323,10 @@ export const MidiStudioPage: React.FC = () => {
       setTime(0);
       setLoopRange(null);
     } catch (e: any) {
+      if (e?.name === 'AbortError' || run !== genRun.current) return;
       setError(`Could not generate the animation: ${e?.message || e}`);
     } finally {
-      setGenerating(false);
+      if (run === genRun.current) setGenerating(false);
     }
   };
 
@@ -449,7 +456,7 @@ export const MidiStudioPage: React.FC = () => {
     for (const d of plan?.drops || []) if (!d.muted) c[d.kind] = (c[d.kind] || 0) + 1;
     return c;
   }, [plan]);
-  const collisionTimes = useMemo(() => (dry ? dry.events.filter((e) => !e.extra?.midiReel).map((e) => e.time) : []), [dry]);
+  const collisionTimes = useMemo(() => (dry ? Array.from(dry.collisionTimes) : []), [dry]);
   const selDrop = plan?.drops.find((d) => d.id === selectedDrop) || null;
 
   const goStep = (s: Step) => {
@@ -476,26 +483,36 @@ export const MidiStudioPage: React.FC = () => {
         </div>
         <p className="text-xs text-slate-400 mb-4">Pick the music first. The ball-drop animation is generated to match it, with every major drop landing on the beat.</p>
 
-        {/* Stepper */}
-        <ol className="flex gap-1 sm:gap-2 mb-5 overflow-x-auto" aria-label="Progress">
+        {/* Stepper: raised 3D step buttons (number badge + stacked label) */}
+        <ol className="grid grid-cols-5 gap-1.5 sm:gap-3 mb-6" aria-label="Progress">
           {STEPS.map((s) => {
             const done = s.id < step && canGoTo(s.id);
             const active = s.id === step;
+            const enabled = canGoTo(s.id);
+            const tone = active
+              ? 'from-cyan-400/25 to-cyan-600/10 border-cyan-300/70 text-white shadow-[0_5px_0_0_#0e7490,0_10px_24px_-6px_rgba(34,211,238,0.55),inset_0_1px_0_rgba(255,255,255,0.25)]'
+              : done
+                ? 'from-lime-300/15 to-lime-600/5 border-lime-300/50 text-lime-50 shadow-[0_5px_0_0_#3f6212,0_8px_18px_-8px_rgba(163,230,53,0.45),inset_0_1px_0_rgba(255,255,255,0.18)]'
+                : 'from-white/[0.07] to-white/[0.02] border-white/10 text-slate-400 shadow-[0_5px_0_0_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.08)]';
+            const badge = active ? 'bg-cyan-300 text-slate-950' : done ? 'bg-lime-300 text-slate-950' : 'bg-white/10 text-slate-300';
             return (
-              <li key={s.id} className="flex-1 min-w-[92px]">
+              <li key={s.id} className="min-w-0">
                 <button
                   onClick={() => goStep(s.id)}
-                  disabled={!canGoTo(s.id)}
+                  disabled={!enabled}
                   aria-current={active ? 'step' : undefined}
-                  className={`w-full rounded-xl px-2 py-2 text-left border transition ${
-                    active ? 'border-cyan-400 bg-cyan-400/10' : done ? 'border-lime-400/40 bg-lime-400/5' : 'border-white/10 bg-white/[0.02]'
-                  } disabled:opacity-40`}
+                  className={`no-3d w-full flex flex-col sm:flex-row items-center sm:items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-2xl border bg-gradient-to-b px-2 sm:px-4 py-2.5 sm:py-3 text-center sm:text-left transition-all duration-150 ${tone} ${
+                    enabled ? 'hover:-translate-y-0.5 active:translate-y-[5px] active:shadow-none' : 'opacity-45 cursor-not-allowed'
+                  } ${active ? '-translate-y-0.5' : ''}`}
                 >
-                  <div className="text-[10px] text-slate-400 flex items-center gap-1">
-                    {done && <Check className="w-3 h-3 text-lime-300" />}
-                    <span>Step {s.id}</span>
-                  </div>
-                  <div className="text-xs font-bold truncate">{s.label}</div>
+                  <span className={`shrink-0 grid place-items-center w-7 h-7 rounded-full text-xs font-black shadow-[inset_0_-2px_0_rgba(0,0,0,0.25)] ${badge}`}>
+                    {done ? <Check className="w-4 h-4" strokeWidth={3} /> : s.id}
+                  </span>
+                  <span className="min-w-0 max-w-full flex flex-col leading-tight">
+                    <span className="hidden sm:block text-[10px] uppercase tracking-[0.14em] opacity-70">Step {s.id}</span>
+                    <span className="sm:hidden text-[11px] font-bold truncate">{s.short}</span>
+                    <span className="hidden sm:block text-sm font-bold truncate">{s.label}</span>
+                  </span>
                 </button>
               </li>
             );
@@ -537,7 +554,7 @@ export const MidiStudioPage: React.FC = () => {
                     <button
                       key={t.id}
                       onClick={() => onBuiltin(t.id)}
-                      className={`text-left rounded-xl border p-3 hover:border-cyan-400/60 ${analysis?.fileName === `${t.id.replace(/^bi_/, '')}.mid` ? 'border-cyan-400 bg-cyan-400/10' : 'border-white/10 bg-white/[0.02]'}`}
+                      className={`flex flex-col items-start justify-start gap-0.5 text-left rounded-xl border p-3 hover:border-cyan-400/60 ${analysis?.fileName === `${t.id.replace(/^bi_/, '')}.mid` ? 'border-cyan-400 bg-cyan-400/10' : 'border-white/10 bg-white/[0.02]'}`}
                     >
                       <div className="text-sm font-bold flex items-center gap-1.5">
                         <Music className="w-3.5 h-3.5 text-pink-300" />
@@ -555,7 +572,7 @@ export const MidiStudioPage: React.FC = () => {
                   <ul className="space-y-1.5">
                     {projects.map((p) => (
                       <li key={p.id} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2">
-                        <button className="flex-1 text-left" onClick={() => openProject(p.id)}>
+                        <button className="flex-1 min-w-0 flex flex-col items-start justify-start text-left" onClick={() => openProject(p.id)}>
                           <div className="text-sm font-semibold">{p.name}</div>
                           <div className="text-[11px] text-slate-500">
                             {p.fileName} · {p.targetDuration}s reel · {new Date(p.savedAt).toLocaleString()}
@@ -792,8 +809,14 @@ export const MidiStudioPage: React.FC = () => {
           <div className="grid lg:grid-cols-[1fr_360px] gap-4">
             <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               {generating || !plan || !dry ? (
-                <div className="flex items-center gap-3 text-sm text-slate-300 py-10 justify-center">
-                  <Loader2 className="w-5 h-5 animate-spin text-cyan-300" /> Building the drop plan and simulating the physics…
+                <div className="flex flex-col items-center gap-3 py-10" role="status" aria-live="polite">
+                  <div className="flex items-center gap-3 text-sm text-slate-300">
+                    <Loader2 className="w-5 h-5 animate-spin text-cyan-300 shrink-0" />
+                    <span>Building the drop plan and simulating the physics… {Math.round(genProgress * 100)}%</span>
+                  </div>
+                  <div className="w-full max-w-sm h-2 rounded-full bg-white/10 overflow-hidden shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)]">
+                    <div className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-lime-300 transition-[width] duration-150" style={{ width: `${Math.max(4, genProgress * 100)}%` }} />
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3" data-testid="generate-result">
@@ -1261,7 +1284,7 @@ const Transport: React.FC<{
   compact?: boolean;
 }> = ({ state, time, duration, onToggle, onStop, onRestart, compact }) => (
   <div className={`flex items-center gap-1.5 ${compact ? '' : 'justify-center'}`} data-testid="transport">
-    <button onClick={onToggle} data-testid="play-toggle" aria-label={state === 'playing' ? 'Pause' : 'Play'} className="rounded-lg bg-cyan-400 text-black p-2">
+    <button onClick={onToggle} data-testid="play-toggle" aria-label={state === 'playing' ? 'Pause' : 'Play'} className="btn-3d-cyan rounded-lg text-black p-2">
       {state === 'playing' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
     </button>
     <button onClick={onStop} aria-label="Stop" className="rounded-lg border border-white/15 p-2">
