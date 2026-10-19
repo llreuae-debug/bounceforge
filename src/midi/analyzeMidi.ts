@@ -93,7 +93,7 @@ export function analyzeParsedMidi(midi: Midi, fileName: string): MidiAnalysis {
       .filter((n) => n.velocity > 0 && Number.isFinite(n.time))
       .map((n) => ({
         time: Math.max(0, n.time),
-        duration: Math.max(0.03, n.duration),
+        duration: Math.max(0.03, Math.min(1.5, n.duration || 0.4)),
         midi: n.midi,
         velocity: Math.max(0.05, Math.min(1, n.velocity)),
         trackIndex,

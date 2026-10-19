@@ -1,5 +1,6 @@
 import { TunedObjectType, MelodyNote, HeroMaterial } from './types';
 import { SOUND_REGISTRY, getSoundRecipe } from '../audio/soundRegistry';
+import { SoundSynthesizer } from '../audio/synth';
 
 export class MarbleAudioSynthesizer {
   private static isPreloaded: boolean = false;
@@ -838,31 +839,9 @@ export class MarbleAudioSynthesizer {
     osc1Stop(osc, t + hitDur + 0.01);
   }
 
-  /** Marimba Bar: warm rosewood resonance */
+  /** Marimba Bar: warm rosewood resonance (Sampled CC0 soundfont) */
   private static synthMarimba(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(freq, t);
-
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(freq * 3.85, t); // Rosewood overtone
-
-    const hitDur = Math.max(0.48, Math.min(dur, 0.75));
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.linearRampToValueAtTime(vol * 0.92, t + 0.003);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
-
-    osc1.connect(gain);
-    osc2.connect(gain);
-    gain.connect(dest);
-
-    osc1.start(t);
-    osc2.start(t);
-    osc1Stop(osc1, t + hitDur + 0.02);
-    osc1Stop(osc2, t + 0.12);
+    SoundSynthesizer.playNote(ctx, dest, freq, t, dur, 'marimba', vol);
   }
 
   /** Rainbow Half-Pipe Bar: glockenspiel / xylophone tone (fast runs) */
@@ -1107,32 +1086,9 @@ export class MarbleAudioSynthesizer {
     osc1Stop(oscOvertone, t + 0.15);
   }
 
-  /** Music Box Comb: bright mechanical comb pluck with high overtone */
+  /** Music Box Comb: bright mechanical comb pluck (Sampled CC0 soundfont) */
   private static synthMusicBox(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    const highPitch = Math.max(880, freq * 1.5);
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(highPitch, t);
-
-    osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(highPitch * 3.0, t);
-
-    const hitDur = Math.max(dur, 0.8);
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.linearRampToValueAtTime(vol * 0.88, t + 0.001);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
-
-    osc1.connect(gain);
-    osc2.connect(gain);
-    gain.connect(dest);
-
-    osc1.start(t);
-    osc2.start(t);
-    osc1Stop(osc1, t + hitDur + 0.02);
-    osc1Stop(osc2, t + 0.15);
+    SoundSynthesizer.playNote(ctx, dest, freq, t, dur, 'musicBox', vol);
   }
 
   /** Steel Pan: Caribbean metallic scoop harmonic */
@@ -1191,32 +1147,9 @@ export class MarbleAudioSynthesizer {
     osc1Stop(osc2, t + hitDur + 0.02);
   }
 
-  /** Acoustic Piano Step */
+  /** Acoustic Piano Step (Sampled CC0 soundfont) */
   private static synthPiano(ctx: BaseAudioContext, dest: AudioNode, freq: number, t: number, dur: number, vol: number) {
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc1.type = 'triangle';
-    osc1.frequency.setValueAtTime(freq, t);
-
-    // Chorus string detune ±0.5 Hz
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(freq + 0.5, t);
-
-    const hitDur = Math.max(0.75, dur);
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.linearRampToValueAtTime(vol * 0.88, t + 0.003);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + hitDur);
-
-    osc1.connect(gain);
-    osc2.connect(gain);
-    gain.connect(dest);
-
-    osc1.start(t);
-    osc2.start(t);
-    osc1Stop(osc1, t + hitDur + 0.02);
-    osc1Stop(osc2, t + hitDur + 0.02);
+    SoundSynthesizer.playNote(ctx, dest, freq, t, dur, 'grandPiano', vol);
   }
 
   /** Solid Marble Stone "Tok" */
@@ -1932,4 +1865,9 @@ function osc1Stop(osc: OscillatorNode, stopTime: number) {
   try {
     osc.stop(stopTime);
   } catch {}
+  osc.onended = () => {
+    try {
+      osc.disconnect();
+    } catch {}
+  };
 }

@@ -53,6 +53,10 @@ export interface AudioSettings {
   sfxVolume: number;
   droneVolume: number;
   reverbAmount: number;
+  reverbEnabled?: boolean;
+  delayAmount?: number;
+  delayEnabled?: boolean;
+  sustainPedal?: boolean;
   pitchByVelocity: boolean;
   volumeByImpulse: boolean;
   selectedMelodyId: string;

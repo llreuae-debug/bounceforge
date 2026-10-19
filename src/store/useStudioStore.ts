@@ -71,6 +71,7 @@ export type StudioRoute =
   | 'feedback'
   | 'disclaimer'
   | 'midi_studio'
+  | 'drop_studio'
   | '404';
 
 
@@ -299,13 +300,17 @@ export const useStudioStore = create<StudioState>((set, get) => {
       masterVolume: 0.85,
       instrument: 'grandPiano',
       sfxVolume: 0.75,
-      droneVolume: 0.25,
-      reverbAmount: 0.35,
+      droneVolume: 0,
+      reverbAmount: 0,
+      reverbEnabled: false,
+      delayAmount: 0,
+      delayEnabled: false,
+      sustainPedal: false,
       pitchByVelocity: false,
       volumeByImpulse: true,
       selectedMelodyId: 'fur_elise',
       soundMode: 'melody',
-      asmrLayer: true,
+      asmrLayer: false,
       stereoPanning: true,
     },
 
@@ -368,6 +373,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
           feedback: '/feedback',
           disclaimer: '/disclaimer',
           midi_studio: '/midi',
+          drop_studio: '/drops',
           '404': '/404',
         };
         const targetPath = pathMap[route] || '/';

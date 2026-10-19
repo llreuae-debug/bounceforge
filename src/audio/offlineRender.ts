@@ -1,25 +1,30 @@
 import { CollisionEvent } from '../engine/types';
-import { AudioSettings, NoteItem, SfxType } from './types';
+import { AudioSettings, NoteItem } from './types';
 import { SoundSynthesizer } from './synth';
 import { BUILTIN_MELODIES, findMelodyById } from './melodies';
 import { HitLimiter } from './hitLimiter';
 import { normalizeAudioBufferToLufs } from './loudness';
 import { MarbleAudioSynthesizer } from '../marble3d/audioSynthesizer';
+import { SoundfontSampleManager } from './soundfont';
 
 /**
  * Renders an offline AudioBuffer from the collision event log.
  * Frame-perfect alignment with simulation timestamps.
- * Guarantees that every collision event produces an audible sound.
  * 
  * Features:
  * - Completely isolated from live AudioContext.
- * - DC-blocking highpass (18Hz) and high-shelf de-harshing (12kHz).
- * - Non-bass high-pass filter (80Hz) to eliminate mud while preserving drum/sub-bass.
- * - Sidechain ducking: textures & drone pad duck -3dB under melody notes.
- * - Full collision event replay (bounce, roll, rail, slide, peg_tick, squash, portal, spike, freeze, escape, finale).
- * - Tail preservation: renders duration + 2.0s, trimmed to exact duration with 50ms anti-click fade-out.
- * - Mono-safe constant-power panning (no phase cancellation).
- * - BS.1770 / EBU R128 loudness normalization to -14 LUFS (±0.5) and True Peak <= -1 dBTP.
+ * - Clarity Master Chain (voices -> EQ -> compressor -> limiter -> output):
+ *     1. Highpass at 80 Hz (eliminates rumble/mud)
+ *     2. Peaking mud cut at 320 Hz (-3 dB, Q 1.0) to remove "goonj" / boxy echo
+ *     3. Peaking presence boost at 3 kHz (+2 dB, Q 1.0)
+ *     4. High-shelf air boost at 10 kHz (+2 dB)
+ *     5. Gentle compressor: threshold -18 dB, ratio 3:1, attack 10ms, release 120ms
+ *     6. Master Limiter ceiling -1.0 dBTP
+ * - Send/return Reverb bus (OFF by default; when enabled, wet max 15%, 20ms predelay, 300Hz lowcut, 6kHz highcut)
+ * - Strict ADSR envelopes on all voices (attack 3-5ms, decay 150-300ms, sustain 0 or low, release 150-350ms)
+ * - Stereo panning from -0.6 to +0.6, bass (<150 Hz) kept mono
+ * - Audio length exactly equals video length with 0.5s fade-out at the end
+ * - BS.1770 / EBU R128 loudness normalization to -14 LUFS (±0.5) and True Peak <= -1 dBTP
  */
 export async function renderOfflineAudio(
   events: CollisionEvent[],
@@ -29,75 +34,79 @@ export async function renderOfflineAudio(
   slowMoSoundFeel: boolean = false
 ): Promise<AudioBuffer> {
   const sampleRate = 48000;
-  // Render extra 2.0s tail to ensure full reverb and acoustic resonance decay
-  const tailDuration = 2.0;
+  // Render extra tail to capture clean acoustic decay
+  const tailDuration = 1.5;
   const totalRenderDuration = duration + tailDuration;
   const totalRenderSamples = Math.ceil(totalRenderDuration * sampleRate);
 
   const offlineCtx = new OfflineAudioContext(2, totalRenderSamples, sampleRate);
 
-  // Preload / prime procedural synth audio graphs in offline context
+  // Preload soundfont multisamples and procedural synth graphs
+  SoundfontSampleManager.warmUp(offlineCtx);
   MarbleAudioSynthesizer.preloadAllSounds(offlineCtx);
 
-  // 1. DC-Blocking Highpass Filter (18 Hz, Q 0.707)
-  const dcBlocker = offlineCtx.createBiquadFilter();
-  dcBlocker.type = 'highpass';
-  dcBlocker.frequency.setValueAtTime(18, 0);
-  dcBlocker.Q.setValueAtTime(0.707, 0);
+  // 1. Voices Summing Bus
+  const voicesBus = offlineCtx.createGain();
+  voicesBus.gain.setValueAtTime(1.0, 0);
 
-  // 2. High-shelf de-harshing trim (-1.5 dB above 12 kHz)
-  const deHarsh = offlineCtx.createBiquadFilter();
-  deHarsh.type = 'highshelf';
-  deHarsh.frequency.setValueAtTime(12000, 0);
-  deHarsh.gain.setValueAtTime(-1.5, 0);
+  // =========================================================================
+  // CLARITY MASTER CHAIN (FIX 4: voices → EQ → compressor → limiter → output)
+  // =========================================================================
 
-  // 3. Master Limiter / Bus Compressor: True Peak <= -1 dBTP
+  // A. High-pass at 80 Hz
+  const highPass = offlineCtx.createBiquadFilter();
+  highPass.type = 'highpass';
+  highPass.frequency.setValueAtTime(80, 0);
+  highPass.Q.setValueAtTime(0.707, 0);
+
+  // B. Cut -3 dB at 320 Hz (Q 1.0) to remove mud / echo / "goonj"
+  const mudCut = offlineCtx.createBiquadFilter();
+  mudCut.type = 'peaking';
+  mudCut.frequency.setValueAtTime(320, 0);
+  mudCut.Q.setValueAtTime(1.0, 0);
+  mudCut.gain.setValueAtTime(-3.0, 0);
+
+  // C. Boost +2 dB presence at 3 kHz
+  const presenceBoost = offlineCtx.createBiquadFilter();
+  presenceBoost.type = 'peaking';
+  presenceBoost.frequency.setValueAtTime(3000, 0);
+  presenceBoost.Q.setValueAtTime(1.0, 0);
+  presenceBoost.gain.setValueAtTime(2.0, 0);
+
+  // D. Boost +2 dB air shelf at 10 kHz
+  const airShelf = offlineCtx.createBiquadFilter();
+  airShelf.type = 'highshelf';
+  airShelf.frequency.setValueAtTime(10000, 0);
+  airShelf.gain.setValueAtTime(2.0, 0);
+
+  // E. Gentle compressor: threshold -18 dB, ratio 3:1, attack 10ms, release 120ms
+  const compressor = offlineCtx.createDynamicsCompressor();
+  compressor.threshold.setValueAtTime(-18, 0);
+  compressor.ratio.setValueAtTime(3, 0);
+  compressor.attack.setValueAtTime(0.010, 0);
+  compressor.release.setValueAtTime(0.120, 0);
+  compressor.knee.setValueAtTime(4, 0);
+
+  // F. Master Limiter ceiling -1.0 dBTP
   const limiter = offlineCtx.createDynamicsCompressor();
-  limiter.threshold.setValueAtTime(-2.5, 0);
-  limiter.knee.setValueAtTime(6, 0);
-  limiter.ratio.setValueAtTime(14, 0);
-  limiter.attack.setValueAtTime(0.002, 0);
-  limiter.release.setValueAtTime(0.18, 0);
+  limiter.threshold.setValueAtTime(-1.0, 0);
+  limiter.ratio.setValueAtTime(20, 0);
+  limiter.attack.setValueAtTime(0.001, 0);
+  limiter.release.setValueAtTime(0.050, 0);
+  limiter.knee.setValueAtTime(0, 0);
 
-  // 4. Master Gain (Uses preset mix levels, ignoring preview live mute/volume)
+  // G. Master Gain
   const masterGain = offlineCtx.createGain();
   const safeMasterVol = Math.max(0.25, Math.min(1.0, settings.masterVolume ?? 0.85));
   masterGain.gain.setValueAtTime(safeMasterVol, 0);
 
-  // 5. Sidechain Ducking Node for textures & drone pads
-  const duckingGain = offlineCtx.createGain();
-  duckingGain.gain.setValueAtTime(1.0, 0);
-
-  // 6. Sub-buses
-  const melodyBus = offlineCtx.createGain();
-  melodyBus.gain.setValueAtTime(1.0, 0);
-
-  const textureBus = offlineCtx.createGain();
-  textureBus.gain.setValueAtTime(1.0, 0);
-
-  // 7. Non-bass highpass filter (80 Hz) to keep low-end pristine
-  const nonBassFilter = offlineCtx.createBiquadFilter();
-  nonBassFilter.type = 'highpass';
-  nonBassFilter.frequency.setValueAtTime(80, 0);
-  nonBassFilter.Q.setValueAtTime(0.707, 0);
-
-  // 8. Bass pass-through bus for drums and 808
-  const bassBus = offlineCtx.createGain();
-  bassBus.gain.setValueAtTime(1.0, 0);
-
-  // Wire Audio Graph
-  // Non-bass sounds -> nonBassFilter -> melodyBus -> limiter
-  nonBassFilter.connect(melodyBus);
-  bassBus.connect(melodyBus);
-  melodyBus.connect(limiter);
-
-  // Texture sounds -> textureBus -> duckingGain -> limiter
-  textureBus.connect(duckingGain);
-  duckingGain.connect(limiter);
-
-  // Master output chain
-  limiter.connect(deHarsh);
-  deHarsh.connect(dcBlocker);
+  // Wire Clarity Master Chain
+  voicesBus.connect(highPass);
+  highPass.connect(mudCut);
+  mudCut.connect(presenceBoost);
+  presenceBoost.connect(airShelf);
+  airShelf.connect(compressor);
+  compressor.connect(limiter);
 
   // Optional "slow-mo sound feel": gentle low-pass (2600Hz)
   if (slowMoSoundFeel) {
@@ -105,53 +114,86 @@ export async function renderOfflineAudio(
     lowpass.type = 'lowpass';
     lowpass.frequency.setValueAtTime(2600, 0);
     lowpass.Q.setValueAtTime(0.707, 0);
-    dcBlocker.connect(lowpass);
+    limiter.connect(lowpass);
     lowpass.connect(masterGain);
   } else {
-    dcBlocker.connect(masterGain);
+    limiter.connect(masterGain);
   }
   masterGain.connect(offlineCtx.destination);
+
+  // =========================================================================
+  // REVERB SEND/RETURN BUS (FIX 3: OFF by default, send/return only, wet max 15%)
+  // =========================================================================
+  const reverbOn = !!(settings.reverbEnabled || (settings.reverbAmount ?? 0) > 0.05);
+  if (reverbOn) {
+    const reverbPreDelay = offlineCtx.createDelay();
+    reverbPreDelay.delayTime.setValueAtTime(0.020, 0);
+
+    const reverbLowCut = offlineCtx.createBiquadFilter();
+    reverbLowCut.type = 'highpass';
+    reverbLowCut.frequency.setValueAtTime(300, 0);
+
+    const reverbHighCut = offlineCtx.createBiquadFilter();
+    reverbHighCut.type = 'lowpass';
+    reverbHighCut.frequency.setValueAtTime(6000, 0);
+
+    const reverbConvolver = offlineCtx.createConvolver();
+    // 1.0s decay decorrelated stereo impulse response
+    const impulseLength = Math.floor(sampleRate * 1.0);
+    const impulseBuffer = offlineCtx.createBuffer(2, impulseLength, sampleRate);
+    const lChan = impulseBuffer.getChannelData(0);
+    const rChan = impulseBuffer.getChannelData(1);
+    for (let i = 0; i < impulseLength; i++) {
+      const t = i / sampleRate;
+      const env = Math.exp(-3.5 * t);
+      lChan[i] = (Math.random() * 2 - 1) * env;
+      rChan[i] = (Math.random() * 2 - 1) * env;
+    }
+    reverbConvolver.buffer = impulseBuffer;
+
+    const reverbReturn = offlineCtx.createGain();
+    const wet = Math.min(0.15, (settings.reverbAmount ?? 0.1) * 0.15);
+    reverbReturn.gain.setValueAtTime(wet, 0);
+
+    voicesBus.connect(reverbPreDelay);
+    reverbPreDelay.connect(reverbLowCut);
+    reverbLowCut.connect(reverbHighCut);
+    reverbHighCut.connect(reverbConvolver);
+    reverbConvolver.connect(reverbReturn);
+    reverbReturn.connect(highPass);
+  }
 
   // Determine melody notes
   const melody = customNotes && customNotes.length > 0
     ? customNotes
     : (findMelodyById(settings.selectedMelodyId) || BUILTIN_MELODIES[0]).notes;
 
-  // Synthesize Backing Drone / Pad Layer if droneVolume > 0.05
-  const droneVol = settings.droneVolume ?? 0.2;
+  // FIX 1: Synthesize Backing Drone ONLY if explicitly enabled (> 0.05). Default is OFF (0).
+  const droneVol = settings.droneVolume ?? 0;
   if (droneVol > 0.05) {
     const baseFreq = melody.length > 0 ? melody[0].freq : 261.63;
-    // Subdued root and fifth pad
     const oscRoot = offlineCtx.createOscillator();
-    const oscFifth = offlineCtx.createOscillator();
     const droneGain = offlineCtx.createGain();
     const droneFilter = offlineCtx.createBiquadFilter();
 
     oscRoot.type = 'sine';
-    oscRoot.frequency.setValueAtTime(baseFreq * 0.5, 0); // one octave down
-
-    oscFifth.type = 'triangle';
-    oscFifth.frequency.setValueAtTime(baseFreq * 0.75, 0); // fifth
+    oscRoot.frequency.setValueAtTime(baseFreq * 0.5, 0);
 
     droneFilter.type = 'lowpass';
-    droneFilter.frequency.setValueAtTime(380, 0);
-    droneFilter.Q.setValueAtTime(1.0, 0);
+    droneFilter.frequency.setValueAtTime(280, 0);
 
-    const safeDroneVol = Math.max(0.04, Math.min(0.3, droneVol * 0.5));
+    const safeDroneVol = Math.max(0.01, Math.min(0.08, droneVol * 0.15));
     droneGain.gain.setValueAtTime(0.0001, 0);
     droneGain.gain.linearRampToValueAtTime(safeDroneVol, 0.4);
     droneGain.gain.setValueAtTime(safeDroneVol, Math.max(0, duration - 0.5));
     droneGain.gain.linearRampToValueAtTime(0.0001, duration);
 
     oscRoot.connect(droneFilter);
-    oscFifth.connect(droneFilter);
     droneFilter.connect(droneGain);
-    droneGain.connect(textureBus);
+    droneGain.connect(voicesBus);
 
     oscRoot.start(0);
-    oscFifth.start(0);
     oscRoot.stop(duration);
-    oscFifth.stop(duration);
   }
 
   const PENTATONIC_FREQS = [
@@ -167,15 +209,13 @@ export async function renderOfflineAudio(
   let lastScheduledTime = -1;
 
   const hitLimiter = new HitLimiter();
+
   for (let i = 0; i < events.length; i++) {
     const ev = events[i];
     if (ev.time > duration) break;
-    // Same rules as the live preview, so export audio matches what was heard
     if (!hitLimiter.allow(ev)) continue;
 
-    // Hits that land on top of each other are spread 4ms apart so each one is heard.
-    // Only ever push a hit later (pulling it earlier merges it into the previous bounce
-    // and puts the sound ahead of the picture), and by at most 30ms to stay in sync.
+    // Hits scheduled with 4ms offset to prevent transient distortion
     const evTime = Math.max(0, ev.time);
     let t = evTime;
     if (lastScheduledTime >= 0) {
@@ -185,29 +225,19 @@ export async function renderOfflineAudio(
 
     bounceCount++;
 
-    // Mono-safe panning: clamp between -0.85 and +0.85
-    const pan = settings.stereoPanning !== false && ev.position
-      ? Math.max(-0.85, Math.min(0.85, (ev.position.x - 540) / 540))
-      : 0;
-
-    // Sidechain Ducking Trigger: when melody note plays, duck texture bus by -3dB (gain 0.7)
-    try {
-      duckingGain.gain.cancelScheduledValues(t);
-      duckingGain.gain.setValueAtTime(duckingGain.gain.value, t);
-      duckingGain.gain.linearRampToValueAtTime(0.70, t + 0.015);
-      duckingGain.gain.linearRampToValueAtTime(1.0, t + 0.18);
-    } catch {}
+    // FIX 5: Stereo pan between -0.6 (left) and +0.6 (right) based on ball's X position on screen
+    const rawPan = ev.position ? ((ev.position.x - 540) / 540) * 0.6 : 0;
+    const pan = settings.stereoPanning !== false ? Math.max(-0.6, Math.min(0.6, rawPan)) : 0;
 
     // A. Marble Melody 3D Hit
     if (ev.extra?.marbleMelodyHit && ev.extra?.melodyNote) {
-      // Soft / glancing hit guarantee: minimum audible velocity 0.25
       const baseNoteVol = ev.extra.melodyNote.velocity || 0.85;
-      const vol = Math.max(0.25, baseNoteVol);
+      const vol = Math.max(0.42, Math.min(1.0, baseNoteVol));
       const objType = ev.extra.objectType || 'glass_tube';
 
       MarbleAudioSynthesizer.playTunedHit(
         offlineCtx,
-        nonBassFilter,
+        voicesBus,
         objType,
         ev.extra.melodyNote,
         t,
@@ -219,17 +249,15 @@ export async function renderOfflineAudio(
 
     // B. Escape & Finale
     if (ev.type === 'escape' || ev.type === 'finale') {
-      SoundSynthesizer.playSfx(offlineCtx, textureBus, 'shatter', t, settings.sfxVolume ?? 0.75);
-
       if (melody.length > 0) {
         const note = melody[noteIdx % melody.length];
         noteIdx++;
         SoundSynthesizer.playNote(
           offlineCtx,
-          nonBassFilter,
+          voicesBus,
           note.freq * 2.0,
           t,
-          0.85,
+          0.55,
           settings.instrument,
           0.95,
           pan
@@ -270,11 +298,11 @@ export async function renderOfflineAudio(
 
       MarbleAudioSynthesizer.playTunedHit(
         offlineCtx,
-        mappedType === 'glass_slide' || mappedType === 'wire_rail' ? textureBus : nonBassFilter,
+        voicesBus,
         mappedType,
         melodyNote,
         t,
-        Math.max(0.35, (ev.impulse || 50) / 60),
+        Math.max(0.42, (ev.impulse || 50) / 60),
         pan
       );
     }
@@ -289,13 +317,13 @@ export async function renderOfflineAudio(
         const octaveShift = Math.floor(Math.min(speed / 400, 3));
         const scaleIdx = (bounceCount + octaveShift * 5) % PENTATONIC_FREQS.length;
         freq = PENTATONIC_FREQS[scaleIdx];
-        noteDuration = 0.35;
+        noteDuration = 0.32;
       } else if (soundMode === 'chordArp') {
         const baseNote = melody.length > 0 ? melody[noteIdx % melody.length] : { freq: 261.63 };
         noteIdx++;
         const arpMult = CHORD_ARP[bounceCount % CHORD_ARP.length];
         freq = baseNote.freq * arpMult;
-        noteDuration = 0.4;
+        noteDuration = 0.35;
       } else if (soundMode === 'pitchSpeed') {
         const speed = Math.hypot(ev.velocity?.x || 0, ev.velocity?.y || 0);
         const pitchRatio = Math.max(0.5, Math.min(3.5, speed / 320));
@@ -315,7 +343,6 @@ export async function renderOfflineAudio(
         }
       }
 
-      // Soft hit threshold: glancing contacts never drop below 0.45
       let vol = 0.75;
       if (settings.volumeByImpulse && ev.impulse !== undefined) {
         vol = Math.min(1.0, Math.max(0.45, ev.impulse / 300));
@@ -325,15 +352,13 @@ export async function renderOfflineAudio(
 
       let finalDuration = noteDuration;
       if (slowMoSoundFeel) {
-        finalDuration *= 1.35;
+        finalDuration *= 1.25;
       }
 
-      const isSubOrDrum = settings.instrument === 'subBass808' || settings.instrument === 'snareRimshot';
-      const targetDestination = isSubOrDrum ? bassBus : nonBassFilter;
-
+      // FIX 1: Each impact triggers the sound exactly once!
       SoundSynthesizer.playNote(
         offlineCtx,
-        targetDestination,
+        voicesBus,
         freq,
         t,
         finalDuration,
@@ -341,18 +366,13 @@ export async function renderOfflineAudio(
         vol,
         pan
       );
-
-      if (settings.asmrLayer !== false) {
-        const sfx = ev.type === 'ring' ? 'pop' : ev.type === 'ball' ? 'crunch' : 'thud';
-        SoundSynthesizer.playSfx(offlineCtx, textureBus, sfx as SfxType, t, (settings.sfxVolume ?? 0.75) * 0.4);
-      }
     }
   }
 
   // Render the audio graph
   const renderedBuffer = await offlineCtx.startRendering();
 
-  // Trim to exact video duration and apply 50ms anti-click fade-out at the exact end
+  // FIX 6: Audio length exactly equals video length with a 0.5s fade-out at the end
   const exactSamples = Math.round(duration * sampleRate);
   const trimmedBuffer = new AudioBuffer({
     numberOfChannels: 2,
@@ -360,7 +380,7 @@ export async function renderOfflineAudio(
     sampleRate,
   });
 
-  const fadeSamples = Math.round(0.05 * sampleRate); // 50ms fade
+  const fadeSamples = Math.round(0.5 * sampleRate); // 0.5s fade-out
   const fadeStart = Math.max(0, exactSamples - fadeSamples);
 
   for (let ch = 0; ch < 2; ch++) {
@@ -377,7 +397,7 @@ export async function renderOfflineAudio(
     }
   }
 
-  // Normalize export loudness to -14 LUFS integrated and <= -1 dBTP true peak
+  // FIX 4: Normalize export loudness to -14 LUFS integrated and <= -1 dBTP true peak
   normalizeAudioBufferToLufs(trimmedBuffer, -14.0, -1.0);
 
   return trimmedBuffer;

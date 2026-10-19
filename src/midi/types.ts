@@ -206,7 +206,7 @@ export const DEFAULT_MIX: ReelMix = {
   music: 0.8,
   drops: 0.5,
   collisions: 0.6,
-  ambient: 0.25,
+  ambient: 0,
   muted: false,
   bassImpacts: true,
 };

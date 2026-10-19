@@ -87,6 +87,7 @@ export const StudioCanvas: React.FC = () => {
   const [simTime, setSimTime] = useState<number>(0);
   const [isComplete, setIsComplete] = useState<boolean>(false);
   const [bounceBoostEnergy, setBounceBoostEnergy] = useState<number>(0);
+  const [activeVoicesCount, setActiveVoicesCount] = useState<number>(0);
 
   // Initialize or Reset Physics Simulation
   const initSimulation = () => {
@@ -102,6 +103,7 @@ export const StudioCanvas: React.FC = () => {
     // Audio Engine initialization and event bus binding
     const audio = AudioEngine.getInstance();
     audio.init();
+    audio.hardStopAllVoices();
     audio.resetMelodyPosition();
     const activeMelodyId = modeSettings.melodyId || audioSettings.selectedMelodyId || 'toybox_run';
     audio.updateSettings({
@@ -150,10 +152,13 @@ export const StudioCanvas: React.FC = () => {
     setSeedInput(seed.toString());
   }, [currentModeId, seed, modeSettings, targetDuration, ballPhysics, wallControls, customBall, reelSpeed, slowMoSoundFeel, speedRampFinale, audioSettings]);
 
-  // Pressing play after the animation completed replays it from the start
+  // Pressing play after the animation completed replays it from the start; pausing hard-stops voices
   useEffect(() => {
     if (isPlaying && worldRef.current?.isFinished) {
       initSimulation();
+    } else if (!isPlaying) {
+      AudioEngine.getInstance().hardStopAllVoices();
+      setActiveVoicesCount(0);
     }
   }, [isPlaying]);
 
@@ -334,14 +339,16 @@ export const StudioCanvas: React.FC = () => {
           setSimTime(Math.min(world.videoTime, targetDuration));
           setIsComplete(true);
           setIsPlaying(false);
+          setActiveVoicesCount(0);
           triggerHaptic(20);
         }
 
         // Throttle React state update for scrubber and HUD
         localTimer += deltaSec;
-        if (localTimer > 0.1 && !done) {
+        if (localTimer > 0.08 && !done) {
           localTimer = 0;
           setSimTime(world.videoTime);
+          setActiveVoicesCount(AudioEngine.getInstance().getActiveVoiceCount());
           if (world.getBounceBoostEnergy) {
             setBounceBoostEnergy(world.getBounceBoostEnergy());
           }
@@ -560,13 +567,24 @@ export const StudioCanvas: React.FC = () => {
           </button>
         </div>
 
-        {/* Quality Chip - Only shown if developer diagnostics enabled in settings */}
-        {getFeatureFlags().showDevDiagnosticsInStudio && (
-          <div className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-[10.5px] font-mono text-cyan-300 flex items-center gap-1.5 shadow-sm whitespace-nowrap">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
-            quality: {currentQualityTier} ({qualityMode === 'auto' ? 'auto' : 'manual'})
+        <div className="flex items-center gap-2">
+          {/* Debug Panel: Active voices: N (FIX 1) */}
+          <div
+            className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[10.5px] font-mono text-slate-300 flex items-center gap-1.5 shadow-sm whitespace-nowrap"
+            title="Active audio polyphony voices. Returns to 0 between notes."
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${activeVoicesCount > 0 ? 'bg-cyan-400 animate-pulse' : 'bg-slate-500'}`} />
+            <span>voices: <strong className="text-white">{activeVoicesCount}</strong>/16</span>
           </div>
-        )}
+
+          {/* Quality Chip - Only shown if developer diagnostics enabled in settings */}
+          {getFeatureFlags().showDevDiagnosticsInStudio && (
+            <div className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-[10.5px] font-mono text-cyan-300 flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
+              quality: {currentQualityTier} ({qualityMode === 'auto' ? 'auto' : 'manual'})
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 9:16 Canvas Frame */}

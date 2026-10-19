@@ -97,6 +97,18 @@ export const Header: React.FC = () => {
           </button>
 
           <button
+            onClick={() => setRoute('drop_studio')}
+            className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+              currentRoute === 'drop_studio'
+                ? 'bg-lime-400/15 text-lime-300 font-extrabold border border-lime-400/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Drop Studio 3D</span>
+          </button>
+
+          <button
             onClick={() => setRoute('pricing')}
             className={`px-3 py-1.5 rounded-xl transition-all ${
               currentRoute === 'pricing'
@@ -304,6 +316,19 @@ export const Header: React.FC = () => {
           >
             <span>My Videos</span>
             <Film className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setRoute('drop_studio');
+            }}
+            className={`w-full p-2.5 rounded-xl font-bold text-xs text-left flex items-center justify-between ${
+              currentRoute === 'drop_studio' ? 'bg-lime-400/20 text-lime-300' : 'text-slate-200 hover:bg-white/5'
+            }`}
+          >
+            <span>Drop Studio 3D</span>
+            <Sparkles className="w-4 h-4" />
           </button>
 
           <button

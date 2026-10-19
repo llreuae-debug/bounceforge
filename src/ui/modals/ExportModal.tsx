@@ -33,6 +33,7 @@ import { generateSeoPack, SeoPack, formatSeoPackAsText } from '../../ai/seoEngin
 import { copyText } from '../../platform/clipboard';
 import { SeoPackViewer } from '../components/SeoPackViewer';
 import { exportHistoryService } from '../../export/exportHistoryService';
+import { AudioEngine } from '../../audio/audioEngine';
 
 export const ExportModal: React.FC = () => {
   const {
@@ -210,6 +211,9 @@ export const ExportModal: React.FC = () => {
         console.warn('File picker fallback:', err);
       }
     }
+
+    // FIX 1: Hard-stop ALL live preview voices and reset reverb/delay tails before export
+    AudioEngine.getInstance().hardStopAllVoices();
 
     setIsExporting(true);
     setExportError(null);

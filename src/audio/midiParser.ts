@@ -23,16 +23,22 @@ export class MidiService {
         return { title, notes: [] };
       }
 
-      // Sort notes by time
-      const sorted = [...bestTrack.notes].sort((a, b) => a.time - b.time);
+      // FIX 1: Sort notes by time, treat velocity 0 as note-off, force max duration of 1.5s
+      const sorted = [...bestTrack.notes]
+        .filter((n) => (n.velocity ?? 1) > 0)
+        .sort((a, b) => a.time - b.time);
 
-      const notes: NoteItem[] = sorted.map((n) => ({
-        note: n.name,
-        midi: n.midi,
-        freq: midiToFreq(n.midi),
-        time: n.time,
-        duration: n.duration,
-      }));
+      const notes: NoteItem[] = sorted.map((n) => {
+        const rawDur = n.duration && n.duration > 0 ? n.duration : 0.4;
+        const dur = Math.min(1.5, Math.max(0.05, rawDur));
+        return {
+          note: n.name,
+          midi: n.midi,
+          freq: midiToFreq(n.midi),
+          time: n.time,
+          duration: dur,
+        };
+      });
 
       return { title, notes };
     } catch (e) {

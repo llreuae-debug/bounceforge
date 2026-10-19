@@ -27,6 +27,7 @@ const AccountPage = React.lazy(() => import('./ui/pages/AccountPage').then((m) =
 const AdminPanel = React.lazy(() => import('./ui/admin/AdminPanel').then((m) => ({ default: m.AdminPanel })));
 const BlogPage = React.lazy(() => import('./ui/pages/BlogPage').then((m) => ({ default: m.BlogPage })));
 const ArticlePage = React.lazy(() => import('./ui/pages/ArticlePage').then((m) => ({ default: m.ArticlePage })));
+const DropStudioPage = React.lazy(() => import('./ui/dropstudio/DropStudioPage').then((m) => ({ default: m.DropStudioPage })));
 const MidiStudioPage = React.lazy(() => import('./ui/midi/MidiStudioPage').then((m) => ({ default: m.MidiStudioPage })));
 const DiagnosticsPage = React.lazy(() => import('./ui/pages/DiagnosticsPage').then((m) => ({ default: m.DiagnosticsPage })));
 import { GlobalToast } from './ui/components/GlobalToast';
@@ -55,6 +56,7 @@ export const parsePathWithLocale = (
   if (clean === '/' || clean === '') return { lang, route: 'landing' };
   if (clean === '/studio') return { lang, route: 'studio' };
   if (clean === '/midi' || clean === '/midi-studio') return { lang, route: 'midi_studio' };
+  if (clean === '/drops' || clean === '/drop-studio') return { lang, route: 'drop_studio' };
   if (clean === '/my-videos' || clean === '/videos') return { lang, route: 'my_videos' };
   if (clean === '/settings') return { lang, route: 'settings' };
   if (clean === '/diagnostics') return { lang, route: 'diagnostics' };
@@ -232,6 +234,7 @@ export const App: React.FC = () => {
           {currentRoute === 'studio' && <Studio />}
           {currentRoute === 'my_videos' && <MyVideosPage />}
           {currentRoute === 'midi_studio' && <MidiStudioPage />}
+          {currentRoute === 'drop_studio' && <DropStudioPage />}
           {currentRoute === 'settings' && <Studio />}
           {currentRoute === 'landing' && (
             <>

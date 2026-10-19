@@ -1,0 +1,376 @@
+[
+  {
+    "id": "fur_elise",
+    "title": "Für Elise",
+    "composer": "Ludwig van Beethoven",
+    "composerDeathYear": 1827,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "moonlight_sonata",
+    "title": "Moonlight Sonata (1st movement)",
+    "composer": "Ludwig van Beethoven",
+    "composerDeathYear": 1827,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "ode_to_joy",
+    "title": "Ode to Joy",
+    "composer": "Ludwig van Beethoven",
+    "composerDeathYear": 1827,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "canon_in_d",
+    "title": "Canon in D",
+    "composer": "Johann Pachelbel",
+    "composerDeathYear": 1706,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "mountain_king",
+    "title": "In the Hall of the Mountain King",
+    "composer": "Edvard Grieg",
+    "composerDeathYear": 1907,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "morning_mood",
+    "title": "Morning Mood",
+    "composer": "Edvard Grieg",
+    "composerDeathYear": 1907,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "flight_bumblebee",
+    "title": "Flight of the Bumblebee",
+    "composer": "Nikolai Rimsky-Korsakov",
+    "composerDeathYear": 1908,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "rondo_alla_turca",
+    "title": "Rondo alla Turca",
+    "composer": "Wolfgang Amadeus Mozart",
+    "composerDeathYear": 1791,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "eine_kleine_nachtmusik",
+    "title": "Eine kleine Nachtmusik",
+    "composer": "Wolfgang Amadeus Mozart",
+    "composerDeathYear": 1791,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "gymnopedie_1",
+    "title": "Gymnopédie No. 1",
+    "composer": "Erik Satie",
+    "composerDeathYear": 1925,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "clair_de_lune",
+    "title": "Clair de Lune",
+    "composer": "Claude Debussy",
+    "composerDeathYear": 1918,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "nocturne_op9_2",
+    "title": "Nocturne Op. 9 No. 2",
+    "composer": "Frédéric Chopin",
+    "composerDeathYear": 1849,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "swan_lake",
+    "title": "Swan Lake (Scene theme)",
+    "composer": "Pyotr Ilyich Tchaikovsky",
+    "composerDeathYear": 1893,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "sugar_plum_fairy",
+    "title": "Dance of the Sugar Plum Fairy",
+    "composer": "Pyotr Ilyich Tchaikovsky",
+    "composerDeathYear": 1893,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "the_entertainer",
+    "title": "The Entertainer",
+    "composer": "Scott Joplin",
+    "composerDeathYear": 1917,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "maple_leaf_rag",
+    "title": "Maple Leaf Rag",
+    "composer": "Scott Joplin",
+    "composerDeathYear": 1917,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "william_tell_finale",
+    "title": "William Tell Overture (Finale)",
+    "composer": "Gioachino Rossini",
+    "composerDeathYear": 1868,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "habanera",
+    "title": "Habanera (Carmen)",
+    "composer": "Georges Bizet",
+    "composerDeathYear": 1875,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)",
+    "basis": "Melody adapted by Bizet from Sebastián Yradier's El Arreglito (Yradier died 1865)"
+  },
+  {
+    "id": "blue_danube",
+    "title": "The Blue Danube",
+    "composer": "Johann Strauss II",
+    "composerDeathYear": 1899,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "vivaldi_spring",
+    "title": "Spring (The Four Seasons)",
+    "composer": "Antonio Vivaldi",
+    "composerDeathYear": 1741,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "toccata_fugue_d_minor",
+    "title": "Toccata and Fugue in D minor",
+    "composer": "Johann Sebastian Bach",
+    "composerDeathYear": 1750,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "air_on_g_string",
+    "title": "Air on the G String",
+    "composer": "Johann Sebastian Bach",
+    "composerDeathYear": 1750,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "prelude_in_c",
+    "title": "Prelude in C",
+    "composer": "Johann Sebastian Bach",
+    "composerDeathYear": 1750,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "greensleeves",
+    "title": "Greensleeves",
+    "composer": "Traditional English",
+    "composerDeathYear": null,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)",
+    "basis": "Traditional tune, first published 1580"
+  },
+  {
+    "id": "twinkle_twinkle",
+    "title": "Twinkle Twinkle Little Star",
+    "composer": "Traditional French",
+    "composerDeathYear": null,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)",
+    "basis": "Melody 'Ah! vous dirai-je, maman', first published 1761"
+  },
+  {
+    "id": "jingle_bells",
+    "title": "Jingle Bells",
+    "composer": "James Lord Pierpont",
+    "composerDeathYear": 1893,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "silent_night",
+    "title": "Silent Night",
+    "composer": "Franz Xaver Gruber",
+    "composerDeathYear": 1863,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "amazing_grace",
+    "title": "Amazing Grace",
+    "composer": "Traditional (tune 'New Britain')",
+    "composerDeathYear": null,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)",
+    "basis": "Tune first published 1829; words by John Newton (died 1807)"
+  },
+  {
+    "id": "auld_lang_syne",
+    "title": "Auld Lang Syne",
+    "composer": "Traditional Scottish",
+    "composerDeathYear": null,
+    "status": "Public Domain",
+    "sequencedBy": "BounceForge team — newly sequenced by hand from the original public-domain score (melody + plain accompaniment)",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)",
+    "basis": "Traditional tune, first published 1799; words by Robert Burns (died 1796)"
+  },
+  {
+    "id": "bf_lofi_chill",
+    "title": "Lo-fi Chill",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_sad_piano",
+    "title": "Sad Piano",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_epic_build",
+    "title": "Epic Build-Up",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_satisfying_marimba",
+    "title": "Satisfying Marimba",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_music_box_lullaby",
+    "title": "Music Box Lullaby",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_dark_bass_loop",
+    "title": "Dark Bass Loop",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_8bit_chiptune",
+    "title": "8-bit Chiptune",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_ambient_pads",
+    "title": "Ambient Pads",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_happy_pop_hook",
+    "title": "Happy Pop Hook",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_cinematic_drop",
+    "title": "Cinematic Drop",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_festive_bells",
+    "title": "Festive Bells",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  },
+  {
+    "id": "bf_hypnotic_arp",
+    "title": "Hypnotic Arp",
+    "composer": "BounceForge",
+    "composerDeathYear": null,
+    "status": "Original",
+    "sequencedBy": "BounceForge team — original composition",
+    "soundfont": "BounceForge built-in WebAudio synthesizer (original code, no samples; free for commercial use)"
+  }
+]

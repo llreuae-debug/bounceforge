@@ -14,6 +14,7 @@ import { Output, BufferTarget, Mp4OutputFormat, AudioBufferSource, Input, Buffer
 import { verifyExportAudio, ExportAudioVerificationResult } from './exportAudioVerifier';
 import type { SimulationMode } from '../modes/types';
 import type { CollisionEvent } from '../engine/types';
+import { AudioEngine } from '../audio/audioEngine';
 
 export interface ExportConfig {
   width: number;
@@ -133,6 +134,9 @@ export class VideoExporter {
 
     // Preload video language font to prevent fallback boxes in exported frames
     await ensureFontLoaded(overlays?.videoLanguage || 'en');
+
+    // FIX 1: Hard-stop ALL live preview voices so nothing carries over into the export
+    AudioEngine.getInstance().hardStopAllVoices();
 
     const totalFrames = Math.ceil(duration * fps);
     const dt = 1 / fps;
@@ -416,7 +420,8 @@ export class VideoExporter {
       throw new Error(`Offline audio rendering failed: ${renderErr?.message || 'unknown error'}`);
     }
 
-    const audioBitrate = width >= 1440 ? 256000 : 192000;
+    // FIX 6: High-quality AAC-LC at 320 kbps
+    const audioBitrate = 320000;
     let aacSupported = false;
 
     if (typeof AudioEncoder !== 'undefined') {
