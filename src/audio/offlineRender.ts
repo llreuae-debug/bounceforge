@@ -2,6 +2,7 @@ import { CollisionEvent } from '../engine/types';
 import { AudioSettings, NoteItem, SfxType } from './types';
 import { SoundSynthesizer } from './synth';
 import { BUILTIN_MELODIES, findMelodyById } from './melodies';
+import { HitLimiter } from './hitLimiter';
 import { normalizeAudioBufferToLufs } from './loudness';
 import { MarbleAudioSynthesizer } from '../marble3d/audioSynthesizer';
 
@@ -165,9 +166,12 @@ export async function renderOfflineAudio(
   let bounceCount = 0;
   let lastScheduledTime = -1;
 
+  const hitLimiter = new HitLimiter();
   for (let i = 0; i < events.length; i++) {
     const ev = events[i];
     if (ev.time > duration) break;
+    // Same rules as the live preview, so export audio matches what was heard
+    if (!hitLimiter.allow(ev)) continue;
 
     // Hits that land on top of each other are spread 4ms apart so each one is heard.
     // Only ever push a hit later (pulling it earlier merges it into the previous bounce

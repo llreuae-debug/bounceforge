@@ -1,6 +1,7 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
 import { CollisionEvent } from '../engine/types';
+import { reelLength } from '../engine/pacing';
 
 export const SoapCubeCutMode: SimulationMode = {
   id: 'soap_cube_cut',
@@ -100,10 +101,11 @@ export const SoapCubeCutMode: SimulationMode = {
       glowColor: '#ffb3ba',
     });
   },
-  step: (world: PhysicsWorld, dt: number) => {
-    // Slicing progression: cut wires progressively downwards towards 55s
+  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
+    // Slicing progression paced to the reel (video time), last slice just before the end
     const total = world.customState.totalSlices || 16;
-    const targetCut = Math.min(total, Math.floor((world.time / 55) * total));
+    const cutWindow = Math.max(5, reelLength(world, settings) - 1.5);
+    const targetCut = Math.min(total, Math.floor((world.videoTime / cutWindow) * total));
 
     while ((world.customState.slicesCut || 0) < targetCut && world.lines.length > 0) {
       world.lines.shift();

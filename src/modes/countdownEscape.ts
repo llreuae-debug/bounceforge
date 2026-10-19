@@ -1,5 +1,6 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
+import { paceRingEscapes, reelLength } from '../engine/pacing';
 
 export const CountdownEscapeMode: SimulationMode = {
   id: 'countdown_escape',
@@ -97,25 +98,29 @@ export const CountdownEscapeMode: SimulationMode = {
     });
   },
   step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
-    const duration = settings.duration ?? 60;
-    const timeLeft = Math.max(0, duration - world.time);
+    // Reel clock (video time), so the countdown matches the video at any reel speed
+    const duration = reelLength(world, settings);
+    const timeLeft = Math.max(0, duration - world.videoTime);
 
     // Pulse tension red in last 10 seconds
     if (timeLeft <= 10) {
-      world.customState.timerPulse = Math.sin(world.time * 8) * 0.5 + 0.5;
+      world.customState.timerPulse = Math.sin(world.videoTime * 8) * 0.5 + 0.5;
     }
 
-    // Dynamic speed ramp in the final stretch (45s -> 58s)
-    if (world.time > 45 && world.time < 58) {
-      const speedRamp = 1 + ((world.time - 45) / 13) * 0.25;
+    // Escapes land through the reel with the last one in the final seconds
+    paceRingEscapes(world, duration, 0.15, 0.85);
+
+    // Dynamic speed ramp in the final stretch (75% -> 97% of the reel)
+    const rampStart = duration * 0.75;
+    const rampEnd = duration * 0.97;
+    if (world.videoTime > rampStart && world.videoTime < rampEnd) {
+      const speedRamp = 1 + ((world.videoTime - rampStart) / (rampEnd - rampStart)) * 0.25;
       for (const ring of world.rings) {
         ring.angularVelocity = Math.sign(ring.angularVelocity) * Math.abs(ring.angularVelocity) * speedRamp;
       }
     }
   },
   isFinished: (world: PhysicsWorld, settings: Record<string, any>) => {
-    const duration = settings.duration ?? settings.targetDuration ?? 60;
-    const currentTime = world.videoTime > 0 ? world.videoTime : world.time;
-    return currentTime >= duration;
+    return world.videoTime >= reelLength(world, settings) || world.rings.every((r) => r.isShattered);
   },
 };

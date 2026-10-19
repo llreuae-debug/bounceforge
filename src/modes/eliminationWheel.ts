@@ -1,5 +1,6 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
+import { reelLength } from '../engine/pacing';
 import { CollisionEvent } from '../engine/types';
 
 export const EliminationWheelMode: SimulationMode = {
@@ -91,13 +92,18 @@ export const EliminationWheelMode: SimulationMode = {
       });
     }
   },
-  step: (world: PhysicsWorld, dt: number) => {
+  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
     world.customState.wheelAngle = (world.customState.wheelAngle || 0) + dt * 2.2;
-    const interval = world.customState.interval || 8;
+
+    // Interval is in video seconds, shortened if needed so the last survivor is crowned
+    // by ~90% of the reel (e.g. a 30s reel still finishes)
+    const eliminations = Math.max(1, (world.customState.activeContestants?.length || 6) - 1);
+    const fitInterval = (reelLength(world, settings) * 0.9) / eliminations;
+    const interval = Math.min(world.customState.interval || 8, fitInterval);
 
     // Check elimination timer
-    if (world.time - world.customState.lastEliminationTime >= interval && world.balls.length > 1) {
-      world.customState.lastEliminationTime = world.time;
+    if (world.videoTime - world.customState.lastEliminationTime >= interval && world.balls.length > 1) {
+      world.customState.lastEliminationTime = world.videoTime;
 
       // Eliminate one random ball with explosion shockwave
       const elimIdx = Math.floor(world.prng.next() * world.balls.length);
@@ -115,6 +121,19 @@ export const EliminationWheelMode: SimulationMode = {
         });
 
         world.balls.splice(elimIdx, 1);
+        world.lastEventTime = world.videoTime;
+
+        // Audible elimination (shatter + note) in preview and export
+        world.eventBus.emit({
+          id: Math.floor(Math.random() * 1000000),
+          time: world.videoTime,
+          type: 'escape',
+          position: { x: eliminatedBall.x, y: eliminatedBall.y },
+          velocity: { x: 0, y: 0 },
+          impulse: 350,
+          ballId: eliminatedBall.id,
+          noteIndex: 0,
+        });
       }
 
       if (world.balls.length === 1 && !world.winner) {

@@ -96,7 +96,7 @@ export const FragmentExpansionMode: SimulationMode = {
 
           world.eventBus.emit({
             id: Math.floor(Math.random() * 1000000),
-            time: world.time,
+            time: world.videoTime,
             type: 'spike',
             position: { x: ball.x, y: ball.y },
             velocity: { x: ball.vx, y: ball.vy },

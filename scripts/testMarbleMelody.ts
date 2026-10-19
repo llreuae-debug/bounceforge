@@ -382,9 +382,13 @@ function runTests() {
     seed: 4242,
   });
   const hasDucks = duckRun.objects.some((o) => o.type === 'squeaky_duck');
-  const hasRails = duckRun.objects.some((o) => o.type === 'wire_rail');
+  // Wire rails are drawn by the renderer as the track between hits (trackRails, on by default),
+  // so every placed object is an instrument the marble actually plays
+  const hasRails = duckRun.config.trackRails !== false && duckRun.lanes.every((l) => l.hits.length > 1);
+  const allInstruments = duckRun.objects.every((o) => o.type !== 'wire_rail');
   assert('Squeaky orchestra run generates squeaky duck procedural objects', hasDucks);
   assert('Signature twin wire rails generated along the track', hasRails);
+  assert('Every placed object is a playable instrument (rails are the track)', allInstruments);
 
   // TEST 15: Embossed 3D Wall Text System & Clean Background Default
   console.log('\n--- TEST 15: Embossed 3D Wall Text System & Clean Background Default ---');

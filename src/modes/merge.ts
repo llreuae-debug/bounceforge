@@ -148,7 +148,7 @@ export const MergeMode: SimulationMode = {
 
         world.eventBus.emit({
           id: Math.floor(Math.random() * 1000000),
-          time: world.time,
+          time: world.videoTime,
           type: 'merge',
           position: event.position,
           velocity: event.velocity,

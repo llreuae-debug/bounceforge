@@ -1,6 +1,7 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
 import { CollisionEvent } from '../engine/types';
+import { paceRingEscapes, reelLength } from '../engine/pacing';
 
 export const NearMissHellMode: SimulationMode = {
   id: 'near_miss_hell',
@@ -85,7 +86,8 @@ export const NearMissHellMode: SimulationMode = {
       glowColor: '#ff0055',
     });
   },
-  step: (world: PhysicsWorld, dt: number) => {
+  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
+    paceRingEscapes(world, reelLength(world, settings));
     // Decay flash intensity
     if (world.customState.flashIntensity > 0) {
       world.customState.flashIntensity = Math.max(0, world.customState.flashIntensity - dt * 2.5);

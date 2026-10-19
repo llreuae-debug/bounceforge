@@ -1,6 +1,7 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
 import { CollisionEvent } from '../engine/types';
+import { reelLength } from '../engine/pacing';
 
 export const BassDropEscapeMode: SimulationMode = {
   id: 'bass_drop_escape',
@@ -84,11 +85,15 @@ export const BassDropEscapeMode: SimulationMode = {
     });
   },
   step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
-    const dropTime = settings.dropTime ?? 55;
+    // The drop keeps its distance from the end of the reel (default 55s of 60s), in video time
+    const reel = reelLength(world, settings);
+    const leadOut = Math.max(2, (settings.duration ?? 60) - (settings.dropTime ?? 55));
+    const dropTime = Math.max(8, reel - leadOut);
+    const buildUp = Math.min(10, dropTime * 0.4);
 
-    // Rising tension vibration in the 10 seconds preceding the drop
-    if (world.time >= dropTime - 10 && world.time < dropTime) {
-      const progress = (world.time - (dropTime - 10)) / 10;
+    // Rising tension vibration before the drop
+    if (world.videoTime >= dropTime - buildUp && world.videoTime < dropTime) {
+      const progress = (world.videoTime - (dropTime - buildUp)) / buildUp;
       world.customState.tensionVibration = progress;
       for (const ring of world.rings) {
         ring.angularVelocity = Math.sign(ring.angularVelocity) * (1.2 + progress * 4.5);
@@ -96,9 +101,22 @@ export const BassDropEscapeMode: SimulationMode = {
     }
 
     // THE DROP: instant wide breach on all rings + massive shockwave
-    if (world.time >= dropTime && !world.customState.dropFired) {
+    if (world.videoTime >= dropTime && !world.customState.dropFired) {
       world.customState.dropFired = true;
       const arena = world.getSafeArena();
+      world.lastEventTime = world.videoTime;
+
+      // The drop itself is a sound event (shatter + note) in preview and export
+      world.eventBus.emit({
+        id: Math.floor(Math.random() * 1000000),
+        time: world.videoTime,
+        type: 'escape',
+        position: { x: arena.centerX, y: arena.centerY },
+        velocity: { x: 0, y: 0 },
+        impulse: 500,
+        ballId: world.balls[0]?.id ?? 0,
+        noteIndex: 0,
+      });
 
       for (const ring of world.rings) {
         ring.gapSize = 1.2;

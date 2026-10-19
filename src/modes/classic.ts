@@ -1,5 +1,6 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
+import { paceRingEscapes, reelLength } from '../engine/pacing';
 
 export const ClassicMode: SimulationMode = {
   id: 'classic',
@@ -85,6 +86,10 @@ export const ClassicMode: SimulationMode = {
       color: '#00f0ff',
       glowColor: '#0284c7',
     });
+  },
+  step: (world: PhysicsWorld, _dt: number, settings: Record<string, any>) => {
+    // Opt-in (used by reel templates): spread escapes so the last ring breaks near the end
+    if (settings.paceEscapes) paceRingEscapes(world, reelLength(world, settings));
   },
   isFinished: (world: PhysicsWorld) => {
     return world.rings.every((r) => r.isShattered);

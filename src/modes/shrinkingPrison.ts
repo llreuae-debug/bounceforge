@@ -138,7 +138,7 @@ export const ShrinkingPrisonMode: SimulationMode = {
           world.spawnExplosion(projX, projY, '#ff007f', 12, 180);
           world.eventBus.emit({
             id: Math.floor(Math.random() * 1000000),
-            time: world.time,
+            time: world.videoTime,
             type: 'wall',
             position: { x: projX, y: projY },
             velocity: { x: ball.vx, y: ball.vy },

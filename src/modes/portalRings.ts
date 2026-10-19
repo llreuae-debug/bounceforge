@@ -240,7 +240,7 @@ export const PortalRingsMode: SimulationMode = {
 
           world.eventBus.emit({
             id: Math.floor(Math.random() * 1000000),
-            time: world.time,
+            time: world.videoTime,
             type: 'portal',
             position: { x: pair.p2.x, y: pair.p2.y },
             velocity: { x: ball.vx, y: ball.vy },
@@ -293,7 +293,7 @@ export const PortalRingsMode: SimulationMode = {
 
           world.eventBus.emit({
             id: Math.floor(Math.random() * 1000000),
-            time: world.time,
+            time: world.videoTime,
             type: 'portal',
             position: { x: pair.p1.x, y: pair.p1.y },
             velocity: { x: ball.vx, y: ball.vy },

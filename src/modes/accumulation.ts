@@ -199,7 +199,7 @@ export const AccumulationMode: SimulationMode = {
 
           world.eventBus.emit({
             id: Math.floor(Math.random() * 1000000),
-            time: world.time,
+            time: world.videoTime,
             type: 'ball',
             position: { x: activeBall.x, y: activeBall.y },
             velocity: { x: 0, y: 0 },
@@ -283,7 +283,7 @@ export const AccumulationMode: SimulationMode = {
 
             world.eventBus.emit({
               id: Math.floor(Math.random() * 1000000),
-              time: world.time,
+              time: world.videoTime,
               type: 'spike',
               position: { x: tipX, y: tipY },
               velocity: { x: 0, y: 0 },

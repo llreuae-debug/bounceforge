@@ -20,6 +20,7 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, on
     applyPreset,
     surpriseMe,
     setReelSpeed,
+    setTargetDuration,
     reelSpeed,
     setSettingsOpen,
     showToast,
@@ -27,7 +28,10 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, on
 
   const [activeCategory, setActiveCategory] = useState<'top_picks' | TemplateCategory>('top_picks');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('top_pastel_toybox');
+  // Highlight the reel that matches what's actually loaded (not a fixed default)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
+    () => CURATED_TEMPLATES.find((tpl) => tpl.modeId === currentModeId)?.id ?? ''
+  );
   const [activeVariant, setActiveVariant] = useState<'calm' | 'viral' | 'wild'>('viral');
 
   const filteredTemplates = useMemo(() => {
@@ -38,6 +42,9 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, on
         tpl.hook.toLowerCase().includes(searchQuery.toLowerCase());
 
       if (!matchesSearch) return false;
+
+      // A search looks across every reel, not just the open tab
+      if (searchQuery.trim()) return true;
 
       if (activeCategory === 'top_picks') {
         return tpl.isTopPick;
@@ -64,6 +71,10 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, on
       setActiveVariant('viral');
     }
 
+    // Runtime and reel speed live on the studio itself, not in mode settings
+    setTargetDuration(tpl.durationSeconds);
+    setReelSpeed(tpl.variants?.viral?.reelSpeed ?? 0.5);
+
     if (onSelectTemplate) {
       onSelectTemplate(tpl);
     }
@@ -77,13 +88,7 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, on
     if (variantSettings) {
       applyPreset(variantSettings);
     }
-    if (variant === 'calm') {
-      setReelSpeed(0.5);
-    } else if (variant === 'viral') {
-      setReelSpeed(0.5);
-    } else {
-      setReelSpeed(1.0);
-    }
+    setReelSpeed(variantSettings?.reelSpeed ?? (variant === 'wild' ? 1.0 : 0.5));
     showToast(`Switched to ${variant.toUpperCase()} variant`);
   };
 

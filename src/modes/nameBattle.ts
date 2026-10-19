@@ -1,6 +1,7 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
 import { CollisionEvent } from '../engine/types';
+import { reelLength } from '../engine/pacing';
 
 export const NameBattleMode: SimulationMode = {
   id: 'name_battle',
@@ -96,25 +97,22 @@ export const NameBattleMode: SimulationMode = {
     const fighters = world.customState?.fighters;
     if (!fighters || world.winner) return;
 
-    // Sudden death escalation past 45s: slowly drain lowest HP
-    if (world.time > 45) {
+    // Sudden death: once an elimination slot opens, drain the weakest fighter so the
+    // knockouts stay on schedule (video time, so it works at any reel speed)
+    if (world.videoTime >= nextEliminationTime(world, settings)) {
       const aliveList = fighters.filter((f: any) => f.alive);
       if (aliveList.length > 1) {
-        // Find fighter with lowest HP and chip away
         const lowest = aliveList.reduce((min: any, curr: any) => (curr.hp < min.hp ? curr : min));
-        lowest.hp = Math.max(0, lowest.hp - dt * 18);
-        if (lowest.hp === 0) lowest.alive = false;
+        const drainPerSec = lowest.maxHp / 2.5;
+        // dt is physics time; convert back to video time for a steady on-screen drain
+        const videoDt = dt / Math.max(0.05, world.getEffectiveSpeed());
+        lowest.hp = Math.max(0, lowest.hp - drainPerSec * videoDt);
+        if (lowest.hp === 0) knockOut(world, lowest);
       }
-      const updatedAlive = fighters.filter((f: any) => f.alive);
-      if (updatedAlive.length <= 1 && !world.winner) {
-        const champ = updatedAlive[0] || fighters[0];
-        world.winner = champ.name;
-        world.customState.champion = champ;
-        world.isFinished = true;
-      }
+      declareWinnerIfDone(world);
     }
   },
-  onCollision: (world: PhysicsWorld, event: CollisionEvent) => {
+  onCollision: (world: PhysicsWorld, event: CollisionEvent, settings: Record<string, any>) => {
     const fighters = world.customState?.fighters;
     if (!fighters || world.winner) return;
 
@@ -122,26 +120,49 @@ export const NameBattleMode: SimulationMode = {
       const fA = fighters[event.ballId - 1];
       const fB = event.targetBallId ? fighters[event.targetBallId - 1] : undefined;
       const damage = Math.round(Math.min(12, Math.max(3, event.impulse / 50)));
+      // Until the next elimination slot opens, hits can't finish anyone off
+      const floor = world.videoTime >= nextEliminationTime(world, settings) ? 0 : 1;
 
-      if (fA && fA.alive) {
-        fA.hp = Math.max(0, fA.hp - damage);
-        if (fA.hp === 0) fA.alive = false;
-      }
-      if (fB && fB.alive) {
-        fB.hp = Math.max(0, fB.hp - damage);
-        if (fB.hp === 0) fB.alive = false;
+      for (const f of [fA, fB]) {
+        if (f && f.alive) {
+          f.hp = Math.max(floor, f.hp - damage);
+          if (f.hp === 0) knockOut(world, f);
+        }
       }
     }
 
-    const aliveList = fighters.filter((f: any) => f.alive);
-    if (aliveList.length <= 1 && !world.winner) {
-      const champ = aliveList[0] || fighters[0];
-      world.winner = champ.name;
-      world.customState.champion = champ;
-      world.isFinished = true;
-    }
+    declareWinnerIfDone(world);
   },
   isFinished: (world: PhysicsWorld) => {
     return !!world.winner;
   },
 };
+
+/**
+ * Knockouts are spread from ~25% to ~90% of the reel so a 2-name duel or a 6-way rumble
+ * both crown the winner shortly before the end instead of at 10s or never.
+ */
+function nextEliminationTime(world: PhysicsWorld, settings: Record<string, any>): number {
+  const fighters = world.customState?.fighters || [];
+  const total = Math.max(1, fighters.length - 1);
+  const done = fighters.filter((f: any) => !f.alive).length;
+  const k = Math.min(total, done + 1);
+  return reelLength(world, settings) * (0.25 + 0.65 * (k / total));
+}
+
+function knockOut(world: PhysicsWorld, fighter: any): void {
+  fighter.alive = false;
+  world.lastEventTime = world.videoTime;
+}
+
+function declareWinnerIfDone(world: PhysicsWorld): void {
+  const fighters = world.customState?.fighters;
+  if (!fighters || world.winner) return;
+  const aliveList = fighters.filter((f: any) => f.alive);
+  if (aliveList.length <= 1) {
+    const champ = aliveList[0] || fighters[0];
+    world.winner = champ.name;
+    world.customState.champion = champ;
+    world.isFinished = true;
+  }
+}

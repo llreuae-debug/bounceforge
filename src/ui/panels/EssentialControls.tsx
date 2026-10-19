@@ -680,13 +680,13 @@ export const EssentialControls: React.FC<EssentialControlsProps> = ({ className,
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px] text-slate-300">
                     <span>Gravity</span>
-                    <span className="font-mono">{ballPhysics.gravity.toFixed(1)}</span>
+                    <span className="font-mono">{ballPhysics.gravity.toFixed(2)}G</span>
                   </div>
                   <input
                     type="range"
                     min="0"
-                    max="30"
-                    step="0.5"
+                    max="2.5"
+                    step="0.05"
                     value={ballPhysics.gravity}
                     onChange={(e) => setBallPhysics({ gravity: parseFloat(e.target.value) })}
                     className="w-full accent-cyan-400 cursor-pointer"

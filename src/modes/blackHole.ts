@@ -123,7 +123,7 @@ export const BlackHoleMode: SimulationMode = {
         world.spawnExplosion(ball.x, ball.y, '#bf5af2', 20, 200);
         world.eventBus.emit({
           id: Math.floor(Math.random() * 1000000),
-          time: world.time,
+          time: world.videoTime,
           type: 'wall',
           position: { x: ball.x, y: ball.y },
           velocity: { x: 0, y: 0 },

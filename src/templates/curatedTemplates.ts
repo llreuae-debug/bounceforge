@@ -93,9 +93,9 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       themePack: 'pastel_dream',
     },
     variants: {
-      calm: { reelSpeed: 0.5, density: 0.8 },
-      viral: { reelSpeed: 0.5, density: 1.0 },
-      wild: { reelSpeed: 1.0, density: 1.4 },
+      calm: { reelSpeed: 0.5 },
+      viral: { reelSpeed: 0.5 },
+      wild: { reelSpeed: 1.0 },
     },
   },
 
@@ -119,9 +119,9 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       themePack: 'neon_night',
     },
     variants: {
-      calm: { reelSpeed: 0.5, density: 0.9 },
-      viral: { reelSpeed: 0.5, density: 1.1 },
-      wild: { reelSpeed: 1.0, density: 1.5 },
+      calm: { reelSpeed: 0.5 },
+      viral: { reelSpeed: 0.5 },
+      wild: { reelSpeed: 1.0 },
     },
   },
 
@@ -143,9 +143,9 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       reelSpeed: 0.5,
     },
     variants: {
-      calm: { speed: 1.0, gapWidthDeg: 35 },
-      viral: { speed: 1.3, gapWidthDeg: 28 },
-      wild: { speed: 1.8, gapWidthDeg: 20 },
+      calm: { gapSizeDeg: 38, ringCount: 5, reelSpeed: 0.5 },
+      viral: { gapSizeDeg: 30, ringCount: 6, reelSpeed: 0.5 },
+      wild: { gapSizeDeg: 22, ringCount: 8, reelSpeed: 1.0 },
     },
   },
 
@@ -190,9 +190,9 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       targetDuration: 60,
     },
     variants: {
-      calm: { ballCount: 4, bounceBoostRate: 1.0 },
-      viral: { ballCount: 6, bounceBoostRate: 1.2 },
-      wild: { ballCount: 12, bounceBoostRate: 1.5 },
+      calm: { names: 'ALEX, JORDAN', startingHp: 100, reelSpeed: 0.5 },
+      viral: { names: 'ALEX, JORDAN, SAM, CHRIS', startingHp: 100, reelSpeed: 0.5 },
+      wild: { names: 'ALEX, JORDAN, SAM, CHRIS, MAYA, NOAH', startingHp: 100, reelSpeed: 1.0 },
     },
   },
 
@@ -213,9 +213,9 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       targetDuration: 45,
     },
     variants: {
-      calm: { teamCount: 2, speed: 1.0 },
-      viral: { teamCount: 4, speed: 1.2 },
-      wild: { teamCount: 4, speed: 1.6 },
+      calm: { ringCount: 3, reelSpeed: 0.5 },
+      viral: { ringCount: 4, reelSpeed: 0.5 },
+      wild: { ringCount: 6, reelSpeed: 1.0 },
     },
   },
 
@@ -237,9 +237,9 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       soundTexture: 'crystal',
     },
     variants: {
-      calm: { noteDensity: 0.8, reelSpeed: 0.5 },
-      viral: { noteDensity: 1.0, reelSpeed: 0.5 },
-      wild: { noteDensity: 1.4, reelSpeed: 1.0 },
+      calm: { marbleCount: 4, barCount: 8, reelSpeed: 0.5 },
+      viral: { marbleCount: 6, barCount: 10, reelSpeed: 0.5 },
+      wild: { marbleCount: 10, barCount: 12, reelSpeed: 1.0 },
     },
   },
 
@@ -261,9 +261,9 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       soundTexture: 'wood',
     },
     variants: {
-      calm: { rainIntensity: 0.7, reelSpeed: 0.5 },
-      viral: { rainIntensity: 1.0, reelSpeed: 0.5 },
-      wild: { rainIntensity: 1.5, reelSpeed: 1.0 },
+      calm: { marbleCount: 4, barCount: 8, reelSpeed: 0.5 },
+      viral: { marbleCount: 6, barCount: 8, reelSpeed: 0.5 },
+      wild: { marbleCount: 10, barCount: 10, reelSpeed: 1.0 },
     },
   },
 
@@ -284,16 +284,16 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       targetDuration: 30,
     },
     variants: {
-      calm: { bubbleDensity: 0.8, reelSpeed: 0.5 },
-      viral: { bubbleDensity: 1.0, reelSpeed: 0.5 },
-      wild: { bubbleDensity: 1.5, reelSpeed: 1.0 },
+      calm: { rows: 6, cols: 6, reelSpeed: 0.5 },
+      viral: { rows: 8, cols: 8, reelSpeed: 0.5 },
+      wild: { rows: 10, cols: 10, reelSpeed: 1.0 },
     },
   },
 
   // 10. TOP PICK #10: Plinko Cascade (Squeaky & Fun)
   {
     id: 'top_plinko_cascade',
-    modeId: 'plinkoCascade',
+    modeId: 'plinko_cascade',
     name: 'Plinko Pachinko Cascade',
     category: 'squeaky_fun',
     isTopPick: true,
@@ -307,16 +307,16 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       targetDuration: 45,
     },
     variants: {
-      calm: { pinSpacing: 1.2, reelSpeed: 0.5 },
-      viral: { pinSpacing: 1.0, reelSpeed: 0.5 },
-      wild: { pinSpacing: 0.8, reelSpeed: 1.0 },
+      calm: { pegRows: 10, dropRate: 0.45, maxBalls: 80, reelSpeed: 0.5 },
+      viral: { pegRows: 12, dropRate: 0.6, maxBalls: 120, reelSpeed: 0.5 },
+      wild: { pegRows: 14, dropRate: 0.9, maxBalls: 180, reelSpeed: 1.0 },
     },
   },
 
   // 11. TOP PICK #11: Day to Night Sunset (Calm & Relaxing)
   {
     id: 'top_day_to_night',
-    modeId: 'dayToNight',
+    modeId: 'day_to_night',
     name: 'Day to Night Sunset',
     category: 'calm_relaxing',
     isTopPick: true,
@@ -331,16 +331,16 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       reelSpeed: 0.5,
     },
     variants: {
-      calm: { transitionSpeed: 0.8, reelSpeed: 0.5 },
-      viral: { transitionSpeed: 1.0, reelSpeed: 0.5 },
-      wild: { transitionSpeed: 1.3, reelSpeed: 1.0 },
+      calm: { ringCount: 4, reelSpeed: 0.5 },
+      viral: { ringCount: 5, reelSpeed: 0.5 },
+      wild: { ringCount: 7, reelSpeed: 1.0 },
     },
   },
 
   // 12. TOP PICK #12: Perfect Infinite Loop (Calm & Relaxing)
   {
     id: 'top_perfect_loop',
-    modeId: 'perfectLoop',
+    modeId: 'perfect_loop',
     name: 'Perfect Infinite Loop',
     category: 'calm_relaxing',
     isTopPick: true,
@@ -354,9 +354,9 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
       targetDuration: 30,
     },
     variants: {
-      calm: { symmetry: 4, reelSpeed: 0.5 },
-      viral: { symmetry: 6, reelSpeed: 0.5 },
-      wild: { symmetry: 8, reelSpeed: 1.0 },
+      calm: { ballCount: 6, reelSpeed: 0.5 },
+      viral: { ballCount: 8, reelSpeed: 0.5 },
+      wild: { ballCount: 12, reelSpeed: 1.0 },
     },
   },
 
@@ -385,7 +385,7 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
   // Satisfying Escape: Near Miss Hell
   {
     id: 'cur_near_miss',
-    modeId: 'nearMissHell',
+    modeId: 'near_miss_hell',
     name: 'Near Miss Hell',
     category: 'satisfying_escape',
     isTopPick: false,
@@ -397,16 +397,16 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
     hook: 'My anxiety during the last 5 seconds 😭💔',
     presetSettings: { targetDuration: 45 },
     variants: {
-      calm: { margin: 1.5, reelSpeed: 0.5 },
-      viral: { margin: 1.0, reelSpeed: 0.5 },
-      wild: { margin: 0.6, reelSpeed: 1.0 },
+      calm: { gapSizeDeg: 36, ringCount: 4, reelSpeed: 0.5 },
+      viral: { gapSizeDeg: 30, ringCount: 5, reelSpeed: 0.5 },
+      wild: { gapSizeDeg: 22, ringCount: 7, reelSpeed: 1.0 },
     },
   },
 
   // Satisfying Escape: Sequence Break
   {
     id: 'cur_sequence_break',
-    modeId: 'sequenceBreak',
+    modeId: 'sequence_break',
     name: 'Sequence Break',
     category: 'satisfying_escape',
     isTopPick: false,
@@ -417,16 +417,16 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
     hook: 'Wait for tile 99 to shatter! 🎯⚡',
     presetSettings: { targetDuration: 30 },
     variants: {
-      calm: { tileCount: 10, reelSpeed: 0.5 },
-      viral: { tileCount: 15, reelSpeed: 0.5 },
-      wild: { tileCount: 25, reelSpeed: 1.0 },
+      calm: { segmentCount: 10, angularVelocity: 0.25, reelSpeed: 0.5 },
+      viral: { segmentCount: 15, angularVelocity: 0.35, reelSpeed: 0.5 },
+      wild: { segmentCount: 25, angularVelocity: 0.55, reelSpeed: 1.0 },
     },
   },
 
   // Battles: Elimination Wheel
   {
     id: 'cur_elimination_wheel',
-    modeId: 'eliminationWheel',
+    modeId: 'elimination_wheel',
     name: 'Elimination Wheel',
     category: 'battles',
     isTopPick: false,
@@ -438,16 +438,16 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
     hook: 'Last color standing wins the jackpot! 🎡👑',
     presetSettings: { targetDuration: 60 },
     variants: {
-      calm: { rotationSpeed: 0.8, reelSpeed: 0.5 },
-      viral: { rotationSpeed: 1.2, reelSpeed: 0.5 },
-      wild: { rotationSpeed: 1.6, reelSpeed: 1.0 },
+      calm: { eliminationInterval: 11, reelSpeed: 0.5 },
+      viral: { eliminationInterval: 10.5, reelSpeed: 0.5 },
+      wild: { eliminationInterval: 10, reelSpeed: 1.0 },
     },
   },
 
   // ASMR Glass: Soap Cube Cut
   {
     id: 'cur_soap_cube',
-    modeId: 'soapCubeCut',
+    modeId: 'soap_cube_cut',
     name: 'Soap Cube Slice ASMR',
     category: 'asmr_glass',
     isTopPick: false,
@@ -458,9 +458,9 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
     hook: 'The crisp crunch of slicing soap cubes 🧼✨',
     presetSettings: { targetDuration: 30 },
     variants: {
-      calm: { sliceSpeed: 0.8, reelSpeed: 0.5 },
-      viral: { sliceSpeed: 1.0, reelSpeed: 0.5 },
-      wild: { sliceSpeed: 1.4, reelSpeed: 1.0 },
+      calm: { layers: 12, reelSpeed: 0.5 },
+      viral: { layers: 16, reelSpeed: 0.5 },
+      wild: { layers: 24, reelSpeed: 1.0 },
     },
   },
 
@@ -476,7 +476,7 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
     previewGradient: 'from-lime-500/20 to-transparent',
     description: 'Super-elastic rubber ball ricocheting at dizzying acceleration',
     hook: 'Sound on for the most elastic bounce physics 🔊🏓',
-    presetSettings: { targetDuration: 30, ringCount: 22, gapSizeDeg: 26 },
+    presetSettings: { targetDuration: 30, ringCount: 22, gapSizeDeg: 26, paceEscapes: true },
     variants: {
       calm: { restitution: 0.98, reelSpeed: 0.5, ringCount: 22 },
       viral: { restitution: 1.01, reelSpeed: 0.5, ringCount: 24 },
@@ -487,7 +487,7 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
   // Calm & Relaxing: Harmonic Pendulum Wave
   {
     id: 'cur_pendulum_wave',
-    modeId: 'pendulumWave',
+    modeId: 'pendulum_wave',
     name: 'Harmonic Pendulum Wave',
     category: 'calm_relaxing',
     isTopPick: false,
@@ -498,16 +498,16 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
     hook: 'When physics becomes pure visual poetry 🌊✨',
     presetSettings: { targetDuration: 45 },
     variants: {
-      calm: { bobCount: 16, reelSpeed: 0.5 },
-      viral: { bobCount: 24, reelSpeed: 0.5 },
-      wild: { bobCount: 32, reelSpeed: 1.0 },
+      calm: { pendulumCount: 15, reelSpeed: 0.5 },
+      viral: { pendulumCount: 21, reelSpeed: 0.5 },
+      wild: { pendulumCount: 31, reelSpeed: 1.0 },
     },
   },
 
   // Calm & Relaxing: Sub-Bass Ambient Chill
   {
     id: 'cur_bass_drop',
-    modeId: 'bassDropEscape',
+    modeId: 'bass_drop_escape',
     name: 'Sub-Bass Ambient Chill',
     category: 'calm_relaxing',
     isTopPick: false,
@@ -519,9 +519,9 @@ export const CURATED_TEMPLATES: CuratedTemplate[] = [
     hook: 'Put headphones on and feel the sub-bass vibration 🎧🔊',
     presetSettings: { targetDuration: 60, reelSpeed: 0.5 },
     variants: {
-      calm: { subIntensity: 0.8, reelSpeed: 0.5 },
-      viral: { subIntensity: 1.0, reelSpeed: 0.5 },
-      wild: { subIntensity: 1.4, reelSpeed: 1.0 },
+      calm: { ringCount: 5, reelSpeed: 0.5 },
+      viral: { ringCount: 6, reelSpeed: 0.5 },
+      wild: { ringCount: 8, reelSpeed: 1.0 },
     },
   },
 ];

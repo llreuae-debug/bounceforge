@@ -1,5 +1,7 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
+import { CollisionEvent } from '../engine/types';
+import { paceRingEscapes, reelProgress, reelLength } from '../engine/pacing';
 
 export const DayToNightMode: SimulationMode = {
   id: 'day_to_night',
@@ -80,9 +82,11 @@ export const DayToNightMode: SimulationMode = {
     });
   },
   step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
-    const duration = settings.duration ?? 60;
-    const phase = Math.min(1, world.time / duration);
+    // Sky follows the reel clock so dawn-to-night spans the whole video at any reel speed
+    const duration = reelLength(world, settings);
+    const phase = reelProgress(world, duration);
     world.customState.dayNightPhase = phase;
+    paceRingEscapes(world, duration);
 
     // Shift ball and rings from solar amber to lunar silver-cyan
     const ball = world.balls[0];
@@ -104,6 +108,18 @@ export const DayToNightMode: SimulationMode = {
 
     if (world.rings.every((r) => r.isShattered)) {
       world.customState.moonRadius = Math.min(60, (world.customState.moonRadius || 0) + dt * 40);
+    }
+  },
+  onCollision: (world: PhysicsWorld, event: CollisionEvent) => {
+    // Keep the sun lively so the reel never goes quiet while it drifts across the sky
+    if (event.type !== 'ring') return;
+    const ball = world.balls[0];
+    if (!ball) return;
+    const speed = Math.hypot(ball.vx, ball.vy);
+    const minSpeed = 900;
+    if (speed > 0 && speed < minSpeed) {
+      ball.vx *= minSpeed / speed;
+      ball.vy *= minSpeed / speed;
     }
   },
   isFinished: (world: PhysicsWorld) => {

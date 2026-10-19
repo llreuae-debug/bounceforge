@@ -96,7 +96,7 @@ export const DominoRingsMode: SimulationMode = {
           world.spawnRingShatter(ring);
           world.eventBus.emit({
             id: Math.floor(Math.random() * 1000000),
-            time: world.time,
+            time: world.videoTime,
             type: 'ring',
             position: { x: ring.centerX, y: ring.centerY },
             velocity: { x: 0, y: 0 },

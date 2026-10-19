@@ -1,5 +1,6 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
+import { reelLength } from '../engine/pacing';
 
 export const PerfectLoopMode: SimulationMode = {
   id: 'perfect_loop',
@@ -45,7 +46,8 @@ export const PerfectLoopMode: SimulationMode = {
 
     const ballCount = settings.ballCount ?? 8;
     const orbitR = settings.orbitRadius ?? 220;
-    const duration = settings.duration ?? 30;
+    // Motion runs on physics time, so scale the loop by reel speed to close at the reel's end
+    const duration = reelLength(world, settings) * (world.reelSpeed || 1);
     const cycles = settings.cycleCount ?? 6;
     const omega = (Math.PI * 2 * cycles) / duration;
 
@@ -124,8 +126,7 @@ export const PerfectLoopMode: SimulationMode = {
       world.customState.loopPointReached = true;
     }
   },
-  isFinished: (world: PhysicsWorld, settings: Record<string, any>) => {
-    const duration = settings.duration ?? 30;
-    return world.time >= duration;
+  isFinished: (world: PhysicsWorld) => {
+    return world.time >= (world.customState.duration ?? 30);
   },
 };

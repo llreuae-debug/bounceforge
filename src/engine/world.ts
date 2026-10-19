@@ -19,6 +19,7 @@ import { checkBallArcRingCollision, checkBallBallCollision, checkBallLineCollisi
 import { getSafeArena, SafeArena, PlatformType } from '../render/safeArea';
 import type { BallPhysicsSettings, WallControlsSettings, CustomBallConfig } from '../presets/presetService';
 import { AsmrEngine } from '../audio/asmrEngine';
+import { DEFAULT_BALL_PHYSICS } from './ballDefaults';
 
 export class PhysicsWorld {
   public width: number;
@@ -601,21 +602,27 @@ export class PhysicsWorld {
     customBall?: Partial<CustomBallConfig>
   ): void {
     if (ballPhysics) {
-      if (ballPhysics.gravity !== undefined) {
-        this.config.gravity = { x: 0, y: ballPhysics.gravity * 800 };
+      // Gravity is a multiplier on the mode's own gravity (1.0G = as designed). Old saved
+      // projects stored 980 here, which used to mean ~1000x gravity; treat those as 1.0G.
+      const g = ballPhysics.gravity;
+      if (g !== undefined && Number.isFinite(g) && g >= 0 && g <= 30 && g !== 1) {
+        this.config.gravity = { x: this.config.gravity.x * g, y: this.config.gravity.y * g };
       }
       if (ballPhysics.maxSpeedCap !== undefined) {
         this.config.maxSpeedCap = ballPhysics.maxSpeedCap;
       }
+      // Size, color and bounciness only override the mode once the user changes them,
+      // so team colors and mode-specific sizes survive
+      const d = DEFAULT_BALL_PHYSICS;
       for (const b of this.balls) {
-        if (ballPhysics.restitution !== undefined) {
+        if (ballPhysics.restitution !== undefined && ballPhysics.restitution !== d.restitution) {
           b.restitution = ballPhysics.restitution;
           b.initialRestitution = ballPhysics.restitution;
         }
-        if (ballPhysics.radius !== undefined) {
+        if (ballPhysics.radius !== undefined && ballPhysics.radius !== d.radius) {
           b.radius = ballPhysics.radius;
         }
-        if (ballPhysics.color) {
+        if (ballPhysics.color && ballPhysics.color !== d.color) {
           b.color = ballPhysics.color;
         }
         if (ballPhysics.bounceBoostEnabled !== undefined) {

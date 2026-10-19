@@ -1,5 +1,6 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
+import { reelLength } from '../engine/pacing';
 
 export const PendulumWaveMode: SimulationMode = {
   id: 'pendulum_wave',
@@ -31,8 +32,11 @@ export const PendulumWaveMode: SimulationMode = {
     world.reset(seed);
     const arena = world.getSafeArena(settings.platform);
     const count = settings.pendulumCount ?? 21;
-    const cycleT = settings.cycleDuration ?? 60;
-    const baseN = settings.baseCycles ?? 51;
+    // Swings run on physics time; scale the cycle by reel speed so the pendulums realign
+    // exactly as the reel ends
+    const cycleT = reelLength(world, settings) * (world.reelSpeed || 1);
+    // Keep the original swings-per-second (51 cycles per 60s) so pendulum lengths look the same
+    const baseN = Math.max(5, Math.round(cycleT * ((settings.baseCycles ?? 51) / (settings.cycleDuration ?? 60))));
     const pivotY = settings.pivotY ?? (arena.safeBox.y + 40);
     const maxTheta = ((settings.maxAngleDeg ?? 35) * Math.PI) / 180;
     const availableWidth = arena.diameter * 0.95;
@@ -116,7 +120,7 @@ export const PendulumWaveMode: SimulationMode = {
         p.lastSign = sign;
         world.eventBus.emit({
           id: Math.floor(Math.random() * 1000000),
-          time: world.time,
+          time: world.videoTime,
           type: 'wall',
           position: { x: b.x, y: b.y },
           velocity: { x: 0, y: 0 },

@@ -29,6 +29,7 @@ function runSimulation(
       return {
         finished: true,
         time: world.time,
+        videoTime: world.videoTime,
         bounces: world.bounces,
         balls: world.balls.length,
       };
@@ -38,6 +39,7 @@ function runSimulation(
   return {
     finished: false,
     time: world.time,
+    videoTime: world.videoTime,
     bounces: world.bounces,
     balls: world.balls.length,
   };
@@ -47,8 +49,10 @@ console.log('=== TEST 1: SEQUENCE BREAK VIRAL PRESET HEADLESS TEST ===');
 const seqViralPreset = SequenceBreakMode.presets[1];
 console.log('Sequence Break Viral Preset Settings:', seqViralPreset.settings);
 const seqResult = runSimulation(SequenceBreakMode, seqViralPreset.settings, 102, 90);
-console.log(`✓ Sequence Break Seed 102: finished=${seqResult.finished}, payoff=${seqResult.time.toFixed(2)}s, bounces=${seqResult.bounces}`);
-if (!seqResult.finished || seqResult.time < 30 || seqResult.time > 60) {
+console.log(`✓ Sequence Break Seed 102: finished=${seqResult.finished}, payoff=${seqResult.videoTime.toFixed(2)}s of video, bounces=${seqResult.bounces}`);
+// The escape is paced to the reel (default 56s): it should land in the back half, before the end
+const reelLen = new PhysicsWorld(1080, 1920, 1).targetDuration;
+if (!seqResult.finished || seqResult.videoTime < reelLen * 0.6 || seqResult.videoTime > reelLen) {
   throw new Error(`Sequence Break Seed 102 unexpected result: ${JSON.stringify(seqResult)}`);
 }
 

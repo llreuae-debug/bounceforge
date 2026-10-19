@@ -4,6 +4,7 @@ import { SoundSynthesizer } from './synth';
 import { CollisionEvent } from '../engine/types';
 import { MarbleAudioSynthesizer } from '../marble3d/audioSynthesizer';
 import { SOUND_REGISTRY, getSoundRecipe } from './soundRegistry';
+import { HitLimiter } from './hitLimiter';
 
 interface ActiveVoice {
   id: number;
@@ -123,6 +124,7 @@ export class AudioEngine {
   private voicePool = new VoicePoolManager();
   private lastHitTime: number = -1;
   private lastScheduledAudioTime: number = -1;
+  private hitLimiter = new HitLimiter();
 
   private currentMelody: Melody = BUILTIN_MELODIES[0];
   private currentNoteIndex: number = 0;
@@ -337,6 +339,7 @@ export class AudioEngine {
   }
 
   resetMelodyPosition(): void {
+    this.hitLimiter.reset();
     this.currentNoteIndex = 0;
     this.lastHitTime = -1;
     this.lastScheduledAudioTime = -1;
@@ -357,6 +360,9 @@ export class AudioEngine {
     }
     if (!this.ctx || this.isMuted) return;
     this.resume();
+
+    // Constant contacts (balls riding a ring, rolling) would otherwise become a wall of noise
+    if (!this.hitLimiter.allow(event)) return;
 
     // Hits that land on top of each other are spread 4ms apart so each one is heard.
     // Only ever push a hit later (never into the past, which would start its envelope

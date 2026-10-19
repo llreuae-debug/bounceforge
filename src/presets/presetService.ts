@@ -16,6 +16,8 @@ export interface BallPhysicsSettings {
   bounceBoostMax: number;
 }
 
+export { DEFAULT_BALL_PHYSICS } from '../engine/ballDefaults';
+
 export interface WallControlsSettings {
   ringCount: number;
   gapWidthDeg: number;

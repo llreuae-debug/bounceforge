@@ -14,7 +14,7 @@ import { QualityMode, QualityTier } from '../platform/quality';
 import { DeviceCapabilities } from '../platform/capabilities';
 import { getHapticsEnabled, setHapticsEnabled as setHapticsStorage } from '../platform/haptics';
 import { AiService, DEFAULT_AI_SETTINGS } from '../ai/aiService';
-import {
+import { DEFAULT_BALL_PHYSICS,
   presetService,
   SavedPreset,
   BallPhysicsSettings,
@@ -243,17 +243,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
     marbleMelodySlowMoMode: 'calm_tempo',
 
     // Ball Physics & Custom Ball
-    ballPhysics: {
-      speed: 1.0,
-      radius: 14,
-      gravity: 980,
-      restitution: 0.98,
-      color: '#38bdf8',
-      maxSpeedCap: 2600,
-      bounceBoostEnabled: false,
-      bounceBoostRate: 0.02,
-      bounceBoostMax: 1.5,
-    },
+    ballPhysics: { ...DEFAULT_BALL_PHYSICS },
 
     wallControls: {
       ringCount: 3,
@@ -492,7 +482,12 @@ export const useStudioStore = create<StudioState>((set, get) => {
         currentModeId: preset.modeId,
         modeSettings: { ...preset.modeSettings },
         seed: preset.seed,
-        ballPhysics: { ...preset.ballPhysics },
+        // Presets saved before gravity became a multiplier stored 980 (meant ~1000x); load as 1.0G
+        ballPhysics: {
+          ...DEFAULT_BALL_PHYSICS,
+          ...preset.ballPhysics,
+          gravity: (preset.ballPhysics?.gravity ?? 1) > 30 ? 1 : preset.ballPhysics?.gravity ?? 1,
+        },
         wallControls: { ...preset.wallControls },
         visuals: { ...preset.visuals },
         overlays: { ...preset.overlays },

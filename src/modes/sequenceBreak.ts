@@ -1,5 +1,6 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
+import { reelLength } from '../engine/pacing';
 import { CollisionEvent } from '../engine/types';
 import { AsmrEngine } from '../audio/asmrEngine';
 
@@ -215,7 +216,7 @@ export const SequenceBreakMode: SimulationMode = {
     });
   },
 
-  step: (world: PhysicsWorld, dt: number) => {
+  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
     world.customState.angle += world.customState.angularVelocity * dt;
     world.customState.pulseTime = (world.customState.pulseTime || 0) + dt;
 
@@ -258,9 +259,47 @@ export const SequenceBreakMode: SimulationMode = {
       while (hitAngle < 0) hitAngle += Math.PI * 2;
       while (hitAngle >= Math.PI * 2) hitAngle -= Math.PI * 2;
 
-      // Find hit segment
-      const seg = segs.find((s) => hitAngle >= s.startAngle && hitAngle <= s.endAngle);
+      // Find hit segment; the thin visual gaps between segments count as the segment before,
+      // otherwise the ball slips out through them and the reel ends in the first seconds
+      let seg =
+        segs.find((s) => hitAngle >= s.startAngle && hitAngle <= s.endAngle) ||
+        segs.reduce((best, s) => (hitAngle >= s.startAngle && s.startAngle >= best.startAngle ? s : best), segs[0]);
       if (seg) {
+        // Behind schedule: the next segment hit takes over the current number, so the
+        // sequence keeps moving and the escape lands near the end of the reel
+        const reel = reelLength(world, settings);
+        const slotLen = (reel * 0.8) / total;
+        const slot = reel * 0.1 + slotLen * curTarget;
+        const behind = world.videoTime >= slot - Math.min(slotLen * 0.5, 1.0);
+        if (behind && seg.broken) {
+          // Late in the run most of the ring is broken; use the nearest standing segment
+          const angDist = (s: TargetSegment) => {
+            const mid = (s.startAngle + s.endAngle) / 2;
+            const d = Math.abs(mid - hitAngle) % (Math.PI * 2);
+            return Math.min(d, Math.PI * 2 - d);
+          };
+          const standing = segs.filter((s) => !s.broken);
+          if (standing.length) seg = standing.reduce((a, b) => (angDist(b) < angDist(a) ? b : a));
+        }
+        if (!seg.broken && seg.num !== curTarget && behind) {
+          const targetSeg = segs.find((s) => s.num === curTarget);
+          if (targetSeg) targetSeg.num = seg.num;
+          seg.num = curTarget;
+        }
+
+        // Every ring hit is a real sound event (preview melody + export audio)
+        world.eventBus.emit({
+          id: Math.floor(Math.random() * 1000000),
+          time: world.videoTime,
+          type: seg.num === curTarget && !seg.broken ? 'ring' : 'wall',
+          position: { x: ball.x, y: ball.y },
+          velocity: { x: ball.vx, y: ball.vy },
+          impulse: seg.num === curTarget && !seg.broken ? 320 : 160,
+          ballId: ball.id,
+          noteIndex: curTarget,
+        });
+        world.lastEventTime = world.videoTime;
+
         if (seg.num === curTarget && !seg.broken) {
           // Success! Correct number broken
           seg.broken = true;
@@ -323,6 +362,13 @@ export const SequenceBreakMode: SimulationMode = {
         if (dot < 0) {
           ball.vx = (ball.vx - 2 * dot * nx) * ball.restitution;
           ball.vy = (ball.vy - 2 * dot * ny) * ball.restitution;
+          // Keep the ball lively so it reaches enough segments within the reel
+          const speed = Math.hypot(ball.vx, ball.vy);
+          const minSpeed = 1500;
+          if (speed > 0 && speed < minSpeed) {
+            ball.vx *= minSpeed / speed;
+            ball.vy *= minSpeed / speed;
+          }
         }
         ball.x = cx + (dx / dist) * (r - ball.radius - 2);
         ball.y = cy + (dy / dist) * (r - ball.radius - 2);

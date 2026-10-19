@@ -1,6 +1,7 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
 import { CollisionEvent } from '../engine/types';
+import { reelLength } from '../engine/pacing';
 
 export const BubblePopChainMode: SimulationMode = {
   id: 'bubble_pop_chain',
@@ -99,21 +100,46 @@ export const BubblePopChainMode: SimulationMode = {
       glowColor: '#00f0ff',
     });
   },
-  step: (world: PhysicsWorld, dt: number) => {
+  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
     const ball = world.balls[0];
     const bubbles = world.customState.bubbles;
     if (!ball || !bubbles) return;
 
-    // True chain reaction propagation:
-    // Popped bubbles spread to neighbors, pacing across the 55s viral retention window
+    // Chain reaction paced in video time so the last bubble pops just before the reel ends
     const total = world.customState.totalBubbles || 64;
-    const targetPopped = Math.min(total, Math.floor((world.time / 55) * total));
+    const popWindow = Math.max(5, reelLength(world, settings) - 1.5);
+    const targetPopped = Math.min(total, Math.floor((world.videoTime / popWindow) * total));
 
     while ((world.customState.poppedCount || 0) < targetPopped) {
-      const nextBubble = bubbles.find((b: any) => !b.popped);
+      // Spread to the nearest unpopped neighbor of the last pop so it reads as a chain
+      const last = world.customState.lastPopped;
+      let nextBubble: any = null;
+      let bestDist = Infinity;
+      for (const b of bubbles) {
+        if (b.popped) continue;
+        const d = last ? Math.hypot(b.x - last.x, b.y - last.y) : b.y;
+        if (d < bestDist) {
+          bestDist = d;
+          nextBubble = b;
+        }
+      }
       if (!nextBubble) break;
       nextBubble.popped = true;
       world.customState.poppedCount++;
+      world.customState.lastPopped = nextBubble;
+      world.lastEventTime = world.videoTime;
+
+      // Every pop is audible (melody note + pop texture) and lands in the export audio
+      world.eventBus.emit({
+        id: Math.floor(Math.random() * 1000000),
+        time: world.videoTime,
+        type: 'ring',
+        position: { x: nextBubble.x, y: nextBubble.y },
+        velocity: { x: 0, y: 0 },
+        impulse: 220,
+        ballId: ball.id,
+        noteIndex: world.customState.poppedCount,
+      });
 
       world.shockwaves.push({
         x: nextBubble.x,

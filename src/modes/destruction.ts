@@ -118,7 +118,7 @@ export const DestructionMode: SimulationMode = {
               world.spawnExplosion(ball.x, ball.y, seg.color, 25, 250);
               world.eventBus.emit({
                 id: Math.floor(Math.random() * 1000000),
-                time: world.time,
+                time: world.videoTime,
                 type: 'ring',
                 position: { x: ball.x, y: ball.y },
                 velocity: { x: ball.vx, y: ball.vy },
@@ -141,7 +141,7 @@ export const DestructionMode: SimulationMode = {
                 world.customState.escaped = true;
                 world.eventBus.emit({
                   id: Math.floor(Math.random() * 1000000),
-                  time: world.time,
+                  time: world.videoTime,
                   type: 'escape',
                   position: { x: ball.x, y: ball.y },
                   velocity: { x: ball.vx, y: ball.vy },
