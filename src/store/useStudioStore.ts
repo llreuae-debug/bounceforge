@@ -112,9 +112,10 @@ interface StudioState {
   generativeMood: MusicMood;
   customNotes: NoteItem[];
 
-  // Modals
+  // Modals & Panels
   isExportOpen: boolean;
   isSettingsOpen: boolean;
+  isGalleryOpen: boolean;
   isMidiEditorOpen: boolean;
   isSeedFinderOpen: boolean;
   isShortcutsOpen: boolean;
@@ -182,9 +183,10 @@ interface StudioState {
   setGenerativeMood: (mood: MusicMood) => void;
   setCustomNotes: (notes: NoteItem[]) => void;
 
-  // Modal actions
+  // Modal & Panel actions
   setExportOpen: (open: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
+  setGalleryOpen: (open: boolean) => void;
   setMidiEditorOpen: (open: boolean) => void;
   setSeedFinderOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
@@ -337,6 +339,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
 
     isExportOpen: false,
     isSettingsOpen: false,
+    isGalleryOpen: true,
     isMidiEditorOpen: false,
     isSeedFinderOpen: false,
     isShortcutsOpen: false,
@@ -542,6 +545,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
 
     setExportOpen: (open) => set({ isExportOpen: open }),
     setSettingsOpen: (open) => set({ isSettingsOpen: open }),
+    setGalleryOpen: (open) => set({ isGalleryOpen: open }),
     setMidiEditorOpen: (open) => set({ isMidiEditorOpen: open }),
     setSeedFinderOpen: (open) => set({ isSeedFinderOpen: open }),
     setShortcutsOpen: (open) => set({ isShortcutsOpen: open }),

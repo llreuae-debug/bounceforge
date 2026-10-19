@@ -46,6 +46,8 @@ export const Studio: React.FC = () => {
     isExportOpen,
     isSettingsOpen,
     setSettingsOpen,
+    isGalleryOpen,
+    setGalleryOpen,
     isMidiEditorOpen,
     isSeedFinderOpen,
     isSelfTestOpen,
@@ -69,8 +71,6 @@ export const Studio: React.FC = () => {
   // Phone bottom sheet tab state: 'pick' | 'customize' | 'export'
   const [mobileTab, setMobileTab] = useState<'pick' | 'customize' | 'export'>('pick');
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
-  const [collapseLeft, setCollapseLeft] = useState(false);
-  const [collapseRight, setCollapseRight] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -87,17 +87,24 @@ export const Studio: React.FC = () => {
 
   const isMobile = windowWidth < 1024;
 
-  // Sync global isSettingsOpen with UI
+  // Sync global isSettingsOpen & isGalleryOpen with UI
   useEffect(() => {
     if (isSettingsOpen) {
       if (isMobile) {
         setMobileTab('customize');
         setMobileSheetOpen(true);
-      } else {
-        setCollapseRight(false);
       }
     }
   }, [isSettingsOpen, isMobile]);
+
+  useEffect(() => {
+    if (isGalleryOpen) {
+      if (isMobile) {
+        setMobileTab('pick');
+        setMobileSheetOpen(true);
+      }
+    }
+  }, [isGalleryOpen, isMobile]);
 
   return (
     <div className="h-[100dvh] w-screen flex flex-col bg-[#050608] overflow-hidden select-none safe-top safe-bottom safe-left safe-right font-sans">
@@ -270,56 +277,12 @@ export const Studio: React.FC = () => {
             isRTL ? 'flex-row-reverse' : 'flex-row'
           }`}
         >
-          {/* Top Quick Bar / Step Switcher for Desktop */}
-          <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-20 hidden md:flex items-center gap-1.5 p-1 bg-[#090b12]/90 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl select-none">
-            <button
-              onClick={() => {
-                triggerHaptic(10);
-                setCollapseLeft(!collapseLeft);
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                !collapseLeft
-                  ? 'btn-3d-cyan text-black font-black'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>1. Pick Reel</span>
-            </button>
-
-            <button
-              onClick={() => {
-                triggerHaptic(10);
-                setCollapseRight(!collapseRight);
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                !collapseRight
-                  ? 'btn-3d-lime text-black font-black'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Sliders className="w-3.5 h-3.5 text-lime-400" />
-              <span>2. Settings</span>
-            </button>
-
-            <button
-              onClick={() => {
-                triggerHaptic(12);
-                setExportOpen(true);
-              }}
-              className="btn-3d-pink px-3.5 py-1.5 rounded-xl text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-pink-500/20"
-            >
-              <Download className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>3. Export</span>
-            </button>
-          </div>
-
           {/* Left: Mode Gallery (Step 1) */}
-          {!collapseLeft && (
+          {isGalleryOpen && (
             <div className="relative">
-              <ModeGallery onOpenSettings={() => setCollapseRight(false)} />
+              <ModeGallery onOpenSettings={() => setSettingsOpen(true)} />
               <button
-                onClick={() => setCollapseLeft(true)}
+                onClick={() => setGalleryOpen(false)}
                 className="absolute right-2 top-2 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs z-10"
                 title="Collapse gallery"
               >
@@ -328,14 +291,14 @@ export const Studio: React.FC = () => {
             </div>
           )}
 
-          {collapseLeft && (
+          {!isGalleryOpen && (
             <button
-              onClick={() => setCollapseLeft(false)}
+              onClick={() => setGalleryOpen(true)}
               className="w-8 border-r border-white/10 bg-[#07090e] hover:bg-white/5 flex flex-col items-center justify-center text-slate-400 hover:text-white transition-colors"
               title="Expand Step 1 Gallery"
             >
               <ChevronRight className="w-4 h-4" />
-              <span className="text-[10px] [writing-mode:vertical-lr] mt-3 font-bold uppercase tracking-widest">
+              <span className="text-[10px] [writing-mode:vertical-lr] mt-3 font-bold uppercase tracking-widest text-cyan-400">
                 Step 1 · Pick
               </span>
             </button>
@@ -347,9 +310,9 @@ export const Studio: React.FC = () => {
           </div>
 
           {/* Right: The Settings Panel (Step 2) */}
-          {collapseRight && (
+          {!isSettingsOpen && (
             <button
-              onClick={() => setCollapseRight(false)}
+              onClick={() => setSettingsOpen(true)}
               className="w-8 border-l border-white/10 bg-[#07090e] hover:bg-white/5 flex flex-col items-center justify-center text-slate-400 hover:text-white transition-colors"
               title="Expand Step 2 Settings"
             >
@@ -360,11 +323,11 @@ export const Studio: React.FC = () => {
             </button>
           )}
 
-          {!collapseRight && (
+          {isSettingsOpen && (
             <div className="relative">
-              <EssentialControls onClose={() => setCollapseRight(true)} />
+              <EssentialControls onClose={() => setSettingsOpen(false)} />
               <button
-                onClick={() => setCollapseRight(true)}
+                onClick={() => setSettingsOpen(false)}
                 className="absolute left-2 top-2 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs z-10"
                 title="Collapse settings panel"
               >

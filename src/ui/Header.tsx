@@ -31,6 +31,8 @@ export const Header: React.FC = () => {
     setExportOpen,
     isSettingsOpen,
     setSettingsOpen,
+    isGalleryOpen,
+    setGalleryOpen,
     isWhatsNewOpen,
     setWhatsNewOpen,
     isWhatNextOpen,
@@ -95,45 +97,49 @@ export const Header: React.FC = () => {
         </nav>
       </div>
 
-      {/* 2. Center: Project Title (in Studio mode) */}
+      {/* 2. Center: 3-Step Creation Flow in Studio */}
       {currentRoute === 'studio' && (
-        <div className="hidden lg:flex items-center gap-2 max-w-xs truncate">
-          <input
-            type="text"
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-            className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-cyan-400 px-2 py-0.5 text-xs font-bold text-slate-300 focus:text-white outline-none transition-colors truncate text-center"
-            placeholder="Untitled Reel"
-            title="Click to rename project"
-          />
+        <div className="hidden md:flex items-center gap-1.5 p-1 bg-white/[0.04] rounded-2xl border border-white/10 select-none shadow-sm">
+          <button
+            onClick={() => setGalleryOpen(!isGalleryOpen)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              isGalleryOpen
+                ? 'btn-3d-cyan text-black font-black shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+            title="Toggle Step 1: Pick a Reel Gallery"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>1. Pick Reel</span>
+          </button>
+
+          <button
+            onClick={() => setSettingsOpen(!isSettingsOpen)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              isSettingsOpen
+                ? 'btn-3d-lime text-black font-black shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+            title="Toggle Step 2: Settings &amp; Customize (S)"
+          >
+            <Sliders className="w-3.5 h-3.5 text-lime-400" />
+            <span>2. Settings</span>
+          </button>
         </div>
       )}
 
       {/* 3. Right: Big Export CTA + Language Switcher + Account Avatar */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        {/* Studio Primary Actions: Settings & Export Buttons */}
+        {/* Studio Primary Action: Big Export Button */}
         {currentRoute === 'studio' && (
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => {
-                setSettingsOpen(!isSettingsOpen);
-              }}
-              className="btn-3d-glass h-9 flex items-center gap-1.5 px-3 rounded-xl text-slate-200 hover:text-white font-bold text-xs uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
-              title="Open Settings &amp; Customize (S)"
-            >
-              <Sliders className="w-3.5 h-3.5 text-lime-400" />
-              <span>Settings</span>
-            </button>
-
-            <button
-              onClick={() => setExportOpen(true)}
-              className="btn-3d-lime h-9 flex items-center gap-2 px-3.5 sm:px-4 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-lime-500/20 whitespace-nowrap shrink-0"
-              title="Export 1080x1920 60fps MP4 Reel"
-            >
-              <Download className="w-4 h-4 stroke-[2.5] shrink-0" />
-              <span>Export Reel</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setExportOpen(true)}
+            className="btn-3d-lime h-9 flex items-center gap-2 px-3.5 sm:px-4 rounded-xl text-black font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-lime-500/20 whitespace-nowrap shrink-0"
+            title="Export 1080x1920 60fps MP4 Reel"
+          >
+            <Download className="w-4 h-4 stroke-[2.5] shrink-0" />
+            <span>3. Export Reel</span>
+          </button>
         )}
 
         {/* Global Multi-Language Switcher */}
