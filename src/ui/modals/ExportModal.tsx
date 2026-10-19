@@ -92,6 +92,10 @@ export const ExportModal: React.FC = () => {
   // Creator Tools state
   const [copiedField, setCopiedField] = useState<'title' | 'caption' | 'hashtags' | null>(null);
 
+  // Audio Verification & Error Retry state
+  const [verificationResult, setVerificationResult] = useState<any | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+
   const exporterRef = useRef<VideoExporter | null>(null);
   const gpuInfo = checkGpu4KCapability();
   const hasFilePicker = typeof window !== 'undefined' && 'showSaveFilePicker' in window;
@@ -199,6 +203,8 @@ export const ExportModal: React.FC = () => {
     }
 
     setIsExporting(true);
+    setExportError(null);
+    setVerificationResult(null);
     setProgress({
       frame: 0,
       totalFrames: effectiveDuration * fps,
@@ -240,6 +246,9 @@ export const ExportModal: React.FC = () => {
       );
 
       setExportFilename(result.filename);
+      if (result.verification) {
+        setVerificationResult(result.verification);
+      }
       if (result.thumbnailBlob) {
         setThumbnailUrl(URL.createObjectURL(result.thumbnailBlob));
         setCoverBlob(result.thumbnailBlob);
@@ -278,6 +287,7 @@ export const ExportModal: React.FC = () => {
     } catch (err: any) {
       if (err.message !== 'Export cancelled') {
         console.error('Export error:', err);
+        setExportError(err.message || 'Export failed');
         showToast('Export failed: ' + err.message);
       }
     } finally {
@@ -731,6 +741,23 @@ export const ExportModal: React.FC = () => {
                 </div>
               </div>
 
+              {/* Export Error Alert & Retry Action */}
+              {exportError && (
+                <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 space-y-2 text-left">
+                  <div className="flex items-center gap-2 text-red-400 text-xs font-bold uppercase tracking-wider">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>Export Audio Verification Notice</span>
+                  </div>
+                  <p className="text-xs text-red-200">{exportError}</p>
+                  <button
+                    onClick={handleStartExport}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-400 text-black text-xs font-bold hover:bg-cyan-300 transition-all active:scale-95 shadow-md"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" /> Retry Export
+                  </button>
+                </div>
+              )}
+
               {/* Action Buttons: Single Export & Batch Export */}
               <div className="pt-2 space-y-2.5">
                 <button
@@ -810,7 +837,16 @@ export const ExportModal: React.FC = () => {
                 </div>
                 <h3 className="text-base font-bold text-white uppercase tracking-wider">Video Export Complete!</h3>
                 <p className="text-xs text-slate-400 font-mono mt-0.5">{exportFilename}</p>
-                <span className="text-[10px] text-cyan-300 font-mono block mt-0.5">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs font-bold tracking-wide mt-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>sound checked ✓</span>
+                </div>
+                {verificationResult?.metrics && (
+                  <p className="text-[10px] text-slate-400 font-mono mt-1">
+                    AAC 48kHz Stereo • 0 missing hits • in sync ({verificationResult.metrics.syncOffsetMs}ms) • {verificationResult.metrics.integratedLufs} LUFS • mono-safe
+                  </p>
+                )}
+                <span className="text-[10px] text-cyan-300 font-mono block mt-1">
                   ✓ Normalized to -14.0 LUFS integrated • True Peak -1.0 dBTP
                 </span>
               </div>

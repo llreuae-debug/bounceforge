@@ -12,12 +12,14 @@
     "check:i18n": "npx tsx scripts/testI18n.ts",
     "check:presets": "npx tsx scripts/verifyViralUpdate.ts",
     "check:sound": "npx tsx scripts/testSoundEngine.ts",
+    "check:export-sound": "npx tsx scripts/testExportSound.ts",
     "test": "npx tsx scripts/testMarbleMelody.ts && npx tsx scripts/testSlowMotion.ts && npx tsx scripts/testHeadlessModes.ts && npx tsx scripts/testGrowthTools.ts",
     "test:e2e": "playwright test",
-    "audit": "npm run typecheck && npm run check:sound && npm run check:links && npm run check:i18n && npm run check:presets && npm run test"
+    "audit": "npm run typecheck && npm run check:sound && npm run check:export-sound && npm run check:links && npm run check:i18n && npm run check:presets && npm run test"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.21.0",
+    "@mediabunny/aac-encoder": "^1.61.6",
     "@supabase/supabase-js": "^2.118.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tonejs/midi": "^2.0.28",
@@ -32,6 +34,7 @@
     "idb-keyval": "^6.3.0",
     "jszip": "^3.10.2",
     "lucide-react": "^1.56.0",
+    "mediabunny": "^1.61.6",
     "mp4-muxer": "^5.2.2",
     "postcss": "^8.5.30",
     "react": "^19.3.0",

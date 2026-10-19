@@ -91,6 +91,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
     setExportOpen,
     setSeedFinderOpen,
     setSoundCheckOpen,
+    setExportSoundCheckOpen,
     userPresets,
     saveCurrentAsPreset,
     loadPreset,
@@ -1338,6 +1339,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                   >
                     <Activity className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Launch Sound Check &amp; Diagnostics</span>
+                  </button>
+
+                  <button
+                    onClick={() => setExportSoundCheckOpen(true)}
+                    className="w-full mt-1.5 py-2 px-3 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 text-cyan-200 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Run Export Sound Test (10s Clip)</span>
                   </button>
                 </div>
               </div>

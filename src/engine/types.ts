@@ -141,7 +141,7 @@ export interface Shockwave {
 export interface CollisionEvent {
   id: number;
   time: number; // in seconds from start
-  type: 'ring' | 'ball' | 'spike' | 'wall' | 'escape' | 'peg' | 'portal' | 'merge' | 'line' | 'finale' | 'freeze' | 'squash' | 'peg_tick' | 'bounce' | 'slide';
+  type: 'ring' | 'ball' | 'spike' | 'wall' | 'escape' | 'peg' | 'portal' | 'merge' | 'line' | 'finale' | 'freeze' | 'squash' | 'peg_tick' | 'bounce' | 'slide' | 'roll' | 'roll_start' | 'rail_roll';
   position: Vector2D;
   point?: Vector2D;
   velocity: Vector2D;

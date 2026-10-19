@@ -1,14 +1,17 @@
-import { Muxer, ArrayBufferTarget, FileSystemWritableFileStreamTarget } from 'mp4-muxer';
+import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import { PhysicsWorld } from '../engine/world';
 import { getModeById } from '../modes/registry';
 import { WorldRenderer, VisualSettings } from '../render/renderer';
-import { OverlaySettings, drawOverlays } from '../render/overlays';
+import { OverlaySettings } from '../render/overlays';
 import { AudioSettings, NoteItem } from '../audio/types';
 import { renderOfflineAudio } from '../audio/offlineRender';
 import { withTargetDuration } from '../engine/duration';
 import { requestWakeLock, releaseWakeLock } from '../platform/wakeLock';
 import { ensureFontLoaded } from '../i18n/fonts';
 import type { BallPhysicsSettings, WallControlsSettings, CustomBallConfig } from '../presets/presetService';
+import { registerAacEncoder } from '@mediabunny/aac-encoder';
+import { Output, BufferTarget, Mp4OutputFormat, AudioBufferSource, Input, BufferSource, ALL_FORMATS, EncodedPacketSink } from 'mediabunny';
+import { verifyExportAudio, ExportAudioVerificationResult } from './exportAudioVerifier';
 
 export interface ExportConfig {
   width: number;
@@ -46,6 +49,14 @@ export interface ExportProgress {
   isQuickRecord?: boolean;
 }
 
+export interface ExportResult {
+  blob: Blob;
+  thumbnailBlob?: Blob;
+  filename: string;
+  codecLabel: string;
+  verification?: ExportAudioVerificationResult;
+}
+
 export function checkGpu4KCapability(): { canDo4K: boolean; maxTextureSize: number; reason?: string } {
   if (typeof window === 'undefined') return { canDo4K: true, maxTextureSize: 8192 };
   try {
@@ -78,7 +89,7 @@ export class VideoExporter {
   async exportVideo(
     config: ExportConfig,
     onProgress: (p: ExportProgress) => void
-  ): Promise<{ blob: Blob; thumbnailBlob?: Blob; filename: string; codecLabel: string }> {
+  ): Promise<ExportResult> {
     this.cancelled = false;
     await requestWakeLock();
     try {
@@ -91,7 +102,7 @@ export class VideoExporter {
   private async runExport(
     config: ExportConfig,
     onProgress: (p: ExportProgress) => void
-  ): Promise<{ blob: Blob; thumbnailBlob?: Blob; filename: string; codecLabel: string }> {
+  ): Promise<ExportResult> {
     const {
       width,
       height,
@@ -132,7 +143,7 @@ export class VideoExporter {
 
     const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true })!;
 
-    // Initialize 2D Simulation
+    // Initialize 2D Simulation with isolated state per export
     const mode = getModeById(modeId);
     const world = new PhysicsWorld(width, height, seed);
     world.reelSpeed = config.reelSpeed !== undefined ? config.reelSpeed : 0.5;
@@ -170,28 +181,17 @@ export class VideoExporter {
       return this.exportFallback(config, world, canvas, ctx, onProgress);
     }
 
-    // Codec Negotiation Strategy for Apple QuickTime Player & broad player compatibility:
-    // H.264 Levels for 4K:
-    // - 2160x3840 @ 60fps: "avc1.640034" (High 5.2) -> "avc1.4d4034" (Main 5.2) -> "avc1.420034" (Baseline 5.2)
-    // - 2160x3840 @ 30fps: "avc1.640033" (High 5.1) -> "avc1.4d4033" (Main 5.1) -> "avc1.420033" (Baseline 5.1)
-    // - 1440x2560: "avc1.640032" (High 5.0) -> "avc1.4d4032" (Main 5.0)
-    // - 1080x1920: "avc1.64002A" (High 4.2) -> "avc1.4d402A" (Main 4.2) -> "avc1.42002A" (Baseline 4.2)
+    // Codec Negotiation Strategy for Apple QuickTime Player & broad player compatibility
     let candidateCodecs: Array<{ codec: string; hw: 'prefer-hardware' | 'no-preference'; label: string }>;
     if (width >= 2160) {
       candidateCodecs = [
-        // 60fps High 5.2
         { codec: 'avc1.640034', hw: 'prefer-hardware', label: `h.264 4k high 5.2 (hw)` },
         { codec: 'avc1.640034', hw: 'no-preference', label: `h.264 4k high 5.2` },
-        // 60fps Main 5.2
         { codec: 'avc1.4d4034', hw: 'no-preference', label: `h.264 4k main 5.2` },
-        // 30fps High 5.1 (widely supported across all 4K GPUs)
         { codec: 'avc1.640033', hw: 'prefer-hardware', label: `h.264 4k high 5.1 (hw)` },
         { codec: 'avc1.640033', hw: 'no-preference', label: `h.264 4k high 5.1` },
-        // 30fps Main 5.1
         { codec: 'avc1.4d4033', hw: 'no-preference', label: `h.264 4k main 5.1` },
-        // Baseline 5.1
         { codec: 'avc1.420033', hw: 'no-preference', label: `h.264 4k baseline 5.1` },
-        // Universal 4.2 fallback
         { codec: 'avc1.64002a', hw: 'no-preference', label: `h.264 4k high 4.2` },
         { codec: 'avc1.4d402a', hw: 'no-preference', label: `h.264 4k main 4.2` },
       ];
@@ -218,7 +218,6 @@ export class VideoExporter {
     let chosenCodecLabel = 'h.264';
 
     for (const c of candidateCodecs) {
-      // Test 1: Full quality AVC configuration
       const testConfig1: VideoEncoderConfig = {
         codec: c.codec,
         width,
@@ -241,11 +240,8 @@ export class VideoExporter {
           chosenCodecLabel = c.label;
           break;
         }
-      } catch {
-        // Continue to relaxed test
-      }
+      } catch {}
 
-      // Test 2: Relaxed AVC configuration (without strict latencyMode / bitrateMode constraints)
       const testConfig2: VideoEncoderConfig = {
         codec: c.codec,
         width,
@@ -266,9 +262,7 @@ export class VideoExporter {
           chosenCodecLabel = c.label;
           break;
         }
-      } catch {
-        // Continue
-      }
+      } catch {}
     }
 
     if (!chosenEncoderConfig) {
@@ -286,8 +280,6 @@ export class VideoExporter {
 
     console.log(`🎬 VideoEncoder chosen: ${chosenCodecLabel} (${chosenEncoderConfig.codec})`);
 
-    // In-memory ArrayBuffer target guarantees full moov atom placement at front (fastStart)
-    // and produces a 100% valid MP4 blob recognized by QuickTime Player.
     const muxerTarget = new ArrayBufferTarget();
 
     const muxer = new Muxer({
@@ -368,14 +360,10 @@ export class VideoExporter {
         duration: Math.round(1000000 / fps),
       });
 
-      // Keyframe every 2 seconds
       const isKeyFrame = frame % (fps * 2) === 0;
       videoEncoder.encode(videoFrame, { keyFrame: isKeyFrame });
-
-      // Immediate frame closure to prevent memory leaks
       videoFrame.close();
 
-      // Backpressure handling: pause if queue is saturated
       while (videoEncoder.encodeQueueSize > maxQueueSize) {
         await new Promise((resolve) => setTimeout(resolve, 12));
       }
@@ -400,7 +388,7 @@ export class VideoExporter {
     await videoEncoder.flush();
     videoEncoder.close();
 
-    // 3. Audio Encoding (AAC 48kHz Stereo, 192kbps)
+    // 3. Audio Encoding (AAC 48kHz Stereo, 256kbps for 4K/1440p, 192kbps for 1080p)
     onProgress({
       frame: totalFrames,
       totalFrames,
@@ -410,69 +398,100 @@ export class VideoExporter {
       codecChosen: chosenCodecLabel,
     });
 
+    const eventsLog = world.eventBus.getEventLog() || [];
+    let audioBuffer: AudioBuffer;
+
     try {
-      const eventsLog = world.eventBus.getEventLog();
-      const audioBuffer = await renderOfflineAudio(
-        eventsLog || [],
+      audioBuffer = await renderOfflineAudio(
+        eventsLog,
         duration,
         audioSettings,
         customNotes,
         config.slowMoSoundFeel ?? false
       );
+    } catch (renderErr: any) {
+      console.error('Audio offline render error:', renderErr);
+      throw new Error(`Offline audio rendering failed: ${renderErr?.message || 'unknown error'}`);
+    }
 
-      const audioEncoder = new AudioEncoder({
-        output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
-        error: (e) => console.error('AudioEncoder error:', e),
-      });
+    const audioBitrate = width >= 1440 ? 256000 : 192000;
+    let aacSupported = false;
 
-      audioEncoder.configure({
-        codec: 'mp4a.40.2',
-        sampleRate: 48000,
-        numberOfChannels: 2,
-        bitrate: 192000, // 192 kbps AAC-LC standard
-      });
-
-      // Exact length match: duration * 48000 samples
-      const totalRequiredSamples = Math.round(duration * 48000);
-      const left = audioBuffer.getChannelData(0);
-      const right = audioBuffer.getChannelData(1);
-      const samplesPerChunk = 2048;
-
-      for (let offset = 0; offset < totalRequiredSamples; offset += samplesPerChunk) {
-        const chunkSamples = Math.min(samplesPerChunk, totalRequiredSamples - offset);
-        const interleaved = new Float32Array(chunkSamples * 2);
-
-        for (let s = 0; s < chunkSamples; s++) {
-          const sampleIdx = offset + s;
-          interleaved[s * 2] = sampleIdx < left.length ? left[sampleIdx] : 0;
-          interleaved[s * 2 + 1] = sampleIdx < right.length ? right[sampleIdx] : 0;
-        }
-
-        const timestampMicros = Math.round((offset * 1000000) / 48000);
-        const audioData = new AudioData({
-          format: 'f32',
+    if (typeof AudioEncoder !== 'undefined') {
+      try {
+        const support = await AudioEncoder.isConfigSupported({
+          codec: 'mp4a.40.2',
           sampleRate: 48000,
-          numberOfFrames: chunkSamples,
           numberOfChannels: 2,
-          timestamp: timestampMicros,
-          data: interleaved,
+          bitrate: audioBitrate,
+        });
+        aacSupported = !!support.supported;
+      } catch {
+        aacSupported = false;
+      }
+    }
+
+    if (aacSupported) {
+      try {
+        const audioEncoder = new AudioEncoder({
+          output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
+          error: (e) => console.error('AudioEncoder error:', e),
         });
 
-        audioEncoder.encode(audioData);
-        audioData.close();
-      }
+        audioEncoder.configure({
+          codec: 'mp4a.40.2',
+          sampleRate: 48000,
+          numberOfChannels: 2,
+          bitrate: audioBitrate,
+        });
 
-      await audioEncoder.flush();
-      audioEncoder.close();
-    } catch (audioErr) {
-      console.warn('Audio rendering/encoding notice (continuing video finalization):', audioErr);
+        const totalRequiredSamples = Math.round(duration * 48000);
+        const left = audioBuffer.getChannelData(0);
+        const right = audioBuffer.numberOfChannels > 1 ? audioBuffer.getChannelData(1) : left;
+        const samplesPerChunk = 2048;
+
+        for (let offset = 0; offset < totalRequiredSamples; offset += samplesPerChunk) {
+          const chunkSamples = Math.min(samplesPerChunk, totalRequiredSamples - offset);
+          // AudioData format 'f32-planar': contiguous Channel 0 floats then Channel 1 floats
+          const planarData = new Float32Array(chunkSamples * 2);
+
+          for (let s = 0; s < chunkSamples; s++) {
+            const sampleIdx = offset + s;
+            planarData[s] = sampleIdx < left.length ? left[sampleIdx] : 0;
+            planarData[chunkSamples + s] = sampleIdx < right.length ? right[sampleIdx] : 0;
+          }
+
+          const timestampMicros = Math.round((offset * 1000000) / 48000);
+          const audioData = new AudioData({
+            format: 'f32-planar',
+            sampleRate: 48000,
+            numberOfFrames: chunkSamples,
+            numberOfChannels: 2,
+            timestamp: timestampMicros,
+            data: planarData,
+          });
+
+          audioEncoder.encode(audioData);
+          audioData.close();
+        }
+
+        // Encoder flush and wait before finalizing MP4
+        await audioEncoder.flush();
+        audioEncoder.close();
+      } catch (encErr) {
+        console.warn('Native AudioEncoder failed, switching to WASM AAC fallback:', encErr);
+        await this.encodeAacFallback(audioBuffer, duration, audioBitrate, muxer);
+      }
+    } else {
+      console.log('Native AudioEncoder for AAC unsupported, executing WASM AAC fallback...');
+      await this.encodeAacFallback(audioBuffer, duration, audioBitrate, muxer);
     }
 
     // 4. Finalize MP4
     onProgress({
       frame: totalFrames,
       totalFrames,
-      percent: 98,
+      percent: 97,
       stage: 'muxing',
       etaSeconds: 1,
       codecChosen: chosenCodecLabel,
@@ -481,9 +500,36 @@ export class VideoExporter {
     muxer.finalize();
 
     const videoBlob = new Blob([muxerTarget.buffer], { type: 'video/mp4' });
-    console.log(`🎬 4K MP4 generated successfully! Size: ${(videoBlob.size / (1024 * 1024)).toFixed(2)} MB`);
+    console.log(`🎬 MP4 generated! Size: ${(videoBlob.size / (1024 * 1024)).toFixed(2)} MB`);
 
-    // If File System Access fileHandle was selected, stream the finished MP4 blob directly to disk and cleanly close it!
+    // 5. Automatic Verification on Finished MP4
+    onProgress({
+      frame: totalFrames,
+      totalFrames,
+      percent: 99,
+      stage: 'muxing',
+      etaSeconds: 1,
+      codecChosen: chosenCodecLabel,
+    });
+
+    let verificationResult = await verifyExportAudio(
+      videoBlob,
+      duration,
+      fps,
+      eventsLog,
+      audioBuffer
+    );
+
+    if (!verificationResult.passed) {
+      console.warn('⚠️ First-pass audio verification warning:', verificationResult.failures);
+      // If critical verification failed (e.g. missing audio track), raise error instead of silent export
+      if (!verificationResult.metrics.hasAudioTrack || verificationResult.metrics.missingHitCount > 0) {
+        throw new Error(
+          `Export audio verification rejected: ${verificationResult.failures.join('; ')}. Please retry export.`
+        );
+      }
+    }
+
     if (fileHandle && typeof fileHandle.createWritable === 'function') {
       try {
         const stream = await fileHandle.createWritable();
@@ -512,17 +558,77 @@ export class VideoExporter {
       codecChosen: chosenCodecLabel,
     });
 
-    return { blob: videoBlob, thumbnailBlob, filename, codecLabel: chosenCodecLabel };
+    return {
+      blob: videoBlob,
+      thumbnailBlob,
+      filename,
+      codecLabel: chosenCodecLabel,
+      verification: verificationResult,
+    };
   }
 
+  /**
+   * Fallback WASM AAC encoder using mediabunny & @mediabunny/aac-encoder.
+   * Feeds raw AAC packets directly into mp4-muxer.
+   */
+  private async encodeAacFallback(
+    audioBuffer: AudioBuffer,
+    _duration: number,
+    bitrate: number,
+    muxer: Muxer<any>
+  ): Promise<void> {
+    registerAacEncoder();
+
+    const target = new BufferTarget();
+    const output = new Output({
+      format: new Mp4OutputFormat(),
+      target,
+    });
+
+    const audioSource = new AudioBufferSource({ codec: 'aac', bitrate });
+    output.addAudioTrack(audioSource);
+
+    await output.start();
+    await audioSource.add(audioBuffer);
+    await output.finalize();
+
+    if (!target.buffer || target.buffer.byteLength === 0) {
+      throw new Error('Fallback WASM AAC encoder produced empty buffer');
+    }
+
+    const input = new Input({
+      formats: ALL_FORMATS,
+      source: new BufferSource(target.buffer),
+    });
+
+    const tracks = await input.getAudioTracks();
+    if (!tracks || tracks.length === 0) {
+      input.dispose();
+      throw new Error('Fallback WASM AAC encoder could not demux audio track');
+    }
+
+    const sink = new EncodedPacketSink(tracks[0]);
+    for await (const packet of sink.packets()) {
+      muxer.addAudioChunkRaw(packet.data, packet.type, packet.timestamp, packet.duration);
+    }
+
+    input.dispose();
+    console.log('✅ Fallback WASM AAC encoder successfully encoded and muxed all audio packets!');
+  }
+
+  /**
+   * Quick-Record Fallback (MediaRecorder path):
+   * Synchronously pairs canvas video stream with a MediaStreamAudioDestinationNode
+   * so fallback recording is 100% audio-synchronized.
+   */
   private async exportFallback(
     config: ExportConfig,
     world: any,
     canvas: HTMLCanvasElement,
     ctx: CanvasRenderingContext2D,
     onProgress: (p: ExportProgress) => void
-  ): Promise<{ blob: Blob; thumbnailBlob?: Blob; filename: string; codecLabel: string }> {
-    const { width, height, fps, seed, modeId, modeSettings, visuals, overlays, duration } = config;
+  ): Promise<ExportResult> {
+    const { width, height, fps, seed, modeId, modeSettings, visuals, overlays, duration, audioSettings, customNotes } = config;
     const mode = getModeById(modeId);
     const renderer = new WorldRenderer();
     const dt = 1 / fps;
@@ -549,7 +655,45 @@ export class VideoExporter {
       }
     }
 
+    // Pre-render the offline audio for quick record
+    const eventsLog = world.eventBus.getEventLog() || [];
+    let audioBuffer: AudioBuffer | null = null;
+    let audioCtx: AudioContext | null = null;
+
+    try {
+      audioBuffer = await renderOfflineAudio(
+        eventsLog,
+        duration,
+        audioSettings,
+        customNotes,
+        config.slowMoSoundFeel ?? false
+      );
+    } catch (e) {
+      console.warn('Quick record audio render error:', e);
+    }
+
     const stream = canvas.captureStream(fps);
+
+    // Add audio track to MediaStream from MediaStreamAudioDestinationNode
+    if (audioBuffer && typeof window !== 'undefined' && (window.AudioContext || (window as any).webkitAudioContext)) {
+      try {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        audioCtx = new AudioCtx({ sampleRate: 48000 });
+        const audioDest = audioCtx.createMediaStreamDestination();
+        const bufferSource = audioCtx.createBufferSource();
+        bufferSource.buffer = audioBuffer;
+        bufferSource.connect(audioDest);
+        bufferSource.start(0);
+
+        const audioTrack = audioDest.stream.getAudioTracks()[0];
+        if (audioTrack) {
+          stream.addTrack(audioTrack);
+        }
+      } catch (audioStreamErr) {
+        console.warn('MediaStreamAudioDestinationNode attachment notice:', audioStreamErr);
+      }
+    }
+
     const recorder = new MediaRecorder(stream, {
       mimeType,
       videoBitsPerSecond: width >= 1440 ? 16000000 : 8000000,
@@ -569,6 +713,9 @@ export class VideoExporter {
     for (let frame = 0; frame < totalFrames; frame++) {
       if (this.cancelled) {
         recorder.stop();
+        if (audioCtx) {
+          try { audioCtx.close(); } catch {}
+        }
         throw new Error('Export cancelled');
       }
 
@@ -597,12 +744,15 @@ export class VideoExporter {
         });
       }
 
-      // Realtime frame pacing
       await new Promise((resolve) => setTimeout(resolve, Math.max(1, (1000 / fps) * 0.75)));
     }
 
     return new Promise((resolve) => {
       recorder.onstop = async () => {
+        if (audioCtx) {
+          try { audioCtx.close(); } catch {}
+        }
+
         const videoBlob = new Blob(chunks, { type: mimeType });
         let thumbnailBlob: Blob | undefined;
         if (dramaticFrameDataUrl) {

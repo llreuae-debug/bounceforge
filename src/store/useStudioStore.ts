@@ -118,6 +118,7 @@ interface StudioState {
   isShortcutsOpen: boolean;
   isSelfTestOpen: boolean;
   isSoundCheckOpen: boolean;
+  isExportSoundCheckOpen: boolean;
   isRestartConfirmOpen: boolean;
 
   // Platform & Quality
@@ -186,6 +187,7 @@ interface StudioState {
   setShortcutsOpen: (open: boolean) => void;
   setSelfTestOpen: (open: boolean) => void;
   setSoundCheckOpen: (open: boolean) => void;
+  setExportSoundCheckOpen: (open: boolean) => void;
   setRestartConfirmOpen: (open: boolean) => void;
   isWhatsNewOpen: boolean;
   setWhatsNewOpen: (open: boolean) => void;
@@ -336,6 +338,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
     isShortcutsOpen: false,
     isSelfTestOpen: false,
     isSoundCheckOpen: false,
+    isExportSoundCheckOpen: false,
     isWhatsNewOpen: false,
     isWhatNextOpen: false,
     isTrendsAdminOpen: false,
@@ -538,6 +541,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
     setShortcutsOpen: (open) => set({ isShortcutsOpen: open }),
     setSelfTestOpen: (open) => set({ isSelfTestOpen: open }),
     setSoundCheckOpen: (open) => set({ isSoundCheckOpen: open }),
+    setExportSoundCheckOpen: (open) => set({ isExportSoundCheckOpen: open }),
     setRestartConfirmOpen: (open) => set({ isRestartConfirmOpen: open }),
     setWhatsNewOpen: (open) => set({ isWhatsNewOpen: open }),
     setWhatNextOpen: (open) => set({ isWhatNextOpen: open }),

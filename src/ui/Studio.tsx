@@ -26,6 +26,9 @@ const ExportSelfTestModal = React.lazy(() =>
 const SoundCheckModal = React.lazy(() =>
   import('./modals/SoundCheckModal').then((m) => ({ default: m.SoundCheckModal }))
 );
+const ExportSoundCheckModal = React.lazy(() =>
+  import('./modals/ExportSoundCheckModal').then((m) => ({ default: m.ExportSoundCheckModal }))
+);
 import {
   Sliders,
   Sparkles,
@@ -45,6 +48,8 @@ export const Studio: React.FC = () => {
     setSelfTestOpen,
     isSoundCheckOpen,
     setSoundCheckOpen,
+    isExportSoundCheckOpen,
+    setExportSoundCheckOpen,
     currentModeId,
     setMode,
     setExportOpen,
@@ -264,6 +269,7 @@ export const Studio: React.FC = () => {
         {isSoundCheckOpen && (
           <SoundCheckModal isOpen={isSoundCheckOpen} onClose={() => setSoundCheckOpen(false)} />
         )}
+        {isExportSoundCheckOpen && <ExportSoundCheckModal />}
       </React.Suspense>
       <OnboardingModal />
       <ShortcutsModal />

@@ -25,7 +25,7 @@ import { triggerHaptic } from '../../platform/haptics';
 import { copyText } from '../../platform/clipboard';
 
 export const DiagnosticsPage: React.FC = () => {
-  const { setRoute, setQualityMode, qualityMode, showToast, setSoundCheckOpen } = useStudioStore();
+  const { setRoute, setQualityMode, qualityMode, showToast, setSoundCheckOpen, setExportSoundCheckOpen } = useStudioStore();
   const [caps, setCaps] = useState<DeviceCapabilities | null>(null);
   const [copied, setCopied] = useState(false);
   const [benchmarking, setBenchmarking] = useState(false);
@@ -107,6 +107,17 @@ export const DiagnosticsPage: React.FC = () => {
           >
             <Activity className="w-4 h-4" />
             <span>Launch Audio Sound Check</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setRoute('studio');
+              setExportSoundCheckOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-xs font-bold transition-all active:scale-95"
+          >
+            <Zap className="w-4 h-4" />
+            <span>Launch Export Sound Test (10s Clip)</span>
           </button>
 
           <button
