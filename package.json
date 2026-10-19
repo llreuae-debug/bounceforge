@@ -13,9 +13,10 @@
     "check:presets": "npx tsx scripts/verifyViralUpdate.ts",
     "check:sound": "npx tsx scripts/testSoundEngine.ts",
     "check:export-sound": "npx tsx scripts/testExportSound.ts",
+    "check:midi": "npx tsx scripts/testMidiReel.ts",
     "test": "npx tsx scripts/testMarbleMelody.ts && npx tsx scripts/testSlowMotion.ts && npx tsx scripts/testHeadlessModes.ts && npx tsx scripts/testGrowthTools.ts",
     "test:e2e": "playwright test",
-    "audit": "npm run typecheck && npm run check:sound && npm run check:export-sound && npm run check:links && npm run check:i18n && npm run check:presets && npm run test"
+    "audit": "npm run typecheck && npm run check:sound && npm run check:export-sound && npm run check:links && npm run check:i18n && npm run check:presets && npm run check:midi && npm run test"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.21.0",

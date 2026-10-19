@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStudioStore } from '../store/useStudioStore';
 import { Logo } from '../brand/Logo';
-import {
+import { FileMusic,
   Download,
   Menu,
   X,
@@ -82,6 +82,18 @@ export const Header: React.FC = () => {
           >
             <Film className="w-3.5 h-3.5" />
             <span>My Videos</span>
+          </button>
+
+          <button
+            onClick={() => setRoute('midi_studio')}
+            className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+              currentRoute === 'midi_studio'
+                ? 'bg-pink-500/15 text-pink-300 font-extrabold border border-pink-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <FileMusic className="w-3.5 h-3.5" />
+            <span>MIDI → Reel</span>
           </button>
 
           <button

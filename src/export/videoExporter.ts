@@ -12,6 +12,8 @@ import type { BallPhysicsSettings, WallControlsSettings, CustomBallConfig } from
 import { registerAacEncoder } from '@mediabunny/aac-encoder';
 import { Output, BufferTarget, Mp4OutputFormat, AudioBufferSource, Input, BufferSource, ALL_FORMATS, EncodedPacketSink } from 'mediabunny';
 import { verifyExportAudio, ExportAudioVerificationResult } from './exportAudioVerifier';
+import type { SimulationMode } from '../modes/types';
+import type { CollisionEvent } from '../engine/types';
 
 export interface ExportConfig {
   width: number;
@@ -34,6 +36,10 @@ export interface ExportConfig {
   speedRampFinale?: boolean;
   marbleMelodySlowMoMode?: 'calm_tempo' | 'normal_tempo';
   fileHandle?: any; // FileSystemFileHandle for Chrome/Edge direct streaming
+  /** Use this simulation mode instead of looking `modeId` up in the registry (e.g. MIDI reels) */
+  modeOverride?: SimulationMode;
+  /** Produce the soundtrack yourself (e.g. synthesized MIDI + effects) instead of the default mix */
+  renderAudio?: (events: CollisionEvent[], duration: number) => Promise<AudioBuffer>;
 }
 
 export interface ExportProgress {
@@ -144,7 +150,7 @@ export class VideoExporter {
     const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true })!;
 
     // Initialize 2D Simulation with isolated state per export
-    const mode = getModeById(modeId);
+    const mode = config.modeOverride ?? getModeById(modeId);
     const world = new PhysicsWorld(width, height, seed);
     world.reelSpeed = config.reelSpeed !== undefined ? config.reelSpeed : 0.5;
     world.slowMoSoundFeel = config.slowMoSoundFeel ?? false;
@@ -402,13 +408,9 @@ export class VideoExporter {
     let audioBuffer: AudioBuffer;
 
     try {
-      audioBuffer = await renderOfflineAudio(
-        eventsLog,
-        duration,
-        audioSettings,
-        customNotes,
-        config.slowMoSoundFeel ?? false
-      );
+      audioBuffer = config.renderAudio
+        ? await config.renderAudio(eventsLog, duration)
+        : await renderOfflineAudio(eventsLog, duration, audioSettings, customNotes, config.slowMoSoundFeel ?? false);
     } catch (renderErr: any) {
       console.error('Audio offline render error:', renderErr);
       throw new Error(`Offline audio rendering failed: ${renderErr?.message || 'unknown error'}`);
@@ -629,7 +631,7 @@ export class VideoExporter {
     onProgress: (p: ExportProgress) => void
   ): Promise<ExportResult> {
     const { width, height, fps, seed, modeId, modeSettings, visuals, overlays, duration, audioSettings, customNotes } = config;
-    const mode = getModeById(modeId);
+    const mode = config.modeOverride ?? getModeById(modeId);
     const renderer = new WorldRenderer();
     const dt = 1 / fps;
     const totalFrames = Math.ceil(duration * fps);
@@ -661,13 +663,9 @@ export class VideoExporter {
     let audioCtx: AudioContext | null = null;
 
     try {
-      audioBuffer = await renderOfflineAudio(
-        eventsLog,
-        duration,
-        audioSettings,
-        customNotes,
-        config.slowMoSoundFeel ?? false
-      );
+      audioBuffer = config.renderAudio
+        ? await config.renderAudio(eventsLog, duration)
+        : await renderOfflineAudio(eventsLog, duration, audioSettings, customNotes, config.slowMoSoundFeel ?? false);
     } catch (e) {
       console.warn('Quick record audio render error:', e);
     }

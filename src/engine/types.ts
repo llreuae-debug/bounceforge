@@ -37,6 +37,8 @@ export interface Ball {
   score?: number;
   tag?: string;
   label?: string;
+  /** Skips ball-to-ball collisions (still hits walls, pegs and rings) */
+  ghost?: boolean;
 }
 
 export type BreakEffectType = 'confetti' | 'glass_shatter' | 'shockwave' | 'sparks';

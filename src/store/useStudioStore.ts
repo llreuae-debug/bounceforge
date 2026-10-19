@@ -70,6 +70,7 @@ export type StudioRoute =
   | 'showcase'
   | 'feedback'
   | 'disclaimer'
+  | 'midi_studio'
   | '404';
 
 
@@ -366,6 +367,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
           showcase: '/showcase',
           feedback: '/feedback',
           disclaimer: '/disclaimer',
+          midi_studio: '/midi',
           '404': '/404',
         };
         const targetPath = pathMap[route] || '/';

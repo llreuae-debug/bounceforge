@@ -501,6 +501,8 @@ export class PhysicsWorld {
           const otherIdx = candidates[c];
           const other = this.balls[otherIdx];
           if (!other || !other.isAlive) continue;
+          // Ghost balls (e.g. a timed drop still in flight) pass through other balls
+          if (b.ghost || other.ghost) continue;
 
           const col = checkBallBallCollision(b, other, this.videoTime);
           if (col) {

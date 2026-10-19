@@ -90,6 +90,14 @@ export class WorldRenderer {
     // Scale to output
     ctx.scale(scaleX, scaleY);
 
+    // Optional mode camera (zoom punch around a point); only modes that set it are affected
+    const cam = world.customState?.camera;
+    if (cam && cam.zoom && Math.abs(cam.zoom - 1) > 0.0005) {
+      ctx.translate(cam.cx, cam.cy);
+      ctx.scale(cam.zoom, cam.zoom);
+      ctx.translate(-cam.cx, -cam.cy);
+    }
+
     // 3D Mode Direct Render Path (Marble Melody 3D)
     if (world.customState?.is3D) {
       if (world.customState.onRenderFg) {
