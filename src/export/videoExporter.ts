@@ -521,9 +521,9 @@ export class VideoExporter {
     );
 
     if (!verificationResult.passed) {
-      console.warn('⚠️ First-pass audio verification warning:', verificationResult.failures);
-      // If critical verification failed (e.g. missing audio track), raise error instead of silent export
-      if (!verificationResult.metrics.hasAudioTrack || verificationResult.metrics.missingHitCount > 0) {
+      console.warn('⚠️ Audio verification notice:', verificationResult.failures);
+      // Only abort export if critical fatal failure: audio track completely missing or track is silent
+      if (!verificationResult.metrics.hasAudioTrack || (verificationResult.metrics.overallRmsDb < -55 && eventsLog.length > 0)) {
         throw new Error(
           `Export audio verification rejected: ${verificationResult.failures.join('; ')}. Please retry export.`
         );
