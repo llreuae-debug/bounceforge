@@ -50,6 +50,7 @@ export interface StudioProject {
 export type StudioRoute =
   | 'landing'
   | 'studio'
+  | 'my_videos'
   | 'settings'
   | 'diagnostics'
   | 'faq'
@@ -349,6 +350,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
         const pathMap: Record<StudioRoute, string> = {
           landing: '/',
           studio: '/studio',
+          my_videos: '/my-videos',
           settings: '/settings',
           diagnostics: '/diagnostics',
           faq: '/faq',

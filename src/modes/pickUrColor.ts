@@ -135,7 +135,9 @@ export const PickUrColorMode: SimulationMode = {
       });
     }
   },
-  isFinished: (world: PhysicsWorld) => {
-    return !!world.winner;
+  isFinished: (world: PhysicsWorld, settings: Record<string, any>) => {
+    const duration = settings?.duration ?? settings?.targetDuration ?? 45;
+    const currentTime = world.videoTime > 0 ? world.videoTime : world.time;
+    return !!world.winner && currentTime >= Math.min(duration, 45);
   },
 };

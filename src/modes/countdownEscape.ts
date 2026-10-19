@@ -114,7 +114,8 @@ export const CountdownEscapeMode: SimulationMode = {
     }
   },
   isFinished: (world: PhysicsWorld, settings: Record<string, any>) => {
-    const duration = settings.duration ?? 60;
-    return world.time >= duration || world.rings.every((r) => r.isShattered);
+    const duration = settings.duration ?? settings.targetDuration ?? 60;
+    const currentTime = world.videoTime > 0 ? world.videoTime : world.time;
+    return currentTime >= duration;
   },
 };

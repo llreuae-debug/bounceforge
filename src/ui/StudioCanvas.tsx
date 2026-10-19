@@ -25,6 +25,7 @@ import {
 import { AdaptiveQualityManager } from '../platform/quality';
 import { triggerHaptic } from '../platform/haptics';
 import { RestartConfirmModal } from './modals/RestartConfirmModal';
+import { getFeatureFlags } from '../config/featureFlags';
 
 export const StudioCanvas: React.FC = () => {
   const {
@@ -527,11 +528,13 @@ export const StudioCanvas: React.FC = () => {
           </button>
         </div>
 
-        {/* Quality Chip (Sits strictly OUTSIDE the preview frame above it, never over the video) */}
-        <div className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-[10.5px] font-mono text-cyan-300 flex items-center gap-1.5 shadow-sm whitespace-nowrap">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
-          quality: {currentQualityTier} ({qualityMode === 'auto' ? 'auto' : 'manual'})
-        </div>
+        {/* Quality Chip - Only shown if developer diagnostics enabled in settings */}
+        {getFeatureFlags().showDevDiagnosticsInStudio && (
+          <div className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-[10.5px] font-mono text-cyan-300 flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
+            quality: {currentQualityTier} ({qualityMode === 'auto' ? 'auto' : 'manual'})
+          </div>
+        )}
       </div>
 
       {/* 9:16 Canvas Frame */}

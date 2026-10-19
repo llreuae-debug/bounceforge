@@ -21,6 +21,7 @@ import { BackgroundSimulator3D } from './render3d/background3d';
 
 // Code-split heavy routes so Landing, FAQ, Terms load immediately without 3D simulation or Admin bundles
 const Studio = React.lazy(() => import('./ui/Studio').then((m) => ({ default: m.Studio })));
+const MyVideosPage = React.lazy(() => import('./ui/pages/MyVideosPage').then((m) => ({ default: m.MyVideosPage })));
 const PricingPage = React.lazy(() => import('./ui/pages/PricingPage').then((m) => ({ default: m.PricingPage })));
 const AccountPage = React.lazy(() => import('./ui/pages/AccountPage').then((m) => ({ default: m.AccountPage })));
 const AdminPanel = React.lazy(() => import('./ui/admin/AdminPanel').then((m) => ({ default: m.AdminPanel })));
@@ -52,6 +53,7 @@ export const parsePathWithLocale = (
   const clean = '/' + segments.join('/');
   if (clean === '/' || clean === '') return { lang, route: 'landing' };
   if (clean === '/studio') return { lang, route: 'studio' };
+  if (clean === '/my-videos' || clean === '/videos') return { lang, route: 'my_videos' };
   if (clean === '/settings') return { lang, route: 'settings' };
   if (clean === '/diagnostics') return { lang, route: 'diagnostics' };
   if (clean === '/about') return { lang, route: 'about' };
@@ -226,6 +228,7 @@ export const App: React.FC = () => {
           }
         >
           {currentRoute === 'studio' && <Studio />}
+          {currentRoute === 'my_videos' && <MyVideosPage />}
           {currentRoute === 'settings' && <Studio />}
           {currentRoute === 'landing' && (
             <>

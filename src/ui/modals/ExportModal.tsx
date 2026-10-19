@@ -32,6 +32,7 @@ import { AiService } from '../../ai/aiService';
 import { generateSeoPack, SeoPack, formatSeoPackAsText } from '../../ai/seoEngine';
 import { copyText } from '../../platform/clipboard';
 import { SeoPackViewer } from '../components/SeoPackViewer';
+import { exportHistoryService } from '../../export/exportHistoryService';
 
 export const ExportModal: React.FC = () => {
   const {
@@ -118,7 +119,7 @@ export const ExportModal: React.FC = () => {
     if (isExportOpen) {
       checkBatteryStatus().then(setBatteryInfo);
       setDuration(targetDuration);
-      setResolution('4k');
+      setResolution('1080');
     }
   }, [isExportOpen, targetDuration]);
 
@@ -140,6 +141,14 @@ export const ExportModal: React.FC = () => {
     triggerHaptic(10);
     showToast(ok ? `copied ${field} to clipboard` : `could not copy ${field} automatically`);
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleMakeAnother = () => {
+    const newSeed = Math.floor(Math.random() * 900000) + 1000;
+    setSeed(newSeed);
+    cleanupUrls();
+    setExportOpen(false);
+    showToast('Ready to make another reel with new seed!');
   };
 
   const handleMakePart2 = () => {
@@ -271,7 +280,7 @@ export const ExportModal: React.FC = () => {
         console.warn('Auto-download notice:', dlErr);
       }
 
-      // Generate SEO Pack
+      // Generate SEO Pack & Save to Export History
       AiService.getInstance().generateSeo({
         modeName: currentModeId,
         modeId: currentModeId,
@@ -281,7 +290,24 @@ export const ExportModal: React.FC = () => {
         seed,
         resolution: resolution === '4k' ? '4k' : '1080p',
         language: overlays.videoLanguage || 'en',
-      }).then(setCurrentSeoPack);
+      }).then((seo) => {
+        setCurrentSeoPack(seo);
+        exportHistoryService.addRecord({
+          title: overlays.titleText || `Reel ${currentModeId}`,
+          modeId: currentModeId,
+          duration,
+          resolution: resolution === '4k' ? '4K (2160x3840)' : '1080x1920',
+          fps,
+          downloadUrl: blobUrl,
+          seoPack: seo
+            ? {
+                title: seo.shorts.title,
+                caption: seo.tiktok.caption,
+                hashtags: seo.tiktok.hashtags,
+              }
+            : undefined,
+        });
+      });
 
       triggerHaptic(20);
     } catch (err: any) {
@@ -933,6 +959,14 @@ export const ExportModal: React.FC = () => {
                   className="btn-3d-pink w-full py-2.5 rounded-xl text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-pink-500/30"
                 >
                   <RotateCcw className="w-3.5 h-3.5" /> Make Part {(overlays.partNumber || 1) + 1} (New Seed)
+                </button>
+
+                {/* Make Another Reel */}
+                <button
+                  onClick={handleMakeAnother}
+                  className="btn-3d-cyan w-full py-2.5 rounded-xl text-black text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" /> Make Another Reel
                 </button>
 
                 <button onClick={cleanupUrls} className="w-full py-2 text-xs font-semibold text-slate-400 hover:text-white">

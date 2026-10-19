@@ -1,201 +1,293 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
-import { ALL_MODES } from '../../modes/registry';
-import { Search, Flame, Cpu, Sparkles, X } from 'lucide-react';
+import { CURATED_TEMPLATES, CATEGORIES, CuratedTemplate, TemplateCategory } from '../../templates/curatedTemplates';
+import { Search, Sparkles, Flame, Clock, Play, X, Music, Shield, Gem, Smile, Moon, Swords } from 'lucide-react';
+import { triggerHaptic } from '../../platform/haptics';
 
 export interface ModeGalleryProps {
   className?: string;
   onClose?: () => void;
+  onSelectTemplate?: (template: CuratedTemplate) => void;
 }
 
-export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose }) => {
-  const { currentModeId, setMode, applyPreset, surpriseMe } = useStudioStore();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [category, setCategory] = useState<'all' | 'fresh_drops' | 'core' | 'advanced'>('all');
+export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, onSelectTemplate }) => {
+  const {
+    currentModeId,
+    setMode,
+    modeSettings,
+    updateModeSetting,
+    applyPreset,
+    surpriseMe,
+    setReelSpeed,
+    reelSpeed,
+    showToast,
+  } = useStudioStore();
 
-  const activeModesList = ALL_MODES;
+  const [activeCategory, setActiveCategory] = useState<'top_picks' | TemplateCategory>('top_picks');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('top_pastel_toybox');
+  const [activeVariant, setActiveVariant] = useState<'calm' | 'viral' | 'wild'>('viral');
 
-  const filteredModes = activeModesList.filter((m: any) => {
-    const matchesSearch =
-      m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCat =
-      category === 'all' ||
-      (category === 'fresh_drops' && m.category === 'fresh_drops') ||
-      (category === 'core' && m.category === 'core') ||
-      (category === 'advanced' && (m.category === 'advanced' || m.category === 'exclusive'));
-    return matchesSearch && matchesCat;
-  });
+  const filteredTemplates = useMemo(() => {
+    return CURATED_TEMPLATES.filter((tpl) => {
+      const matchesSearch =
+        tpl.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tpl.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tpl.hook.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const freshCount = activeModesList.filter((m) => m.category === 'fresh_drops').length;
-  const coreCount = activeModesList.filter((m) => m.category === 'core').length;
-  const advCount = activeModesList.filter((m) => m.category === 'advanced' || (m as any).category === 'exclusive').length;
+      if (!matchesSearch) return false;
+
+      if (activeCategory === 'top_picks') {
+        return tpl.isTopPick;
+      }
+      return tpl.category === activeCategory;
+    });
+  }, [activeCategory, searchQuery]);
+
+  const handleSelect = (tpl: CuratedTemplate) => {
+    triggerHaptic(12);
+    setSelectedTemplateId(tpl.id);
+    setMode(tpl.modeId);
+
+    // Apply base settings and default viral variant
+    if (tpl.presetSettings) {
+      applyPreset({
+        ...tpl.presetSettings,
+        targetDuration: tpl.durationSeconds,
+      });
+    }
+
+    if (tpl.variants?.viral) {
+      applyPreset(tpl.variants.viral);
+      setActiveVariant('viral');
+    }
+
+    if (onSelectTemplate) {
+      onSelectTemplate(tpl);
+    }
+    showToast(`Loaded reel: ${tpl.name}`);
+  };
+
+  const handleVariantChange = (variant: 'calm' | 'viral' | 'wild', tpl: CuratedTemplate) => {
+    triggerHaptic(10);
+    setActiveVariant(variant);
+    const variantSettings = tpl.variants[variant];
+    if (variantSettings) {
+      applyPreset(variantSettings);
+    }
+    if (variant === 'calm') {
+      setReelSpeed(0.5);
+    } else if (variant === 'viral') {
+      setReelSpeed(0.5);
+    } else {
+      setReelSpeed(1.0);
+    }
+    showToast(`Switched to ${variant.toUpperCase()} variant`);
+  };
+
+  const getCategoryIcon = (catId: TemplateCategory) => {
+    switch (catId) {
+      case 'marble_music':
+        return <Music className="w-3.5 h-3.5" />;
+      case 'satisfying_escape':
+        return <Sparkles className="w-3.5 h-3.5" />;
+      case 'battles':
+        return <Swords className="w-3.5 h-3.5" />;
+      case 'asmr_glass':
+        return <Gem className="w-3.5 h-3.5" />;
+      case 'squeaky_fun':
+        return <Smile className="w-3.5 h-3.5" />;
+      case 'calm_relaxing':
+        return <Moon className="w-3.5 h-3.5" />;
+    }
+  };
 
   return (
-    <aside className={className || "w-80 h-[calc(100vh-4rem)] border-r border-white/10 bg-[#07090e]/85 backdrop-blur-md flex flex-col select-none shrink-0"}>
-      {/* Header & Search */}
-      <div className="p-4 border-b border-white/10 space-y-3">
+    <aside className={className || "w-80 sm:w-96 h-[calc(100vh-4rem)] border-r border-white/10 bg-[#07090e]/95 backdrop-blur-md flex flex-col select-none shrink-0 font-sans"}>
+      {/* 1. Header & Quick Actions */}
+      <div className="p-3.5 sm:p-4 border-b border-white/10 space-y-3 shrink-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            2D Simulation Modes
-          </h2>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/30">
-              {activeModesList.length} MODES
-            </span>
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <h2 className="text-xs font-black uppercase tracking-wider text-white">
+              Step 1 · Pick a Reel
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={surpriseMe}
+              className="btn-3d-pink h-7 px-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white flex items-center gap-1.5 shadow-sm shadow-pink-500/20"
+              title="Surprise me with a random viral combination"
+            >
+              <Sparkles className="w-3 h-3 text-white animate-spin-slow" />
+              <span>Surprise Me</span>
+            </button>
+
             {onClose && (
               <button
                 onClick={onClose}
-                className="btn-3d-glass p-1.5 rounded-xl text-slate-300 hover:text-white text-xs font-bold"
-                title="Close modes"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5"
+                title="Close gallery"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
         </div>
-
-        {/* Surprise Me 3D Tactile Button */}
-        <button
-          onClick={surpriseMe}
-          className="btn-3d-purple w-full py-2.5 px-3 rounded-xl text-xs font-black text-white flex items-center justify-center gap-2 transition-all uppercase tracking-wider"
-          title="Randomize combination of mode, balls, obstacles, colors, melody and physics!"
-        >
-          <Sparkles className="w-4 h-4 text-white animate-pulse" />
-          <span>Surprise Me</span>
-        </button>
 
         {/* Search */}
         <div className="relative">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
-            placeholder="Search modes..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search templates, music, themes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-white/5 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-2.5 text-slate-400 hover:text-white"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* Filter Pills - 3D Buttons */}
-        <div className="grid grid-cols-4 gap-1 pt-1">
+        {/* Category Filter Tabs: Top Picks + 6 simple categories */}
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5">
           <button
-            onClick={() => setCategory('all')}
-            className={`py-1.5 text-[10px] font-bold rounded-xl transition-all ${
-              category === 'all'
-                ? 'btn-3d-cyan text-black'
-                : 'btn-3d-glass text-slate-400 hover:text-slate-200'
+            onClick={() => setActiveCategory('top_picks')}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+              activeCategory === 'top_picks'
+                ? 'btn-3d-cyan text-black font-extrabold shadow-sm shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
-            All ({activeModesList.length})
+            <Flame className="w-3 h-3 text-amber-400 fill-amber-400" />
+            <span>Top Picks (12)</span>
           </button>
-          <button
-            onClick={() => setCategory('fresh_drops')}
-            className={`py-1.5 text-[10px] font-bold rounded-xl transition-all ${
-              category === 'fresh_drops'
-                ? 'btn-3d-pink text-white shadow-pink-500/30'
-                : 'btn-3d-glass text-pink-400 hover:text-pink-300'
-            }`}
-          >
-            Fresh ({freshCount})
-          </button>
-          <button
-            onClick={() => setCategory('core')}
-            className={`py-1.5 text-[10px] font-bold rounded-xl transition-all ${
-              category === 'core'
-                ? 'btn-3d-lime text-black'
-                : 'btn-3d-glass text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Core ({coreCount})
-          </button>
-          <button
-            onClick={() => setCategory('advanced')}
-            className={`py-1.5 text-[10px] font-bold rounded-xl transition-all ${
-              category === 'advanced'
-                ? 'btn-3d-purple text-white'
-                : 'btn-3d-glass text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Adv ({advCount})
-          </button>
+
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+                activeCategory === cat.id
+                  ? 'btn-3d-lime text-black font-extrabold shadow-sm shadow-lime-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {getCategoryIcon(cat.id)}
+              <span>{cat.name}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Mode Cards List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
-        {filteredModes.map((mode: any) => {
-          const isActive = mode.id === currentModeId;
-
-          return (
-            <div
-              key={mode.id}
+      {/* 2. Scrollable Template Cards */}
+      <div className="flex-1 overflow-y-auto p-3 sm:p-3.5 space-y-2.5">
+        {filteredTemplates.length === 0 ? (
+          <div className="py-12 text-center space-y-2 text-slate-400">
+            <Sparkles className="w-6 h-6 text-slate-500 mx-auto" />
+            <p className="text-xs">No matching templates found.</p>
+            <button
               onClick={() => {
-                setMode(mode.id);
+                setSearchQuery('');
+                setActiveCategory('top_picks');
               }}
-              className={`p-3 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${
-                isActive
-                  ? 'bg-gradient-to-br from-cyan-500/15 via-indigo-500/10 to-transparent border-cyan-400/50 shadow-lg shadow-cyan-400/10'
-                  : 'bg-white/[0.03] border-white/5 hover:border-white/20 hover:bg-white/[0.06]'
-              }`}
+              className="text-xs text-cyan-400 hover:underline font-bold"
             >
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <h3 className="font-bold text-xs text-white group-hover:text-cyan-300 transition-colors flex items-center gap-1.5">
-                  {mode.name}
-                </h3>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {mode.category === 'fresh_drops' ? (
-                    <span className="text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white shadow-md shadow-pink-500/40 animate-pulse border border-pink-400/50">
-                      NEW
-                    </span>
-                  ) : mode.id === 'classic' || mode.id === 'accumulation' || mode.id === 'web_expansion' || mode.id === 'spiral' ? (
-                    <span className="text-[9px] uppercase font-black px-1.5 py-0.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm shadow-pink-500/20">
-                      POPULAR
-                    </span>
-                  ) : mode.id === 'fragment_expansion' ? (
-                    <span className="text-[9px] uppercase font-black px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-sm shadow-purple-500/20">
-                      EXCLUSIF
-                    </span>
-                  ) : (
-                    <span className="text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded tracking-wider bg-white/5 text-slate-400">
-                      {mode.category}
+              Reset search
+            </button>
+          </div>
+        ) : (
+          filteredTemplates.map((tpl) => {
+            const isSelected = selectedTemplateId === tpl.id || currentModeId === tpl.modeId;
+
+            return (
+              <div
+                key={tpl.id}
+                onClick={() => handleSelect(tpl)}
+                className={`p-3 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+                  isSelected
+                    ? 'bg-gradient-to-br from-cyan-500/15 via-blue-500/10 to-transparent border-cyan-400 shadow-lg shadow-cyan-500/10'
+                    : 'bg-white/[0.03] border-white/5 hover:border-white/20 hover:bg-white/[0.06]'
+                }`}
+              >
+                {/* Background Hue Glow */}
+                <div
+                  className={`absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl opacity-20 pointer-events-none bg-gradient-to-br ${tpl.previewGradient}`}
+                />
+
+                <div className="flex items-start justify-between gap-2 mb-1.5 relative z-10">
+                  <div className="space-y-0.5">
+                    <h3 className="font-extrabold text-xs text-white group-hover:text-cyan-300 transition-colors flex items-center gap-1.5">
+                      <span>{tpl.name}</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-400 leading-snug line-clamp-1">
+                      {tpl.description}
+                    </p>
+                  </div>
+
+                  {/* Single Clean Badge (Max 1 per card!) */}
+                  {tpl.badge && (
+                    <span
+                      className={`text-[9px] uppercase font-black px-1.5 py-0.5 rounded-full shrink-0 ${
+                        tpl.badge === 'HOT'
+                          ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm shadow-pink-500/30'
+                          : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-black'
+                      }`}
+                    >
+                      {tpl.badge}
                     </span>
                   )}
                 </div>
+
+                {/* Duration & Tag Footer */}
+                <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono pt-1">
+                  <span className="flex items-center gap-1 text-slate-300">
+                    <Clock className="w-3 h-3 text-cyan-400" />
+                    {tpl.durationSeconds}s runtime
+                  </span>
+
+                  <span className="text-[9px] uppercase font-mono tracking-wider text-slate-400">
+                    {tpl.category.replace('_', ' ')}
+                  </span>
+                </div>
+
+                {/* Variant Switcher (Revealed ONLY after selecting the card) */}
+                {isSelected && (
+                  <div
+                    className="mt-2.5 pt-2 border-t border-cyan-400/20 flex items-center justify-between gap-1 animate-fadeIn"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">
+                      Variant:
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {(['calm', 'viral', 'wild'] as const).map((v) => (
+                        <button
+                          key={v}
+                          onClick={() => handleVariantChange(v, tpl)}
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
+                            activeVariant === v
+                              ? 'bg-cyan-400 text-black shadow-sm shadow-cyan-400/30'
+                              : 'bg-white/5 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-
-
-              <p className="text-[11px] text-slate-400 leading-relaxed mb-2 line-clamp-2">
-                {mode.description}
-              </p>
-
-              {/* Presets */}
-              {mode.id === 'marble_melody_3d' ? (
-                <div className="flex items-center gap-1.5 text-[10.5px] text-pink-300 font-semibold bg-gradient-to-r from-pink-500/15 to-purple-500/15 px-2.5 py-1 rounded-xl border border-pink-500/30 shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                  <span>Pastel Marble Run (Peach Blush · Frosted Glass · Toybox 50s)</span>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-1">
-                  {mode.presets.map((preset: any, idx: number) => (
-                    <button
-                      key={idx}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setMode(mode.id);
-                        applyPreset(preset.settings);
-                      }}
-                      className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-200 border border-white/5 hover:border-cyan-500/30 transition-all font-medium"
-                    >
-                      {preset.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </aside>
   );
