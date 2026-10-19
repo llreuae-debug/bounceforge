@@ -287,6 +287,7 @@ export interface MarbleMelodyConfig {
   targetDuration: number;
   reelSpeed?: number; // 0.25, 0.5, 0.75, 1.0, 1.25. DEFAULT = 0.5
   slowMoMode?: 'calm_tempo' | 'normal_tempo'; // Choice A ('calm_tempo') or Choice B ('normal_tempo'). DEFAULT = 'calm_tempo'
+  trackRails?: boolean; // chrome ladder rails between hits. DEFAULT = true
 
   actCount: number;
   acts: ActConfig[];

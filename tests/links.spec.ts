@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+// Studio is lazy-loaded with the 3D/physics bundle; allow for slow cold loads
+const STUDIO_READY_TIMEOUT = 30000;
+
 test.describe('BounceForge Master Link & Route Verification', () => {
 
   // 1. Visit every route in LINKS.md and verify status 200, no console errors, no failed network requests
@@ -62,7 +65,7 @@ test.describe('BounceForge Master Link & Route Verification', () => {
     await launchBtn.click();
     await page.waitForTimeout(300);
     expect(page.url()).toContain('/studio');
-    await expect(page.getByRole('button', { name: /Export 4K/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Export Reel/i }).first()).toBeVisible({ timeout: STUDIO_READY_TIMEOUT });
   });
 
   // 4. Footer navigation buttons navigate to correct routes
@@ -145,8 +148,8 @@ test.describe('BounceForge Master Link & Route Verification', () => {
     await page.goto(shareUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(500);
 
-    // Verify studio is rendered with Export 4K button
-    await expect(page.getByRole('button', { name: /Export 4K/i })).toBeVisible();
+    // Verify studio is rendered with the Export Reel button
+    await expect(page.getByRole('button', { name: /Export Reel/i }).first()).toBeVisible({ timeout: STUDIO_READY_TIMEOUT });
     await context.close();
   });
 
@@ -169,7 +172,7 @@ test.describe('BounceForge Master Link & Route Verification', () => {
     await obstacleBtn.click();
     await page.waitForTimeout(300);
     expect(page.url()).toContain('/studio');
-    await expect(page.getByRole('button', { name: /Export 4K/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Export Reel/i }).first()).toBeVisible({ timeout: STUDIO_READY_TIMEOUT });
   });
 
 });

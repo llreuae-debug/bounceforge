@@ -137,6 +137,54 @@ function buildFullMelody(
   return makeNotes(specs);
 }
 
+/**
+ * Loops a real tune with its own rhythm up to the 55.5s finale, adding a bass note every bar
+ * and a little more energy on each pass. Used for sing-along songs that need their rhythm
+ * to be recognisable. phrase: [midi, beats] pairs.
+ */
+function buildSongMelody(
+  phrase: Array<[midi: number, beats: number]>,
+  bpm: number,
+  beatsPerBar: number,
+  bassRoots: number[],
+  pickupBeats: number = 0
+): MelodyNote[] {
+  const beat = 60 / bpm;
+  const targetFinale = 55.5;
+  const specs: Array<[number, number, number, number?, number?]> = [];
+
+  let t = 0;
+  let pass = 0;
+  let done = false;
+  while (!done) {
+    for (const [midi, beats] of phrase) {
+      const dur = beats * beat;
+      if (t + dur > targetFinale - 0.3) {
+        done = true;
+        break;
+      }
+      specs.push([t, dur * 0.9, midi, Math.min(1.0, 0.82 + pass * 0.03), 0]);
+      t += dur;
+    }
+    t += beat; // breath between repeats
+    pass++;
+  }
+
+  // Finale: the tune's home note, an octave up
+  specs.push([targetFinale, 2.0, phrase[phrase.length - 1][0] + 12, 1.0, 0]);
+
+  // Bass lane on each bar, aligned after any pickup notes
+  const barSec = beatsPerBar * beat;
+  let bar = 0;
+  for (let bT = pickupBeats * beat; bT < targetFinale - 1.0; bT += barSec) {
+    specs.push([bT, barSec * 0.9, bassRoots[bar % bassRoots.length], 0.8, 1]);
+    bar++;
+  }
+  specs.push([targetFinale, 2.5, bassRoots[0] - 12, 1.0, 1]);
+
+  return makeNotes(specs);
+}
+
 // 50 PUBLIC DOMAIN AND ORIGINAL COPYRIGHT-SAFE MELODIES
 export const PUBLIC_DOMAIN_MELODIES: MelodyDefinition[] = [
   // ==========================================
@@ -1023,6 +1071,116 @@ export const PUBLIC_DOMAIN_MELODIES: MelodyDefinition[] = [
       60,
       [0, 2, 4, 5, 7, 9, 11],
       36
+    ),
+  },
+
+  // ==========================================
+  // GROUP F: SING-ALONG FAVOURITES (real rhythm)
+  // ==========================================
+  {
+    id: 'happy_birthday',
+    name: 'Happy Birthday to You',
+    composer: 'Mildred J. Hill & Patty Hill',
+    deathYearOrOrigin: '1893 (public domain)',
+    defaultBpm: 120,
+    description: 'The birthday song everyone knows, in its real waltz rhythm. Perfect for birthday reels.',
+    publicDomain: true,
+    source: 'original score notes',
+    notes: buildSongMelody(
+      [
+        [67, 0.75], [67, 0.25], [69, 1], [67, 1], [72, 1], [71, 2],
+        [67, 0.75], [67, 0.25], [69, 1], [67, 1], [74, 1], [72, 2],
+        [67, 0.75], [67, 0.25], [79, 1], [76, 1], [72, 1], [71, 1], [69, 2],
+        [77, 0.75], [77, 0.25], [76, 1], [72, 1], [74, 1], [72, 3],
+      ],
+      120,
+      3,
+      [48, 43, 43, 48, 48, 53, 43, 48],
+      1
+    ),
+  },
+  {
+    id: 'eine_kleine_nachtmusik',
+    name: 'Eine kleine Nachtmusik',
+    composer: 'W. A. Mozart',
+    deathYearOrOrigin: '1791 (public domain)',
+    defaultBpm: 130,
+    description: 'Mozart\'s famous serenade opening, bright and bouncy.',
+    publicDomain: true,
+    source: 'original score notes',
+    notes: buildSongMelody(
+      [
+        [79, 1.5], [74, 0.5], [79, 1.5], [74, 0.5],
+        [79, 0.5], [74, 0.5], [79, 0.5], [83, 0.5], [86, 2],
+        [84, 1.5], [81, 0.5], [84, 1.5], [81, 0.5],
+        [84, 0.5], [81, 0.5], [78, 0.5], [81, 0.5], [74, 2],
+      ],
+      130,
+      4,
+      [43, 43, 50, 50]
+    ),
+  },
+  {
+    id: 'mary_little_lamb',
+    name: 'Mary Had a Little Lamb',
+    composer: 'Traditional (Sarah J. Hale)',
+    deathYearOrOrigin: '1830 (public domain)',
+    defaultBpm: 120,
+    description: 'Classic nursery sing-along, simple and instantly recognisable.',
+    publicDomain: true,
+    source: 'original score notes',
+    notes: buildSongMelody(
+      [
+        [76, 1], [74, 1], [72, 1], [74, 1], [76, 1], [76, 1], [76, 2],
+        [74, 1], [74, 1], [74, 2], [76, 1], [79, 1], [79, 2],
+        [76, 1], [74, 1], [72, 1], [74, 1], [76, 1], [76, 1], [76, 1], [76, 1],
+        [74, 1], [74, 1], [76, 1], [74, 1], [72, 4],
+      ],
+      120,
+      4,
+      [48, 48, 43, 48, 48, 48, 43, 48]
+    ),
+  },
+  {
+    id: 'old_macdonald',
+    name: 'Old MacDonald Had a Farm',
+    composer: 'Traditional',
+    deathYearOrOrigin: 'Traditional folk song (public domain)',
+    defaultBpm: 120,
+    description: 'E-I-E-I-O! A cheerful kids favourite for playful marble runs.',
+    publicDomain: true,
+    source: 'original score notes',
+    notes: buildSongMelody(
+      [
+        [67, 1], [67, 1], [67, 1], [62, 1], [64, 1], [64, 1], [62, 2],
+        [71, 1], [71, 1], [69, 1], [69, 1], [67, 3], [62, 1],
+        [67, 1], [67, 1], [67, 1], [62, 1], [64, 1], [64, 1], [62, 2],
+        [71, 1], [71, 1], [69, 1], [69, 1], [67, 4],
+      ],
+      120,
+      4,
+      [43, 48, 50, 43, 43, 48, 50, 43]
+    ),
+  },
+  {
+    id: 'yankee_doodle',
+    name: 'Yankee Doodle',
+    composer: 'Traditional',
+    deathYearOrOrigin: '18th century (public domain)',
+    defaultBpm: 130,
+    description: 'Upbeat traditional march tune with a bouncy rhythm.',
+    publicDomain: true,
+    source: 'original score notes',
+    notes: buildSongMelody(
+      [
+        [72, 1], [72, 1], [74, 1], [76, 1], [72, 1], [76, 1], [74, 1], [67, 1],
+        [72, 1], [72, 1], [74, 1], [76, 1], [72, 2], [71, 2],
+        [72, 1], [72, 1], [74, 1], [76, 1], [77, 1], [76, 1], [74, 1], [72, 1],
+        [71, 1], [67, 1], [69, 1], [71, 1], [72, 2], [72, 2],
+      ],
+      130,
+      4,
+      [48, 43, 48, 43, 48, 48, 43, 48]
     ),
   },
 ];

@@ -217,7 +217,9 @@ export class MusicToLayoutSolver {
       // Use format definition's dedicated instrument families (e.g. squeaky duck, wire rails, horns)
       const actCount = config.actCount || 5;
       const actDuration = duration / actCount;
-      const availableFamilies = formatDef.instrumentFamilies;
+      // Wire rails are drawn as the connecting track, so acts use the real instruments
+      const instrumentOnly = formatDef.instrumentFamilies.filter((f) => f !== 'wire_rail');
+      const availableFamilies = instrumentOnly.length ? instrumentOnly : formatDef.instrumentFamilies;
 
       for (let i = 0; i < actCount; i++) {
         const family = availableFamilies[(config.seed + i) % availableFamilies.length];

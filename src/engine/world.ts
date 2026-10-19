@@ -439,6 +439,48 @@ export class PhysicsWorld {
           }
         }
 
+        // Peg / Bumper collisions (interactive bumpers & plinko pegs)
+        for (let p = 0; p < this.pegs.length; p++) {
+          const peg = this.pegs[p];
+          const dx = b.x - peg.x;
+          const dy = b.y - peg.y;
+          const dist = Math.hypot(dx, dy);
+          const minDist = b.radius + peg.radius;
+
+          if (dist < minDist && dist > 0.0001) {
+            const nx = dx / dist;
+            const ny = dy / dist;
+            // Position separation
+            const overlap = minDist - dist;
+            b.x += nx * overlap;
+            b.y += ny * overlap;
+
+            const velAlongNormal = b.vx * nx + b.vy * ny;
+            if (velAlongNormal < 0) {
+              const bounciness = peg.bounciness || 1.35;
+              const impulseMag = -(1 + (b.restitution || 0.95)) * velAlongNormal * bounciness;
+              b.vx += nx * impulseMag;
+              b.vy += ny * impulseMag;
+
+              b.bounces++;
+              this.bounces++;
+              this.lastEventTime = this.videoTime;
+
+              this.spawnExplosion(peg.x, peg.y, peg.color || '#ff007f', 12, 200);
+              this.eventBus.emit({
+                id: Math.floor(Math.random() * 1000000),
+                time: this.videoTime,
+                type: 'bumper',
+                position: { x: peg.x, y: peg.y },
+                velocity: { x: b.vx, y: b.vy },
+                impulse: Math.max(120, impulseMag),
+                ballId: b.id,
+                noteIndex: 0,
+              });
+            }
+          }
+        }
+
         // Line collisions
         for (let l = 0; l < this.lines.length; l++) {
           const line = this.lines[l];

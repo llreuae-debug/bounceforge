@@ -632,13 +632,15 @@ export class ObjectCatalog3D {
       }
     }
 
-    // Dynamic Hit Light Pulse (invisible until hit)
-    const hitPulseGeo = new THREE.RingGeometry(0.04, 0.28, 24);
+    // Dynamic Hit Light Pulse (invisible until hit): a thin glow ring that expands and fades
+    const hitPulseGeo = new THREE.RingGeometry(0.15, 0.17, 40);
     const hitPulseMat = new THREE.MeshBasicMaterial({
       color: new THREE.Color(inst.color),
       transparent: true,
       opacity: 0.0,
       side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
     const hitPulseMesh = new THREE.Mesh(hitPulseGeo, hitPulseMat);
     hitPulseMesh.name = 'hitPulse';
@@ -1000,8 +1002,8 @@ export class ObjectCatalog3D {
     const canvas = document.createElement('canvas');
     const isTitle = inst.type === 'title' || inst.type === 'reveal_answer';
     const isActNumber = inst.type === 'act_number';
-    const canvasWidth = isActNumber ? 256 : isTitle ? 1024 : 512;
-    const canvasHeight = isActNumber ? 256 : isTitle ? 320 : 160;
+    const canvasWidth = isActNumber ? 256 : isTitle ? 1024 : 640;
+    const canvasHeight = isActNumber ? 256 : isTitle ? 320 : 200;
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
     const ctx = canvas.getContext('2d')!;
@@ -1017,17 +1019,17 @@ export class ObjectCatalog3D {
     if (fontStyle === 'script') {
       fontFace = '"Brush Script MT", "Caveat", "Dancing Script", "Pacifico", "Segoe Script", cursive, sans-serif';
       fontWeight = '600';
-      fontSize = isActNumber ? 130 : isTitle ? 82 : 42;
+      fontSize = isActNumber ? 130 : isTitle ? 88 : 66;
     } else if (fontStyle === 'bold_cartoon') {
       fontFace = '"Titan One", "Comic Sans MS", "Arial Rounded MT Bold", "Fredoka One", cursive, sans-serif';
       fontWeight = '900';
-      fontSize = isActNumber ? 130 : isTitle ? 76 : 38;
+      fontSize = isActNumber ? 130 : isTitle ? 80 : 58;
     } else if (fontStyle === 'bold_italic_serif') {
       // Open-license bold italic serif (Playfair, Georgia, Merriweather, Garamond)
       fontFace = '"Playfair Display", "Merriweather", "Georgia", "Baskerville", "Times New Roman", serif';
       fontWeight = '800';
       fontStylePrefix = 'italic ';
-      fontSize = isActNumber ? 125 : isTitle ? 78 : 40;
+      fontSize = isActNumber ? 125 : isTitle ? 82 : 60;
     } else {
       fontFace = '"Inter", "Helvetica Neue", Arial, sans-serif';
       fontWeight = '800';

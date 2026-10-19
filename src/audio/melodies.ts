@@ -1,17 +1,19 @@
 import { NoteItem } from './types';
+import { PUBLIC_DOMAIN_MELODIES } from '../marble3d/melodyLibrary';
 
 export function midiToFreq(midi: number): number {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
+const NATURAL_SEMITONES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+// Accepts sharps and flats, including enharmonics like B#3 (= C4) and Cb4 (= B3)
 export function noteNameToMidi(name: string): number {
-  const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  const match = name.match(/^([A-G]#?)(-?\d+)$/);
+  const match = name.match(/^([A-G])(#|b)?(-?\d+)$/);
   if (!match) return 60;
-  const note = match[1];
-  const octave = parseInt(match[2], 10);
-  const semitone = notes.indexOf(note);
-  return (octave + 1) * 12 + semitone;
+  const accidental = match[2] === '#' ? 1 : match[2] === 'b' ? -1 : 0;
+  const octave = parseInt(match[3], 10);
+  return (octave + 1) * 12 + NATURAL_SEMITONES[match[1]] + accidental;
 }
 
 export function createNote(name: string, duration: number = 0.5): NoteItem {
@@ -325,4 +327,180 @@ export const BUILTIN_MELODIES: Melody[] = [
       'F4', 'G4', 'A4', 'G4', 'F4', 'E4', 'D4',
     ].map(n => createNote(n, 0.3)),
   },
+  // Favorite Celebrations, Soundtracks & Viral Anthems
+  {
+    id: 'happy_birthday',
+    name: 'Happy Birthday to You',
+    composer: 'Patty & Mildred Hill',
+    notes: [
+      'G4', 'G4', 'A4', 'G4', 'C5', 'B4',
+      'G4', 'G4', 'A4', 'G4', 'D5', 'C5',
+      'G4', 'G4', 'G5', 'E5', 'C5', 'B4', 'A4',
+      'F5', 'F5', 'E5', 'C5', 'D5', 'C5',
+    ].map(n => createNote(n, 0.45)),
+  },
+  {
+    id: 'super_mario',
+    name: 'Super Mario Bros Theme',
+    composer: 'Koji Kondo',
+    notes: [
+      'E5', 'E5', 'E5', 'C5', 'E5', 'G5', 'G4',
+      'C5', 'G4', 'E4', 'A4', 'B4', 'A#4', 'A4',
+      'G4', 'E5', 'G5', 'A5', 'F5', 'G5', 'E5', 'C5', 'D5', 'B4',
+    ].map(n => createNote(n, 0.22)),
+  },
+  {
+    id: 'pirates_caribbean',
+    name: "He's a Pirate (Pirates of the Caribbean)",
+    composer: 'Klaus Badelt & Hans Zimmer',
+    notes: [
+      'D4', 'D4', 'D4', 'E4', 'F4', 'F4', 'F4', 'G4', 'E4', 'E4', 'D4', 'C4', 'C4', 'D4',
+      'D4', 'D4', 'D4', 'E4', 'F4', 'F4', 'F4', 'G4', 'E4', 'E4', 'D4', 'C4', 'D4',
+      'A4', 'C5', 'D5', 'D5', 'D5', 'E5', 'F5', 'F5', 'F5', 'G5', 'E5', 'E5', 'D5', 'C5', 'D5',
+    ].map(n => createNote(n, 0.28)),
+  },
+  {
+    id: 'hedwigs_theme',
+    name: "Hedwig's Theme (Harry Potter)",
+    composer: 'John Williams',
+    notes: [
+      'B4', 'E5', 'G5', 'F#5', 'E5', 'B5', 'A5', 'F#5',
+      'E5', 'G5', 'F#5', 'D#5', 'F5', 'B4',
+      'B4', 'E5', 'G5', 'F#5', 'E5', 'B5', 'D6', 'C#6', 'C6',
+      'G#5', 'C6', 'B5', 'A#5', 'B4', 'G5', 'E5',
+    ].map(n => createNote(n, 0.4)),
+  },
+  {
+    id: 'bad_guy',
+    name: 'Bad Guy',
+    composer: 'Billie Eilish & Finneas',
+    notes: [
+      'G4', 'G4', 'D5', 'C5', 'A#4', 'G4', 'G4', 'D5', 'C5', 'A#4',
+      'G4', 'G4', 'D5', 'C5', 'A#4', 'C5', 'A#4', 'G4', 'F4', 'G4',
+      'G4', 'G4', 'D5', 'C5', 'A#4', 'G4', 'G4', 'D5', 'C5', 'A#4',
+      'G4', 'G4', 'D5', 'C5', 'A#4', 'C5', 'D5', 'A#4', 'G4',
+    ].map(n => createNote(n, 0.28)),
+  },
+  {
+    id: 'believer',
+    name: 'Believer',
+    composer: 'Imagine Dragons',
+    notes: [
+      'A#4', 'A#4', 'A#4', 'A#4', 'A#4', 'G#4', 'F#4', 'F4', 'D#4',
+      'D#4', 'F4', 'F#4', 'F4', 'D#4', 'C#4', 'D#4',
+      'A#4', 'A#4', 'A#4', 'A#4', 'A#4', 'G#4', 'F#4', 'F4', 'D#4',
+      'D#4', 'F4', 'F#4', 'G#4', 'A#4', 'B4', 'A#4', 'G#4', 'F#4',
+    ].map(n => createNote(n, 0.3)),
+  },
+  {
+    id: 'axel_f',
+    name: 'Axel F (Crazy Frog)',
+    composer: 'Harold Faltermeyer',
+    notes: [
+      'F#4', 'A4', 'F#4', 'F#4', 'B4', 'F#4', 'E4',
+      'F#4', 'C#5', 'F#4', 'F#4', 'D5', 'C#5', 'A4',
+      'F#4', 'C#5', 'F#5', 'F#4', 'E4', 'E4', 'C#4', 'G#4', 'F#4',
+    ].map(n => createNote(n, 0.26)),
+  },
+  {
+    id: 'bella_ciao',
+    name: 'Bella Ciao',
+    composer: 'Italian Folk Traditional',
+    notes: [
+      'E4', 'A4', 'B4', 'C5', 'A4',
+      'E4', 'A4', 'B4', 'C5', 'A4',
+      'E4', 'A4', 'B4', 'C5', 'B4', 'A4', 'C5', 'B4', 'A4', 'E5',
+      'E5', 'E5', 'D5', 'E5', 'F5', 'F5',
+      'E5', 'D5', 'F5', 'E5',
+      'E5', 'D5', 'C5', 'B4', 'E5', 'B4', 'C5', 'A4',
+    ].map(n => createNote(n, 0.32)),
+  },
+  {
+    id: 'jingle_bells',
+    name: 'Jingle Bells',
+    composer: 'James Lord Pierpont',
+    notes: [
+      'E5', 'E5', 'E5', 'E5', 'E5', 'E5', 'E5', 'G5', 'C5', 'D5', 'E5',
+      'F5', 'F5', 'F5', 'F5', 'F5', 'E5', 'E5', 'E5', 'E5', 'D5', 'D5', 'E5', 'D5', 'G5',
+      'E5', 'E5', 'E5', 'E5', 'E5', 'E5', 'E5', 'G5', 'C5', 'D5', 'E5',
+      'F5', 'F5', 'F5', 'F5', 'F5', 'E5', 'E5', 'E5', 'G5', 'G5', 'F5', 'D5', 'C5',
+    ].map(n => createNote(n, 0.3)),
+  },
+  {
+    id: 'we_wish_you_merry_christmas',
+    name: 'We Wish You a Merry Christmas',
+    composer: 'English Traditional',
+    notes: [
+      'D4', 'G4', 'G4', 'A4', 'G4', 'F#4', 'E4', 'E4',
+      'E4', 'A4', 'A4', 'B4', 'A4', 'G4', 'F#4', 'D4',
+      'D4', 'B4', 'B4', 'C5', 'B4', 'A4', 'G4', 'E4',
+      'D4', 'D4', 'E4', 'A4', 'F#4', 'G4',
+    ].map(n => createNote(n, 0.35)),
+  },
+  {
+    id: 'twinkle_twinkle',
+    name: 'Twinkle Twinkle Little Star',
+    composer: 'Traditional',
+    notes: [
+      'C4', 'C4', 'G4', 'G4', 'A4', 'A4', 'G4',
+      'F4', 'F4', 'E4', 'E4', 'D4', 'D4', 'C4',
+      'G4', 'G4', 'F4', 'F4', 'E4', 'E4', 'D4',
+      'G4', 'G4', 'F4', 'F4', 'E4', 'E4', 'D4',
+      'C4', 'C4', 'G4', 'G4', 'A4', 'A4', 'G4',
+      'F4', 'F4', 'E4', 'E4', 'D4', 'D4', 'C4',
+    ].map(n => createNote(n, 0.4)),
+  },
+  {
+    id: 'rickroll',
+    name: 'Never Gonna Give You Up',
+    composer: 'Rick Astley',
+    notes: [
+      'F4', 'G4', 'A#4', 'G4', 'D5', 'D5', 'C5',
+      'F4', 'G4', 'A#4', 'G4', 'C5', 'C5', 'A#4', 'A4', 'G4',
+      'F4', 'G4', 'A#4', 'G4', 'A#4', 'C5', 'A4', 'F4', 'F4', 'C5', 'A#4',
+    ].map(n => createNote(n, 0.32)),
+  },
 ];
+
+const libraryMelodyCache = new Map<string, Melody>();
+
+/**
+ * Looks up a melody by id in the 2D bounce list first, then in the full song library
+ * (the one the Music picker uses). Library songs play their lead line, one note per bounce.
+ */
+export function findMelodyById(id: string | undefined): Melody | undefined {
+  if (!id) return undefined;
+  const builtin = BUILTIN_MELODIES.find((m) => m.id === id);
+  if (builtin) return builtin;
+
+  const cached = libraryMelodyCache.get(id);
+  if (cached) return cached;
+  const def = PUBLIC_DOMAIN_MELODIES.find((m) => m.id === id);
+  if (!def) return undefined;
+
+  const melody: Melody = {
+    id: def.id,
+    name: def.name,
+    composer: def.composer,
+    notes: def.notes
+      .filter((n) => (n.lane ?? 0) === 0)
+      .sort((a, b) => a.time - b.time)
+      .map((n) => ({
+        note: n.pitchName,
+        midi: n.midi,
+        freq: n.freq,
+        duration: Math.max(0.25, Math.min(0.9, n.duration)),
+      })),
+  };
+  libraryMelodyCache.set(id, melody);
+  return melody;
+}
+
+/** The Music picker stores its choice in modeSettings.melodyId; prefer it when it names a real song. */
+export function resolveSelectedMelodyId(
+  selectedMelodyId: string,
+  modeSettings?: Record<string, any>
+): string {
+  const picked = modeSettings?.melodyId;
+  return typeof picked === 'string' && findMelodyById(picked) ? picked : selectedMelodyId;
+}

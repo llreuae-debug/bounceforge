@@ -1,7 +1,7 @@
 import { CollisionEvent } from '../engine/types';
 import { AudioSettings, NoteItem, SfxType } from './types';
 import { SoundSynthesizer } from './synth';
-import { BUILTIN_MELODIES } from './melodies';
+import { BUILTIN_MELODIES, findMelodyById } from './melodies';
 import { normalizeAudioBufferToLufs } from './loudness';
 import { MarbleAudioSynthesizer } from '../marble3d/audioSynthesizer';
 
@@ -114,7 +114,7 @@ export async function renderOfflineAudio(
   // Determine melody notes
   const melody = customNotes && customNotes.length > 0
     ? customNotes
-    : (BUILTIN_MELODIES.find((m) => m.id === settings.selectedMelodyId) || BUILTIN_MELODIES[0]).notes;
+    : (findMelodyById(settings.selectedMelodyId) || BUILTIN_MELODIES[0]).notes;
 
   // Synthesize Backing Drone / Pad Layer if droneVolume > 0.05
   const droneVol = settings.droneVolume ?? 0.2;
@@ -169,10 +169,13 @@ export async function renderOfflineAudio(
     const ev = events[i];
     if (ev.time > duration) break;
 
-    // Hits closer than 30ms handling: layer with micro-offset (4ms) so both play clearly
-    let t = Math.max(0, ev.time);
-    if (lastScheduledTime >= 0 && Math.abs(t - lastScheduledTime) < 0.03) {
-      t = lastScheduledTime + 0.004;
+    // Hits that land on top of each other are spread 4ms apart so each one is heard.
+    // Only ever push a hit later (pulling it earlier merges it into the previous bounce
+    // and puts the sound ahead of the picture), and by at most 30ms to stay in sync.
+    const evTime = Math.max(0, ev.time);
+    let t = evTime;
+    if (lastScheduledTime >= 0) {
+      t = Math.min(Math.max(evTime, lastScheduledTime + 0.004), evTime + 0.03);
     }
     lastScheduledTime = t;
 
@@ -236,6 +239,7 @@ export async function renderOfflineAudio(
       ev.type === 'freeze' ||
       ev.type === 'squash' ||
       ev.type === 'peg_tick' ||
+      ev.type === 'bumper' ||
       ev.type === 'roll' ||
       ev.type === 'roll_start' ||
       ev.type === 'rail_roll' ||
@@ -256,6 +260,8 @@ export async function renderOfflineAudio(
         ? 'wire_rail'
         : ev.type === 'slide'
         ? 'glass_slide'
+        : ev.type === 'bumper'
+        ? 'wood_block'
         : ev.type;
 
       MarbleAudioSynthesizer.playTunedHit(
@@ -264,7 +270,7 @@ export async function renderOfflineAudio(
         mappedType,
         melodyNote,
         t,
-        Math.max(0.28, (ev.impulse || 50) / 60),
+        Math.max(0.35, (ev.impulse || 50) / 60),
         pan
       );
     }
@@ -305,12 +311,12 @@ export async function renderOfflineAudio(
         }
       }
 
-      // Soft hit threshold: glancing contacts never drop below 0.25
+      // Soft hit threshold: glancing contacts never drop below 0.45
       let vol = 0.75;
       if (settings.volumeByImpulse && ev.impulse !== undefined) {
-        vol = Math.min(1.0, Math.max(0.25, ev.impulse / 350));
+        vol = Math.min(1.0, Math.max(0.45, ev.impulse / 300));
       } else {
-        vol = Math.max(0.25, vol);
+        vol = Math.max(0.45, vol);
       }
 
       let finalDuration = noteDuration;

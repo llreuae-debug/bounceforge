@@ -78,6 +78,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
     customBall,
     setCustomBall,
     audioSettings,
+    setAudioSettings,
     targetDuration,
     setTargetDuration,
     reelSpeed,
@@ -1284,7 +1285,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                   <select
                     value={audioSettings.instrument}
                     onChange={(e) => {
-                      AudioEngine.getInstance().updateSettings({ instrument: e.target.value as InstrumentType });
+                      const instrument = e.target.value as InstrumentType;
+                      setAudioSettings({ instrument });
+                      AudioEngine.getInstance().updateSettings({ instrument });
                     }}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-pink-300 font-bold outline-none cursor-pointer"
                   >

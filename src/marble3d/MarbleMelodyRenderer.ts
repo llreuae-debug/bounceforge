@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MarbleMelodyRun, MarblePathPoint, TunedObjectInstance, WallBackground } from './types';
 import { ObjectCatalog3D } from './objectCatalog';
 import { MarbleMaterialLibrary } from './materials';
@@ -59,6 +61,7 @@ export class MarbleMelodyRenderer {
   private marbleMeshes: THREE.Mesh[] = [];
   private embossedTextMeshes: THREE.Group[] = [];
   private splitPianoKeys: THREE.Mesh[] = [];
+  private railGroup: THREE.Group | null = null;
 
   // Layer B: Foreground Floating Bokeh & Dust Motes
   private dustPoints: THREE.Points | null = null;
@@ -81,9 +84,13 @@ export class MarbleMelodyRenderer {
 
   // Object Impact Wobble State
   private objectWobbles: Map<string, { intensity: number; decay: number }> = new Map();
+  private activeHitPulses: Set<THREE.Mesh> = new Set();
 
   // Playback sync tracking
   private lastUpdateTime: number = -1;
+
+  // Key light level set by the lighting rig; the intro flare is added on top each frame
+  private keyBaseIntensity: number = 1.6;
 
   constructor() {
     this.scene = new THREE.Scene();
@@ -94,7 +101,7 @@ export class MarbleMelodyRenderer {
     this.camera.position.set(0, 1.8, 9.2);
 
     // 1. Soft Studio Ambient Light
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     this.scene.add(this.ambientLight);
 
     // 2. Large Soft Key Area Light from TOP-LEFT (produces ≈45° down-right soft shadows)
@@ -119,7 +126,7 @@ export class MarbleMelodyRenderer {
     this.scene.add(this.softFillLight);
 
     // 4. Color Bleed Point Light (drifts with marble to cast subtle colored glow on the wall)
-    this.bounceColorLight = new THREE.PointLight(0xf472b6, 0.85, 4.5);
+    this.bounceColorLight = new THREE.PointLight(0xf472b6, 0.35, 2.0);
     this.bounceColorLight.position.set(0, 0, 0.6);
     this.scene.add(this.bounceColorLight);
 
@@ -330,7 +337,13 @@ export class MarbleMelodyRenderer {
       this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      this.renderer.toneMappingExposure = 1.08;
+      this.renderer.toneMappingExposure = 0.92;
+
+      // Studio reflection map so chrome rails, bells and brass read as polished metal, not black
+      const pmrem = new THREE.PMREMGenerator(this.renderer);
+      this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+      this.scene.environmentIntensity = 0.55;
+      pmrem.dispose();
     } catch (e) {
       console.warn('WebGLRenderer init notice:', e);
     }
@@ -351,6 +364,14 @@ export class MarbleMelodyRenderer {
     this.embossedTextMeshes = [];
     this.splitPianoKeys.forEach((key) => this.scene.remove(key));
     this.splitPianoKeys = [];
+    this.activeHitPulses.clear();
+    if (this.railGroup) {
+      this.scene.remove(this.railGroup);
+      this.railGroup.traverse((o) => {
+        if ((o as THREE.Mesh).geometry) (o as THREE.Mesh).geometry.dispose();
+      });
+      this.railGroup = null;
+    }
 
     // 1. Apply World 10-Layer Wall Surface
     let wallColorHex = 0x2c2c30;
@@ -420,11 +441,32 @@ export class MarbleMelodyRenderer {
       this.bounceColorLight.intensity = 0.9;
     }
 
+    // Pale walls (peach, lavender, off-white) clip to pure white under full studio light.
+    // Scale the lights down by the wall's brightness so they keep their color; dark walls are untouched.
+    const c = new THREE.Color(wallColorHex);
+    const wallLuma = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+    const lightScale = THREE.MathUtils.clamp(0.42 / Math.max(wallLuma, 0.01), 0.5, 1.0);
+    this.keyAreaLight.intensity *= lightScale;
+    this.softFillLight.intensity = 0.45 * lightScale;
+    this.ambientLight.intensity = 0.5 * lightScale;
+
+    this.keyBaseIntensity = this.keyAreaLight.intensity;
+
+    // The reflection map is for metal and glass; keep the wall's own color instead of washing it out
+    const wallMat = this.wallMesh.material as THREE.MeshStandardMaterial;
+    if ('envMapIntensity' in wallMat) wallMat.envMapIntensity = 0.08;
+
     // Place Tuned Objects with Real Physical 3D Thickness
     for (const obj of run.objects) {
       const mesh = ObjectCatalog3D.createTunedObjectMesh(obj);
       this.scene.add(mesh);
       this.objectMeshes.set(obj.id, mesh);
+    }
+
+    // Chrome ladder rails the marble rolls down between hits
+    if (run.config.trackRails !== false) {
+      this.railGroup = this.buildRailTracks(run);
+      this.scene.add(this.railGroup);
     }
 
     // Place Catcher
@@ -548,6 +590,107 @@ export class MarbleMelodyRenderer {
   }
 
   /**
+   * Builds curved chrome ladder rails under the descending part of each flight between hits,
+   * so the marble reads as rolling down a rail and launching into the next instrument.
+   * Two rails (front/back, offset from the wall) joined by rungs, with pins back to the wall.
+   */
+  private buildRailTracks(run: MarbleMelodyRun): THREE.Group {
+    const group = new THREE.Group();
+    group.name = 'rail_tracks';
+
+    const RAIL_GAP = 0.055; // half distance between front and back rail
+    const RAIL_RADIUS = 0.0085;
+    const RUNG_STEP = 0.07;
+    const PIN_STEP = 0.45;
+    const SAMPLE_STEP = 0.025;
+    const END_TRIM = 0.12; // rail stops short so the marble flies off into the instrument
+
+    const railGeos: THREE.BufferGeometry[] = [];
+    const rungs: THREE.Matrix4[] = [];
+    const pins: THREE.Matrix4[] = [];
+    const zAxis = new THREE.Vector3(0, 0, 1);
+
+    for (const lane of run.lanes) {
+      const r = lane.marbleRadius || 0.075;
+      const hits = lane.hits;
+      for (let h = 0; h < hits.length - 1; h++) {
+        const t0 = hits[h].time + 0.02;
+        const t1 = hits[h + 1].time - 0.03;
+        const i0 = Math.max(0, Math.ceil(t0 * 240));
+        const i1 = Math.min(lane.points.length - 1, Math.floor(t1 * 240));
+
+        // Descending samples only, spaced evenly along the path
+        const samples: THREE.Vector3[] = [];
+        for (let i = i0; i <= i1; i++) {
+          const pt = lane.points[i];
+          if (!pt || pt.vy >= 0) continue;
+          const v = new THREE.Vector3(pt.x, pt.y - r * 0.95, pt.z);
+          if (!samples.length || samples[samples.length - 1].distanceTo(v) >= SAMPLE_STEP) samples.push(v);
+        }
+        // Trim the end so there is a visible gap before the next object
+        let trimmed = 0;
+        while (samples.length > 2 && trimmed < END_TRIM) {
+          trimmed += samples[samples.length - 1].distanceTo(samples[samples.length - 2]);
+          samples.pop();
+        }
+        if (samples.length < 4) continue;
+
+        const center = new THREE.CatmullRomCurve3(samples);
+        const length = center.getLength();
+        if (length < 0.2) continue;
+
+        const tubeSegs = Math.max(8, Math.ceil(length / 0.02));
+        for (const side of [-1, 1]) {
+          const offset = samples.map((p) => p.clone().add(new THREE.Vector3(0, 0, side * RAIL_GAP)));
+          railGeos.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(offset), tubeSegs, RAIL_RADIUS, 6, false));
+        }
+
+        for (let d = RUNG_STEP / 2; d < length; d += RUNG_STEP) {
+          const p = center.getPointAt(d / length);
+          rungs.push(new THREE.Matrix4().makeTranslation(p.x, p.y, p.z));
+        }
+        for (let d = PIN_STEP / 2; d < length; d += PIN_STEP) {
+          const p = center.getPointAt(d / length);
+          const backZ = p.z - RAIL_GAP;
+          const m = new THREE.Matrix4().compose(
+            new THREE.Vector3(p.x, p.y, backZ / 2),
+            new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), zAxis),
+            new THREE.Vector3(1, Math.max(0.01, backZ), 1)
+          );
+          pins.push(m);
+        }
+      }
+    }
+
+    const chrome = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, metalness: 0.95, roughness: 0.18 });
+
+    if (railGeos.length) {
+      const merged = mergeGeometries(railGeos);
+      railGeos.forEach((g) => g.dispose());
+      if (merged) {
+        const rails = new THREE.Mesh(merged, chrome);
+        rails.castShadow = true;
+        group.add(rails);
+      }
+    }
+
+    const addInstanced = (geo: THREE.BufferGeometry, mats: THREE.Matrix4[]) => {
+      if (!mats.length) return;
+      const inst = new THREE.InstancedMesh(geo, chrome, mats.length);
+      mats.forEach((m, i) => inst.setMatrixAt(i, m));
+      inst.instanceMatrix.needsUpdate = true;
+      inst.castShadow = true;
+      group.add(inst);
+    };
+    // Rungs run front-to-back between the two rails
+    addInstanced(new THREE.CylinderGeometry(0.004, 0.004, RAIL_GAP * 2, 6).rotateX(Math.PI / 2), rungs);
+    // Pins: unit-height cylinders scaled to reach from the back rail to the wall
+    addInstanced(new THREE.CylinderGeometry(0.005, 0.005, 1, 6).translate(0, 0, 0), pins);
+
+    return group;
+  }
+
+  /**
    * Triggers Hit Wobble and Particle Sparkles
    */
   triggerObjectHit(objectId: string, pos: { x: number; y: number; z: number }, colorHex?: string): void {
@@ -561,16 +704,18 @@ export class MarbleMelodyRenderer {
 
     const hitPulse = mesh.getObjectByName('hitPulse') as THREE.Mesh;
     if (hitPulse && hitPulse.material) {
-      (hitPulse.material as THREE.MeshBasicMaterial).opacity = 0.9;
+      (hitPulse.material as THREE.MeshBasicMaterial).opacity = 0.55;
+      hitPulse.scale.setScalar(1);
+      this.activeHitPulses.add(hitPulse);
       if (colorHex) {
         (hitPulse.material as THREE.MeshBasicMaterial).color.set(colorHex);
       }
     }
 
     // Wall Light Reaction (Specular bounce flare on hit)
-    this.bounceColorLight.intensity = 2.4;
+    this.bounceColorLight.intensity = 0.9;
     setTimeout(() => {
-      if (this.bounceColorLight) this.bounceColorLight.intensity = 1.1;
+      if (this.bounceColorLight) this.bounceColorLight.intensity = 0.35;
     }, 120);
 
     if (this.sparkleParticles) {
@@ -671,8 +816,9 @@ export class MarbleMelodyRenderer {
     this.currentCamX += this.camVelX * dt;
 
     // Tilted Perspective Camera: 18°–22° tilt off wall normal so objects show real sides and depth
-    const camTiltYOffset = 2.2;
-    const camDistZ = 7.0;
+    // Wide reel framing: shows the rail path ahead with breathing room and keeps side text in frame
+    const camTiltYOffset = 3.0;
+    const camDistZ = 10.5;
 
     // Act variation: subtle rotation (±2°) changes gently per act
     const actIndex = Math.floor(time / (this.run.duration / 5));
@@ -703,7 +849,7 @@ export class MarbleMelodyRenderer {
 
     // Top-Left Studio Key Light follows camera down the wall to maintain consistent 45° soft cast shadows
     this.keyAreaLight.position.set(this.currentCamX - 4.5, this.currentCamY + 6.0, 5.5);
-    this.keyAreaLight.intensity = (this.keyAreaLight.intensity || 1.6) + introFlare;
+    this.keyAreaLight.intensity = this.keyBaseIntensity + introFlare;
     this.keyAreaLight.target.position.set(this.currentCamX, this.currentCamY, 0);
     this.keyAreaLight.target.updateMatrixWorld();
 
@@ -809,12 +955,15 @@ export class MarbleMelodyRenderer {
           }
         }
 
-        const hitPulse = mesh.getObjectByName('hitPulse') as THREE.Mesh;
-        if (hitPulse && hitPulse.material) {
-          const mat = hitPulse.material as THREE.MeshBasicMaterial;
-          mat.opacity = Math.max(0, mat.opacity - 0.05);
-        }
       }
+    });
+
+    // Hit pulse rings expand and fade on their own clock (not tied to the wobble lifetime)
+    this.activeHitPulses.forEach((pulse) => {
+      const mat = pulse.material as THREE.MeshBasicMaterial;
+      mat.opacity = Math.max(0, mat.opacity - 0.045);
+      pulse.scale.multiplyScalar(1.035);
+      if (mat.opacity <= 0) this.activeHitPulses.delete(pulse);
     });
 
     // Update Sparkle Particles

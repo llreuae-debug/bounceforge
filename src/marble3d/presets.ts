@@ -681,7 +681,7 @@ export const MARBLE_MELODY_PRESETS: MarbleMelodyPresetDefinition[] = [
     presetNumber: 13,
     name: 'gymnopedie dream',
     melodyName: 'Gymnopédie No.1 (Satie)',
-    melodyId: 'gymnopedie_no1',
+    melodyId: 'gymnopedie_1',
     description: 'frosted glass + soap bubbles on foggy grey-blue',
     group: 'B',
     baseSeed: 11313,

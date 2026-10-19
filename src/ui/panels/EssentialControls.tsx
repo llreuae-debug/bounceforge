@@ -48,6 +48,8 @@ export const EssentialControls: React.FC<EssentialControlsProps> = ({ className,
     setTargetDuration,
     reelSpeed,
     setReelSpeed,
+    audioSettings,
+    setAudioSettings,
     setMidiEditorOpen,
     setRoute,
     showToast,
@@ -67,22 +69,40 @@ export const EssentialControls: React.FC<EssentialControlsProps> = ({ className,
   const [isPlayingMelodyPreview, setIsPlayingMelodyPreview] = useState(false);
 
   // 1. MUSIC ESSENTIAL
-  const activeMelodyId = modeSettings.melodyId || 'toybox_run';
+  const activeMelodyId = modeSettings.melodyId || audioSettings.selectedMelodyId || 'toybox_run';
   const melodyList = [
+    { id: 'happy_birthday', name: '🎂 Happy Birthday to You' },
+    { id: 'super_mario', name: '🍄 Super Mario Bros Theme' },
+    { id: 'pirates_caribbean', name: "⚔️ He's a Pirate (Pirates)" },
+    { id: 'hedwigs_theme', name: "⚡ Hedwig's Theme (Harry Potter)" },
+    { id: 'bad_guy', name: '🕶️ Bad Guy (Billie Eilish)' },
+    { id: 'believer', name: '⚡ Believer (Imagine Dragons)' },
+    { id: 'axel_f', name: '🐸 Axel F (Crazy Frog)' },
+    { id: 'bella_ciao', name: '🎭 Bella Ciao (Money Heist)' },
+    { id: 'coffin_dance', name: '⚰️ Coffin Dance (Astronomia)' },
+    { id: 'megalovania', name: '💀 Megalovania (Undertale)' },
+    { id: 'rickroll', name: '🕺 Never Gonna Give You Up' },
+    { id: 'interstellar', name: '🌌 Interstellar Theme' },
     { id: 'toybox_run', name: 'Pastel Toybox Run (Original)' },
-    { id: 'moonlight_sonata', name: 'Moonlight Sonata (Beethoven)' },
-    { id: 'canon_in_d', name: 'Canon in D (Pachelbel)' },
+    { id: 'birthday_bells_orig', name: '🎉 Birthday Bells Fanfare (Original)' },
+    { id: 'twinkle_star', name: 'Twinkle Twinkle Little Star' },
+    { id: 'jingle_bells', name: 'Jingle Bells' },
+    { id: 'we_wish_you_merry_christmas', name: '🎄 We Wish You a Merry Christmas' },
     { id: 'fur_elise', name: 'Für Elise (Beethoven)' },
-    { id: 'mario_theme', name: 'Mario Overworld Theme' },
+    { id: 'moonlight_sonata', name: 'Moonlight Sonata (Beethoven)' },
     { id: 'ode_to_joy', name: 'Ode to Joy (Beethoven)' },
+    { id: 'canon_in_d', name: 'Canon in D (Pachelbel)' },
+    { id: 'turkish_march', name: 'Turkish March (Mozart)' },
     { id: 'clair_de_lune', name: 'Clair de Lune (Debussy)' },
-    { id: 'spring_four_seasons', name: 'Spring (Vivaldi)' },
-    { id: 'gymnopedie_no1', name: 'Gymnopédie No. 1 (Satie)' },
+    { id: 'gymnopedie_1', name: 'Gymnopédie No. 1 (Satie)' },
   ];
 
   const handleSelectMelody = (id: string) => {
     triggerHaptic(10);
     updateModeSetting('melodyId', id);
+    setAudioSettings({ selectedMelodyId: id });
+    const audio = AudioEngine.getInstance();
+    audio.updateSettings({ selectedMelodyId: id });
     showToast(`Melody updated: ${melodyList.find((m) => m.id === id)?.name || id}`);
   };
 

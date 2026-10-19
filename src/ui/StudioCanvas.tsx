@@ -4,6 +4,7 @@ import { PhysicsWorld } from '../engine/world';
 import { getModeById } from '../modes/registry';
 import { WorldRenderer } from '../render/renderer';
 import { AudioEngine } from '../audio/audioEngine';
+import { resolveSelectedMelodyId } from '../audio/melodies';
 import { withTargetDuration } from '../engine/duration';
 import { DurationPicker, formatClock } from './components/DurationPicker';
 import {
@@ -32,6 +33,7 @@ export const StudioCanvas: React.FC = () => {
   const {
     currentModeId,
     modeSettings,
+    audioSettings,
     seed,
     setSeed,
     randomizeSeed,
@@ -101,6 +103,11 @@ export const StudioCanvas: React.FC = () => {
     const audio = AudioEngine.getInstance();
     audio.init();
     audio.resetMelodyPosition();
+    const activeMelodyId = modeSettings.melodyId || audioSettings.selectedMelodyId || 'toybox_run';
+    audio.updateSettings({
+      ...audioSettings,
+      selectedMelodyId: activeMelodyId,
+    });
 
     world.eventBus.subscribe((event) => {
       const isAudible = !audio.getIsMuted();
@@ -128,10 +135,20 @@ export const StudioCanvas: React.FC = () => {
     setIsComplete(false);
   };
 
+  // Synchronize melody change immediately with live AudioEngine
+  useEffect(() => {
+    const activeMelodyId = modeSettings.melodyId || audioSettings.selectedMelodyId;
+    if (activeMelodyId) {
+      AudioEngine.getInstance().updateSettings({
+        selectedMelodyId: activeMelodyId,
+      });
+    }
+  }, [modeSettings.melodyId, audioSettings.selectedMelodyId]);
+
   useEffect(() => {
     initSimulation();
     setSeedInput(seed.toString());
-  }, [currentModeId, seed, modeSettings, targetDuration, ballPhysics, wallControls, customBall, reelSpeed, slowMoSoundFeel, speedRampFinale]);
+  }, [currentModeId, seed, modeSettings, targetDuration, ballPhysics, wallControls, customBall, reelSpeed, slowMoSoundFeel, speedRampFinale, audioSettings]);
 
   // Pressing play after the animation completed replays it from the start
   useEffect(() => {
@@ -139,6 +156,15 @@ export const StudioCanvas: React.FC = () => {
       initSimulation();
     }
   }, [isPlaying]);
+
+  // Push studio audio settings (melody, sound mode, volumes, panning) into the live engine
+  // so the preview sounds like the export
+  useEffect(() => {
+    AudioEngine.getInstance().updateSettings({
+      ...audioSettings,
+      selectedMelodyId: resolveSelectedMelodyId(audioSettings.selectedMelodyId, modeSettings),
+    });
+  }, [audioSettings, modeSettings]);
 
   // Audio mute sync
   useEffect(() => {

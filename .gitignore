@@ -23,3 +23,5 @@ blob-report
 .backup_3d_modes_checkpoint
 scratch/
 .vercel
+.env*
+.claude/

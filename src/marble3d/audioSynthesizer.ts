@@ -47,8 +47,8 @@ export class MarbleAudioSynthesizer {
   ): void {
     if (note.freq < 20 || note.freq > 18000) return;
 
-    // Minimum velocity threshold: soft or glancing hits always make at least a soft version
-    const effectiveVolume = Math.max(0.22, Math.min(1.0, volume));
+    // Minimum velocity threshold: soft or glancing hits always make an audible sound
+    const effectiveVolume = Math.max(0.42, Math.min(1.0, volume));
 
     // Clamp late scheduling: clamp any event scheduled in the past to currentTime
     const actualTime = Math.max(ctx.currentTime, startTime);

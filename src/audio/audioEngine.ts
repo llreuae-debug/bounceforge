@@ -1,5 +1,5 @@
 import { AudioSettings, NoteItem, SfxType, InstrumentType } from './types';
-import { BUILTIN_MELODIES, Melody } from './melodies';
+import { BUILTIN_MELODIES, Melody, findMelodyById } from './melodies';
 import { SoundSynthesizer } from './synth';
 import { CollisionEvent } from '../engine/types';
 import { MarbleAudioSynthesizer } from '../marble3d/audioSynthesizer';
@@ -300,6 +300,8 @@ export class AudioEngine {
   }
 
   updateSettings(newSettings: Partial<AudioSettings>): void {
+    const melodyChanged =
+      !!newSettings.selectedMelodyId && newSettings.selectedMelodyId !== this.settings.selectedMelodyId;
     const repairedMaster = this.repairVolume(newSettings.masterVolume ?? this.settings.masterVolume, 0.85);
     const repairedSfx = this.repairVolume(newSettings.sfxVolume ?? this.settings.sfxVolume, 0.75);
 
@@ -310,8 +312,10 @@ export class AudioEngine {
       sfxVolume: repairedSfx,
     };
 
-    if (newSettings.selectedMelodyId) {
-      const found = BUILTIN_MELODIES.find((m) => m.id === newSettings.selectedMelodyId);
+    // Only switch on an actual change, so routine settings syncs don't restart the song
+    // or replace a custom melody set via setCustomMelody()
+    if (melodyChanged) {
+      const found = findMelodyById(newSettings.selectedMelodyId);
       if (found) {
         this.currentMelody = found;
         this.currentNoteIndex = 0;
@@ -354,14 +358,15 @@ export class AudioEngine {
     if (!this.ctx || this.isMuted) return;
     this.resume();
 
-    // Look-ahead scheduler (~25ms): clamp late events to now, never drop
-    let t = Math.max(this.ctx.currentTime, (event.time !== undefined && event.time > 0) ? this.ctx.currentTime : this.ctx.currentTime);
-    const dest = this.limiter || this.ctx.destination;
-
-    // Hits closer than 30ms handling: layer with micro-offset (4ms) so both play clearly
-    if (this.lastScheduledAudioTime > 0 && Math.abs(t - this.lastScheduledAudioTime) < 0.03) {
-      t = this.lastScheduledAudioTime + 0.004;
+    // Hits that land on top of each other are spread 4ms apart so each one is heard.
+    // Only ever push a hit later (never into the past, which would start its envelope
+    // part-way through and swallow the attack), and by at most 30ms to stay in sync.
+    const nowTime = this.ctx.currentTime;
+    let t = nowTime;
+    if (this.lastScheduledAudioTime > 0) {
+      t = Math.min(Math.max(nowTime, this.lastScheduledAudioTime + 0.004), nowTime + 0.03);
     }
+    const dest = this.limiter || this.ctx.destination;
     this.lastScheduledAudioTime = t;
     this.lastHitTime = performance.now();
 
@@ -424,7 +429,26 @@ export class AudioEngine {
       return;
     }
 
-    // 3. Other Contact Event Types: portal, spike, freeze, squash, peg_tick
+    // 3. Bumper & Spring Peg Hits
+    if (event.type === 'bumper') {
+      const rawNote = this.getNextNote();
+      const freq = rawNote ? rawNote.freq * 1.5 : 523.25;
+      SoundSynthesizer.playNote(
+        this.ctx,
+        voice.gainNode,
+        freq,
+        t,
+        0.35,
+        'bellGlock',
+        0.95,
+        pan
+      );
+      SoundSynthesizer.playSfx(this.ctx, voice.gainNode, 'pop', t, this.settings.sfxVolume * 0.7);
+      setTimeout(() => voice.release(), 450);
+      return;
+    }
+
+    // 4. Other Contact Event Types: portal, spike, freeze, squash, peg_tick
     if (event.type === 'portal' || event.type === 'spike' || event.type === 'freeze' || event.type === 'squash' || event.type === 'peg_tick') {
       const rawNote = this.getNextNote();
       const melodyNote = {
@@ -442,14 +466,14 @@ export class AudioEngine {
         event.type,
         melodyNote,
         t,
-        Math.max(0.28, (event.impulse || 50) / 60),
+        Math.max(0.35, (event.impulse || 50) / 60),
         pan
       );
       setTimeout(() => voice.release(), 600);
       return;
     }
 
-    // 4. Standard sequential melody stepping or pitch modes
+    // 5. Standard sequential melody stepping or pitch modes
     let freq = 440;
     let duration = 0.45;
     const soundMode = this.settings.soundMode || 'melody';
@@ -483,12 +507,12 @@ export class AudioEngine {
       }
     }
 
-    // Velocity / impulse volume: soft or glancing hits play with at least min volume 0.25
+    // Velocity / impulse volume: soft or glancing hits play with at least min volume 0.45 so no bounce is silent
     let vol = 0.75;
     if (this.settings.volumeByImpulse && event.impulse !== undefined) {
-      vol = Math.min(1.0, Math.max(0.25, event.impulse / 350));
+      vol = Math.min(1.0, Math.max(0.45, event.impulse / 300));
     } else {
-      vol = Math.max(0.25, vol);
+      vol = Math.max(0.45, vol);
     }
 
     // Play note through voice manager

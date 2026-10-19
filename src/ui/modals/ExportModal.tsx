@@ -27,7 +27,7 @@ import { checkBatteryStatus, BatteryInfo } from '../../platform/battery';
 import { triggerHaptic } from '../../platform/haptics';
 import { generateSocialCopy, getBatchVariation, createBatchZip, SocialCopy } from '../../export/creatorTools';
 import { BUILTIN_THEMES } from '../../render/themes';
-import { BUILTIN_MELODIES } from '../../audio/melodies';
+import { BUILTIN_MELODIES, resolveSelectedMelodyId } from '../../audio/melodies';
 import { AiService } from '../../ai/aiService';
 import { generateSeoPack, SeoPack, formatSeoPackAsText } from '../../ai/seoEngine';
 import { copyText } from '../../platform/clipboard';
@@ -240,7 +240,10 @@ export const ExportModal: React.FC = () => {
           modeSettings,
           visuals,
           overlays: effectiveOverlays,
-          audioSettings,
+          audioSettings: {
+            ...audioSettings,
+            selectedMelodyId: resolveSelectedMelodyId(audioSettings.selectedMelodyId, modeSettings),
+          },
           ballPhysics,
           wallControls,
           customBall,
