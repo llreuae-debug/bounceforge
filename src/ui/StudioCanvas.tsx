@@ -554,18 +554,7 @@ export const StudioCanvas: React.FC = () => {
             </div>
           )}
 
-          {/* Floating Settings quick button on preview */}
-          <button
-            onClick={() => {
-              triggerHaptic(10);
-              setSettingsOpen(!isSettingsOpen);
-            }}
-            className="btn-3d-lime absolute top-3 left-3 z-30 px-3 py-1.5 rounded-full text-black font-black text-[11px] shadow-lg shadow-lime-500/30 flex items-center gap-1.5 transition-all uppercase tracking-wider border border-lime-400/60"
-            title="Open Settings & Customize (S)"
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>Settings</span>
-          </button>
+          {/* Floating Settings removed from reel canvas to keep reel 100% clean */}
 
           {/* Pulsing "tap for asmr" pill on the preview until audio starts */}
           {!audioUnlocked && (
