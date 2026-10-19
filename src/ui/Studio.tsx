@@ -44,6 +44,8 @@ const ExportSoundCheckModal = React.lazy(() =>
 export const Studio: React.FC = () => {
   const {
     isExportOpen,
+    isSettingsOpen,
+    setSettingsOpen,
     isMidiEditorOpen,
     isSeedFinderOpen,
     isSelfTestOpen,
@@ -85,20 +87,32 @@ export const Studio: React.FC = () => {
 
   const isMobile = windowWidth < 1024;
 
+  // Sync global isSettingsOpen with UI
+  useEffect(() => {
+    if (isSettingsOpen) {
+      if (isMobile) {
+        setMobileTab('customize');
+        setMobileSheetOpen(true);
+      } else {
+        setCollapseRight(false);
+      }
+    }
+  }, [isSettingsOpen, isMobile]);
+
   return (
     <div className="h-[100dvh] w-screen flex flex-col bg-[#050608] overflow-hidden select-none safe-top safe-bottom safe-left safe-right font-sans">
       {/* Top Header */}
       <Header />
 
       {isMobile ? (
-        /* PHONE & MOBILE TABLET LAYOUT: Preview on top, steps as a bottom sheet with 3 tabs (pick · customize · export) */
+        /* PHONE & MOBILE TABLET LAYOUT: Preview on top, steps as a bottom sheet with 3 tabs (pick · customize/settings · export) */
         <div className="flex-1 flex flex-col min-h-0 relative">
           {/* Top Half / Viewport: Live 9:16 Canvas */}
           <div className="flex-1 min-h-0 relative flex flex-col p-2">
             <StudioCanvas />
           </div>
 
-          {/* Bottom Nav: 3-Step Flow (1. Pick · 2. Customize · 3. Export) */}
+          {/* Bottom Nav: 3-Step Flow (1. Pick · 2. Settings · 3. Export) */}
           <div className="h-14 bg-[#07090e]/95 backdrop-blur-xl border-t border-white/10 px-4 flex items-center justify-between shrink-0 z-30">
             <div className="flex items-center gap-2 flex-1">
               <button
@@ -114,7 +128,7 @@ export const Studio: React.FC = () => {
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                <span>1. Pick</span>
+                <span>1. Pick Reel</span>
               </button>
 
               <button
@@ -125,12 +139,12 @@ export const Studio: React.FC = () => {
                 }}
                 className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                   mobileSheetOpen && mobileTab === 'customize'
-                    ? 'btn-3d-lime text-black'
+                    ? 'btn-3d-lime text-black font-extrabold'
                     : 'bg-white/5 text-slate-300 hover:text-white'
                 }`}
               >
                 <Sliders className="w-3.5 h-3.5 text-lime-400" />
-                <span>2. Customize</span>
+                <span>2. Settings</span>
               </button>
             </div>
 
@@ -140,7 +154,7 @@ export const Studio: React.FC = () => {
                 triggerHaptic(15);
                 setExportOpen(true);
               }}
-              className="btn-3d-lime h-9 px-4 rounded-xl text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 ml-2 shadow-md shadow-lime-500/20"
+              className="btn-3d-pink h-9 px-4 rounded-xl text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 ml-2 shadow-md shadow-pink-500/20"
             >
               <Download className="w-4 h-4 stroke-[2.5]" />
               <span>3. Export</span>
@@ -166,28 +180,33 @@ export const Studio: React.FC = () => {
                     </button>
                     <button
                       onClick={() => setMobileTab('customize')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
                         mobileTab === 'customize'
-                          ? 'btn-3d-lime text-black'
+                          ? 'btn-3d-lime text-black font-extrabold'
                           : 'text-slate-400 hover:text-white'
                       }`}
                     >
-                      Step 2 · Customize
+                      <Sliders className="w-3 h-3 text-lime-400" />
+                      <span>Step 2 · Settings</span>
                     </button>
                     <button
                       onClick={() => setMobileTab('export')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
                         mobileTab === 'export'
-                          ? 'btn-3d-pink text-white'
+                          ? 'btn-3d-pink text-white font-extrabold'
                           : 'text-slate-400 hover:text-white'
                       }`}
                     >
-                      Step 3 · Export
+                      <Download className="w-3 h-3" />
+                      <span>Step 3 · Export</span>
                     </button>
                   </div>
 
                   <button
-                    onClick={() => setMobileSheetOpen(false)}
+                    onClick={() => {
+                      setMobileSheetOpen(false);
+                      setSettingsOpen(false);
+                    }}
                     className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300"
                   >
                     <X className="w-4 h-4" />
@@ -199,13 +218,19 @@ export const Studio: React.FC = () => {
                   {mobileTab === 'pick' && (
                     <ModeGallery
                       className="w-full h-full border-none bg-transparent"
-                      onSelectTemplate={() => setMobileSheetOpen(false)}
+                      onSelectTemplate={() => {
+                        // User picked a template
+                      }}
+                      onOpenSettings={() => setMobileTab('customize')}
                     />
                   )}
                   {mobileTab === 'customize' && (
                     <EssentialControls
                       className="w-full h-full border-none bg-transparent"
-                      onClose={() => setMobileSheetOpen(false)}
+                      onClose={() => {
+                        setMobileSheetOpen(false);
+                        setSettingsOpen(false);
+                      }}
                     />
                   )}
                   {mobileTab === 'export' && (
@@ -239,16 +264,60 @@ export const Studio: React.FC = () => {
           )}
         </div>
       ) : (
-        /* DESKTOP 3-COLUMN LAYOUT: left = gallery/steps, center = 9:16 preview, right = the 5 essentials */
+        /* DESKTOP 3-COLUMN LAYOUT: left = gallery/steps, center = 9:16 preview, right = settings */
         <main
           className={`flex-1 flex overflow-hidden max-w-[2400px] mx-auto w-full relative ${
             isRTL ? 'flex-row-reverse' : 'flex-row'
           }`}
         >
+          {/* Top Quick Bar / Step Switcher for Desktop */}
+          <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-20 hidden md:flex items-center gap-1.5 p-1 bg-[#090b12]/90 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl select-none">
+            <button
+              onClick={() => {
+                triggerHaptic(10);
+                setCollapseLeft(!collapseLeft);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                !collapseLeft
+                  ? 'btn-3d-cyan text-black font-black'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>1. Pick Reel</span>
+            </button>
+
+            <button
+              onClick={() => {
+                triggerHaptic(10);
+                setCollapseRight(!collapseRight);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                !collapseRight
+                  ? 'btn-3d-lime text-black font-black'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Sliders className="w-3.5 h-3.5 text-lime-400" />
+              <span>2. Settings</span>
+            </button>
+
+            <button
+              onClick={() => {
+                triggerHaptic(12);
+                setExportOpen(true);
+              }}
+              className="btn-3d-pink px-3.5 py-1.5 rounded-xl text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-pink-500/20"
+            >
+              <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>3. Export</span>
+            </button>
+          </div>
+
           {/* Left: Mode Gallery (Step 1) */}
           {!collapseLeft && (
             <div className="relative">
-              <ModeGallery />
+              <ModeGallery onOpenSettings={() => setCollapseRight(false)} />
               <button
                 onClick={() => setCollapseLeft(true)}
                 className="absolute right-2 top-2 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs z-10"
@@ -277,27 +346,27 @@ export const Studio: React.FC = () => {
             <StudioCanvas />
           </div>
 
-          {/* Right: The 5 Essentials Panel (Step 2) */}
+          {/* Right: The Settings Panel (Step 2) */}
           {collapseRight && (
             <button
               onClick={() => setCollapseRight(false)}
               className="w-8 border-l border-white/10 bg-[#07090e] hover:bg-white/5 flex flex-col items-center justify-center text-slate-400 hover:text-white transition-colors"
-              title="Expand Step 2 Essentials"
+              title="Expand Step 2 Settings"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="text-[10px] [writing-mode:vertical-lr] mt-3 font-bold uppercase tracking-widest">
-                Step 2 · Customize
+              <span className="text-[10px] [writing-mode:vertical-lr] mt-3 font-bold uppercase tracking-widest text-lime-400">
+                Step 2 · Settings
               </span>
             </button>
           )}
 
           {!collapseRight && (
             <div className="relative">
-              <EssentialControls />
+              <EssentialControls onClose={() => setCollapseRight(true)} />
               <button
                 onClick={() => setCollapseRight(true)}
                 className="absolute left-2 top-2 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs z-10"
-                title="Collapse essentials panel"
+                title="Collapse settings panel"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

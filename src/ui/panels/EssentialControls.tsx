@@ -21,14 +21,17 @@ import {
   ChevronUp,
   Activity,
   X,
+  Settings,
 } from 'lucide-react';
+import { SettingsPanel } from './SettingsPanel';
 
 export interface EssentialControlsProps {
   className?: string;
   onClose?: () => void;
+  defaultTab?: 'essentials' | 'all';
 }
 
-export const EssentialControls: React.FC<EssentialControlsProps> = ({ className, onClose }) => {
+export const EssentialControls: React.FC<EssentialControlsProps> = ({ className, onClose, defaultTab = 'essentials' }) => {
   const {
     currentModeId,
     modeSettings,
@@ -52,6 +55,9 @@ export const EssentialControls: React.FC<EssentialControlsProps> = ({ className,
 
   const { currentUser, openUpgradeModal } = useAuthStore();
   const isGuest = !currentUser;
+
+  // View Mode: 'essentials' (quick 5) vs 'all' (100% full settings)
+  const [settingsTab, setSettingsTab] = useState<'essentials' | 'all'>(defaultTab);
 
   // Advanced Drawer state
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -243,8 +249,9 @@ export const EssentialControls: React.FC<EssentialControlsProps> = ({ className,
       <div className="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse" />
-          <h2 className="text-xs font-black uppercase tracking-wider text-white">
-            Step 2 · Customize Reel
+          <h2 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-1.5">
+            <Sliders className="w-3.5 h-3.5 text-lime-400" />
+            <span>Step 2 · Settings &amp; Customize</span>
           </h2>
         </div>
 
@@ -259,8 +266,49 @@ export const EssentialControls: React.FC<EssentialControlsProps> = ({ className,
         )}
       </div>
 
-      {/* Main 5 Essentials Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-4">
+      {/* Sub-Tabs: Quick Essentials vs All Settings (100%) */}
+      <div className="px-3.5 pt-2.5 shrink-0">
+        <div className="grid grid-cols-2 gap-1 p-1 bg-white/[0.04] rounded-xl border border-white/10">
+          <button
+            onClick={() => {
+              triggerHaptic(10);
+              setSettingsTab('essentials');
+            }}
+            className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              settingsTab === 'essentials'
+                ? 'btn-3d-lime text-black font-black shadow-sm shadow-lime-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Quick Essentials</span>
+          </button>
+
+          <button
+            onClick={() => {
+              triggerHaptic(10);
+              setSettingsTab('all');
+            }}
+            className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              settingsTab === 'all'
+                ? 'btn-3d-cyan text-black font-black shadow-sm shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>All Settings (100%)</span>
+          </button>
+        </div>
+      </div>
+
+      {settingsTab === 'all' ? (
+        /* 100% Full Settings Panel */
+        <div className="flex-1 overflow-hidden flex flex-col min-h-0 pt-2">
+          <SettingsPanel className="w-full h-full border-none bg-transparent" onClose={onClose} />
+        </div>
+      ) : (
+        /* Main 5 Essentials Scroll Area */
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-4">
         {/* 1. MUSIC ESSENTIAL */}
         <section className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2.5">
           <div className="flex items-center justify-between">
@@ -653,6 +701,20 @@ export const EssentialControls: React.FC<EssentialControlsProps> = ({ className,
                 </div>
               </div>
 
+              {/* Switch to 100% Full Settings */}
+              <div className="pt-2 border-t border-white/5 space-y-2">
+                <button
+                  onClick={() => {
+                    triggerHaptic(10);
+                    setSettingsTab('all');
+                  }}
+                  className="btn-3d-cyan w-full py-2 px-3 rounded-xl text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-cyan-500/20"
+                >
+                  <Sliders className="w-4 h-4 stroke-[2.5]" />
+                  <span>Switch to All Settings (100% Full Controls)</span>
+                </button>
+              </div>
+
               {/* Link to Diagnostics */}
               <div className="pt-2 border-t border-white/5 flex items-center justify-between">
                 <button
@@ -667,6 +729,7 @@ export const EssentialControls: React.FC<EssentialControlsProps> = ({ className,
           )}
         </div>
       </div>
+      )}
     </aside>
   );
 };

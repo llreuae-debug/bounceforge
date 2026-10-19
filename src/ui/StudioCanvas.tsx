@@ -21,6 +21,7 @@ import {
   Zap,
   HelpCircle,
   Hash,
+  Sliders,
 } from 'lucide-react';
 import { AdaptiveQualityManager } from '../platform/quality';
 import { triggerHaptic } from '../platform/haptics';
@@ -41,6 +42,8 @@ export const StudioCanvas: React.FC = () => {
     setPlaybackSpeed,
     isMuted,
     setIsMuted,
+    isSettingsOpen,
+    setSettingsOpen,
     visuals,
     overlays,
     setOverlays,
@@ -253,6 +256,9 @@ export const StudioCanvas: React.FC = () => {
       } else if (e.code === 'KeyE') {
         e.preventDefault();
         setExportOpen(true);
+      } else if (e.code === 'KeyS') {
+        e.preventDefault();
+        setSettingsOpen(!isSettingsOpen);
       }
     };
 
@@ -548,6 +554,19 @@ export const StudioCanvas: React.FC = () => {
             </div>
           )}
 
+          {/* Floating Settings quick button on preview */}
+          <button
+            onClick={() => {
+              triggerHaptic(10);
+              setSettingsOpen(!isSettingsOpen);
+            }}
+            className="btn-3d-lime absolute top-3 left-3 z-30 px-3 py-1.5 rounded-full text-black font-black text-[11px] shadow-lg shadow-lime-500/30 flex items-center gap-1.5 transition-all uppercase tracking-wider border border-lime-400/60"
+            title="Open Settings & Customize (S)"
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>Settings</span>
+          </button>
+
           {/* Pulsing "tap for asmr" pill on the preview until audio starts */}
           {!audioUnlocked && (
             <button
@@ -668,6 +687,18 @@ export const StudioCanvas: React.FC = () => {
             title="Mute / Unmute (M)"
           >
             {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+
+          <button
+            onClick={() => {
+              triggerHaptic(10);
+              setSettingsOpen(!isSettingsOpen);
+            }}
+            className="btn-3d-lime h-10 px-3 rounded-xl text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-lime-500/20"
+            title="Settings &amp; Customize (S)"
+          >
+            <Sliders className="w-4 h-4 stroke-[2.5]" />
+            <span className="hidden sm:inline">Settings</span>
           </button>
         </div>
 

@@ -114,6 +114,7 @@ interface StudioState {
 
   // Modals
   isExportOpen: boolean;
+  isSettingsOpen: boolean;
   isMidiEditorOpen: boolean;
   isSeedFinderOpen: boolean;
   isShortcutsOpen: boolean;
@@ -183,6 +184,7 @@ interface StudioState {
 
   // Modal actions
   setExportOpen: (open: boolean) => void;
+  setSettingsOpen: (open: boolean) => void;
   setMidiEditorOpen: (open: boolean) => void;
   setSeedFinderOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
@@ -334,6 +336,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
     customNotes: [],
 
     isExportOpen: false,
+    isSettingsOpen: false,
     isMidiEditorOpen: false,
     isSeedFinderOpen: false,
     isShortcutsOpen: false,
@@ -538,6 +541,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
     setCustomNotes: (notes) => set({ customNotes: notes }),
 
     setExportOpen: (open) => set({ isExportOpen: open }),
+    setSettingsOpen: (open) => set({ isSettingsOpen: open }),
     setMidiEditorOpen: (open) => set({ isMidiEditorOpen: open }),
     setSeedFinderOpen: (open) => set({ isSeedFinderOpen: open }),
     setShortcutsOpen: (open) => set({ isShortcutsOpen: open }),

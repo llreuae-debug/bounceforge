@@ -1,16 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { CURATED_TEMPLATES, CATEGORIES, CuratedTemplate, TemplateCategory } from '../../templates/curatedTemplates';
-import { Search, Sparkles, Flame, Clock, Play, X, Music, Shield, Gem, Smile, Moon, Swords } from 'lucide-react';
+import { Search, Sparkles, Flame, Clock, Play, X, Music, Shield, Gem, Smile, Moon, Swords, Sliders } from 'lucide-react';
 import { triggerHaptic } from '../../platform/haptics';
 
 export interface ModeGalleryProps {
   className?: string;
   onClose?: () => void;
   onSelectTemplate?: (template: CuratedTemplate) => void;
+  onOpenSettings?: () => void;
 }
 
-export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, onSelectTemplate }) => {
+export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, onSelectTemplate, onOpenSettings }) => {
   const {
     currentModeId,
     setMode,
@@ -20,6 +21,7 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, on
     surpriseMe,
     setReelSpeed,
     reelSpeed,
+    setSettingsOpen,
     showToast,
   } = useStudioStore();
 
@@ -115,6 +117,19 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, on
           </div>
 
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => {
+                triggerHaptic(10);
+                if (onOpenSettings) onOpenSettings();
+                else setSettingsOpen(true);
+              }}
+              className="btn-3d-lime h-7 px-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-black flex items-center gap-1 shadow-sm shadow-lime-500/20"
+              title="Open Settings & Customize panel"
+            >
+              <Sliders className="w-3 h-3" />
+              <span>Settings</span>
+            </button>
+
             <button
               onClick={surpriseMe}
               className="btn-3d-pink h-7 px-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white flex items-center gap-1.5 shadow-sm shadow-pink-500/20"
@@ -258,30 +273,48 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, on
                   </span>
                 </div>
 
-                {/* Variant Switcher (Revealed ONLY after selecting the card) */}
+                {/* Variant Switcher & Customize CTA (Revealed ONLY after selecting the card) */}
                 {isSelected && (
                   <div
-                    className="mt-2.5 pt-2 border-t border-cyan-400/20 flex items-center justify-between gap-1 animate-fadeIn"
+                    className="mt-2.5 pt-2 border-t border-cyan-400/20 flex flex-col gap-2 animate-fadeIn"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">
-                      Variant:
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {(['calm', 'viral', 'wild'] as const).map((v) => (
-                        <button
-                          key={v}
-                          onClick={() => handleVariantChange(v, tpl)}
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
-                            activeVariant === v
-                              ? 'bg-cyan-400 text-black shadow-sm shadow-cyan-400/30'
-                              : 'bg-white/5 text-slate-400 hover:text-white'
-                          }`}
-                        >
-                          {v}
-                        </button>
-                      ))}
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">
+                        Variant:
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {(['calm', 'viral', 'wild'] as const).map((v) => (
+                          <button
+                            key={v}
+                            onClick={() => handleVariantChange(v, tpl)}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
+                              activeVariant === v
+                                ? 'bg-cyan-400 text-black shadow-sm shadow-cyan-400/30'
+                                : 'bg-white/5 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {v}
+                          </button>
+                        ))}
+                      </div>
                     </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerHaptic(12);
+                        if (onOpenSettings) {
+                          onOpenSettings();
+                        } else {
+                          setSettingsOpen(true);
+                        }
+                      }}
+                      className="btn-3d-lime w-full py-2 px-3 rounded-xl text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-lime-500/25 active:scale-95 transition-all mt-0.5"
+                    >
+                      <Sliders className="w-4 h-4 stroke-[2.5]" />
+                      <span>Configure Settings &amp; Customize 👉</span>
+                    </button>
                   </div>
                 )}
               </div>
