@@ -99,6 +99,14 @@ export const StudioCanvas: React.FC = () => {
     audio.resetMelodyPosition();
 
     world.eventBus.subscribe((event) => {
+      const isAudible = !audio.getIsMuted();
+      world.customState.lastHitMarker = {
+        time: world.videoTime || event.time,
+        x: event.position?.x ?? 540,
+        y: event.position?.y ?? 960,
+        soundPlayed: isAudible,
+        objectType: event.extra?.objectType || event.type,
+      };
       audio.handleCollision(event);
       if (mode.onCollision) {
         mode.onCollision(world, event, modeSettings);

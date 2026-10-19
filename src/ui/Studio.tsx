@@ -23,6 +23,9 @@ const SeedFinderModal = React.lazy(() =>
 const ExportSelfTestModal = React.lazy(() =>
   import('./modals/ExportSelfTestModal').then((m) => ({ default: m.ExportSelfTestModal }))
 );
+const SoundCheckModal = React.lazy(() =>
+  import('./modals/SoundCheckModal').then((m) => ({ default: m.SoundCheckModal }))
+);
 import {
   Sliders,
   Sparkles,
@@ -40,6 +43,8 @@ export const Studio: React.FC = () => {
     isSeedFinderOpen,
     isSelfTestOpen,
     setSelfTestOpen,
+    isSoundCheckOpen,
+    setSoundCheckOpen,
     currentModeId,
     setMode,
     setExportOpen,
@@ -255,6 +260,9 @@ export const Studio: React.FC = () => {
         {isSeedFinderOpen && <SeedFinderModal />}
         {isSelfTestOpen && (
           <ExportSelfTestModal isOpen={isSelfTestOpen} onClose={() => setSelfTestOpen(false)} />
+        )}
+        {isSoundCheckOpen && (
+          <SoundCheckModal isOpen={isSoundCheckOpen} onClose={() => setSoundCheckOpen(false)} />
         )}
       </React.Suspense>
       <OnboardingModal />

@@ -117,6 +117,7 @@ interface StudioState {
   isSeedFinderOpen: boolean;
   isShortcutsOpen: boolean;
   isSelfTestOpen: boolean;
+  isSoundCheckOpen: boolean;
   isRestartConfirmOpen: boolean;
 
   // Platform & Quality
@@ -184,6 +185,7 @@ interface StudioState {
   setSeedFinderOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
   setSelfTestOpen: (open: boolean) => void;
+  setSoundCheckOpen: (open: boolean) => void;
   setRestartConfirmOpen: (open: boolean) => void;
   isWhatsNewOpen: boolean;
   setWhatsNewOpen: (open: boolean) => void;
@@ -333,6 +335,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
     isSeedFinderOpen: false,
     isShortcutsOpen: false,
     isSelfTestOpen: false,
+    isSoundCheckOpen: false,
     isWhatsNewOpen: false,
     isWhatNextOpen: false,
     isTrendsAdminOpen: false,
@@ -482,7 +485,11 @@ export const useStudioStore = create<StudioState>((set, get) => {
         wallControls: { ...preset.wallControls },
         visuals: { ...preset.visuals },
         overlays: { ...preset.overlays },
-        audioSettings: { ...preset.audioSettings },
+        audioSettings: {
+          ...preset.audioSettings,
+          masterVolume: (preset.audioSettings?.masterVolume === 0 || preset.audioSettings?.masterVolume === undefined) ? 0.85 : preset.audioSettings.masterVolume,
+          sfxVolume: (preset.audioSettings?.sfxVolume === 0 || preset.audioSettings?.sfxVolume === undefined) ? 0.75 : preset.audioSettings.sfxVolume,
+        },
         asmrSettings: { ...preset.asmrSettings },
         customBall: { ...preset.customBall },
         targetDuration: preset.targetDuration,
@@ -530,6 +537,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
     setSeedFinderOpen: (open) => set({ isSeedFinderOpen: open }),
     setShortcutsOpen: (open) => set({ isShortcutsOpen: open }),
     setSelfTestOpen: (open) => set({ isSelfTestOpen: open }),
+    setSoundCheckOpen: (open) => set({ isSoundCheckOpen: open }),
     setRestartConfirmOpen: (open) => set({ isRestartConfirmOpen: open }),
     setWhatsNewOpen: (open) => set({ isWhatsNewOpen: open }),
     setWhatNextOpen: (open) => set({ isWhatNextOpen: open }),
@@ -823,7 +831,14 @@ export const useStudioStore = create<StudioState>((set, get) => {
             seed: data.seed || 1337,
             visuals: data.visuals || get().visuals,
             overlays: data.overlays || get().overlays,
-            audioSettings: data.audio || data.audioSettings || get().audioSettings,
+            audioSettings: (() => {
+              const raw = data.audio || data.audioSettings || get().audioSettings;
+              return {
+                ...raw,
+                masterVolume: (raw?.masterVolume === 0 || raw?.masterVolume === undefined) ? 0.85 : raw.masterVolume,
+                sfxVolume: (raw?.sfxVolume === 0 || raw?.sfxVolume === undefined) ? 0.75 : raw.sfxVolume,
+              };
+            })(),
             targetDuration: data.duration || data.targetDuration || DEFAULT_TARGET_DURATION,
             reelSpeed: data.rs !== undefined ? data.rs : (data.reelSpeed !== undefined ? data.reelSpeed : 0.5),
             slowMoSoundFeel: data.sm ?? data.slowMoSoundFeel ?? false,

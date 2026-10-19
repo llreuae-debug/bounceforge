@@ -56,6 +56,7 @@ export interface OverlaySettings {
   showSafeZone: boolean;
   showPlatformMockup: boolean;
   safeZonePlatform: PlatformType;
+  showHitMarkers?: boolean; // Preview only: flashes on hit, turns red if silent
 }
 
 export const DEFAULT_OVERLAYS: OverlaySettings = {
@@ -107,6 +108,7 @@ export const DEFAULT_OVERLAYS: OverlaySettings = {
   showSafeZone: false,
   showPlatformMockup: false,
   safeZonePlatform: 'all', // "all platforms (safest)" default
+  showHitMarkers: false,
 };
 
 
@@ -495,6 +497,11 @@ export function drawOverlays(
     if (hasOverflow) {
       drawSafeWarningChip(ctx, width, height, scale);
     }
+
+    // 7. Hit Markers Overlay (Preview only, flashes green on sound, red if silent)
+    if (settings.showHitMarkers) {
+      drawHitMarkers(ctx, width, height, scale, stats.customCounters);
+    }
   }
 
   ctx.restore();
@@ -810,4 +817,84 @@ function drawVectorTrophy(
 
   ctx.restore();
 }
+
+/**
+ * Draws real-time audio hit markers in preview mode.
+ * Flashes green on valid sound emission, turns red if a hit was silent.
+ */
+function drawHitMarkers(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  scale: number,
+  customCounters?: Record<string, any>
+): void {
+  ctx.save();
+
+  // Status HUD Chip at top-left
+  const hudX = Math.round(32 * scale);
+  const hudY = Math.round(48 * scale);
+  const hudW = Math.round(220 * scale);
+  const hudH = Math.round(36 * scale);
+
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = 1 * scale;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(hudX, hudY, hudW, hudH, 8 * scale) : ctx.rect(hudX, hudY, hudW, hudH);
+  ctx.fill();
+  ctx.stroke();
+
+  // Indicator Dot
+  const marker = customCounters?.lastHitMarker;
+  const isSilent = marker && marker.soundPlayed === false;
+  const isRecent = marker && (customCounters?.currentTime ? Math.abs(customCounters.currentTime - marker.time) < 0.25 : true);
+
+  ctx.fillStyle = isSilent ? '#ef4444' : isRecent ? '#22c55e' : '#94a3b8';
+  ctx.beginPath();
+  ctx.arc(hudX + 18 * scale, hudY + hudH / 2, 5 * scale, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `bold ${Math.round(13 * scale)}px Inter, sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(
+    isSilent ? 'HIT: SILENT (ERR)' : isRecent ? 'AUDIO HIT: SYNC OK' : 'HIT MARKER ACTIVE',
+    hudX + 32 * scale,
+    hudY + hudH / 2
+  );
+
+  // Active Hit Reticle / Pulse
+  if (marker && marker.x !== undefined && marker.y !== undefined && isRecent) {
+    const color = isSilent ? '#ef4444' : '#22c55e';
+    const radius = Math.round(24 * scale);
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5 * scale;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = Math.round(12 * scale);
+
+    // Crosshair circle
+    ctx.beginPath();
+    ctx.arc(marker.x, marker.y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Crosshair ticks
+    const tickLen = 8 * scale;
+    ctx.beginPath();
+    ctx.moveTo(marker.x - radius - tickLen, marker.y);
+    ctx.lineTo(marker.x - radius, marker.y);
+    ctx.moveTo(marker.x + radius, marker.y);
+    ctx.lineTo(marker.x + radius + tickLen, marker.y);
+    ctx.moveTo(marker.x, marker.y - radius - tickLen);
+    ctx.lineTo(marker.x, marker.y - radius);
+    ctx.moveTo(marker.x, marker.y + radius);
+    ctx.lineTo(marker.x, marker.y + radius + tickLen);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 

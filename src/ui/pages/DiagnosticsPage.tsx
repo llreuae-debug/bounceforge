@@ -25,7 +25,7 @@ import { triggerHaptic } from '../../platform/haptics';
 import { copyText } from '../../platform/clipboard';
 
 export const DiagnosticsPage: React.FC = () => {
-  const { setRoute, setQualityMode, qualityMode, showToast } = useStudioStore();
+  const { setRoute, setQualityMode, qualityMode, showToast, setSoundCheckOpen } = useStudioStore();
   const [caps, setCaps] = useState<DeviceCapabilities | null>(null);
   const [copied, setCopied] = useState(false);
   const [benchmarking, setBenchmarking] = useState(false);
@@ -96,6 +96,17 @@ export const DiagnosticsPage: React.FC = () => {
           >
             <Gauge className="w-4 h-4" />
             <span>{benchmarking ? 'Benchmarking...' : 'Run CPU Math Stress Test'}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setRoute('studio');
+              setSoundCheckOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400/40 text-pink-300 text-xs font-bold transition-all active:scale-95"
+          >
+            <Activity className="w-4 h-4" />
+            <span>Launch Audio Sound Check</span>
           </button>
 
           <button

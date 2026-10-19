@@ -90,6 +90,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
     setResolution,
     setExportOpen,
     setSeedFinderOpen,
+    setSoundCheckOpen,
     userPresets,
     saveCurrentAsPreset,
     loadPreset,
@@ -1312,6 +1313,32 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Sound Check & Audio Diagnostics */}
+                <div className="pt-2 border-t border-white/5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-slate-300 block">Hit Markers Overlay</label>
+                    <button
+                      onClick={() => setOverlays({ showHitMarkers: !overlays.showHitMarkers })}
+                      className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase transition-all ${
+                        overlays.showHitMarkers
+                          ? 'bg-emerald-500 text-black shadow-sm shadow-emerald-500/20'
+                          : 'bg-white/10 text-slate-300 hover:bg-white/15'
+                      }`}
+                    >
+                      {overlays.showHitMarkers ? 'Active (Preview)' : 'Off'}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400">Flashes green on hit, turns red if sound was silent.</p>
+
+                  <button
+                    onClick={() => setSoundCheckOpen(true)}
+                    className="w-full mt-1.5 py-2 px-3 rounded-xl bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 hover:from-cyan-500/30 hover:to-pink-500/30 border border-cyan-400/30 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  >
+                    <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Launch Sound Check &amp; Diagnostics</span>
+                  </button>
                 </div>
               </div>
             )}
