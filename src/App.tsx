@@ -126,9 +126,12 @@ export const App: React.FC = () => {
 
   // Initialize App-Wide Lightweight 3D Background
   // (loaded after the page is idle so three.js stays out of the first load)
+  // Only the landing page and the Studio show it: every other page paints an opaque background
+  // over it (verified pixel-identical), so it isn't run there at all
+  const bgVisibleRoute = currentRoute === 'landing' || currentRoute === 'studio' || currentRoute === 'settings';
   useEffect(() => {
     const canvas = bgCanvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !bgVisibleRoute) return;
     let disposed = false;
     const cleanup = startWhenIdleAndVisible(canvas, () => {
       void import('./render3d/background3d').then(({ BackgroundSimulator3D }) => {
@@ -144,7 +147,7 @@ export const App: React.FC = () => {
         bgSimRef.current = null;
       }
     };
-  }, []);
+  }, [bgVisibleRoute]);
 
   // Pause 3D background during video export to give 100% GPU to 4K encoder
   useEffect(() => {
