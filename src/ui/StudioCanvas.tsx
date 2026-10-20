@@ -100,7 +100,8 @@ export const StudioCanvas: React.FC = () => {
 
     // Audio Engine initialization and event bus binding
     const audio = AudioEngine.getInstance();
-    audio.init();
+    // The AudioContext is created at the first user gesture (play, tap, key) — not during page load
+    audio.initIfUserActivated();
     audio.hardStopAllVoices();
     audio.resetMelodyPosition();
     const activeMelodyId = modeSettings.melodyId || audioSettings.selectedMelodyId || 'toybox_run';

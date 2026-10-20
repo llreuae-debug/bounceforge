@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import { Header } from './Header';
 import { loadMarbleRenderer } from '../marble3d/modes/marbleMelodyMode';
 
@@ -109,6 +109,24 @@ export const Studio: React.FC = () => {
       }
     }
   }, [isGalleryOpen, isMobile]);
+
+  // Two-phase mount: paint a light frame first, then build the full editor as a transition so
+  // React can time-slice it instead of blocking the main thread in one long task
+  const [editorReady, setEditorReady] = useState(false);
+  useEffect(() => {
+    startTransition(() => setEditorReady(true));
+  }, []);
+
+  if (!editorReady) {
+    return (
+      <div className="h-[100dvh] w-screen flex flex-col bg-[#050608] overflow-hidden select-none font-sans">
+        <Header />
+        <div className="flex-1 flex items-center justify-center p-3">
+          <div className="h-full max-h-[78vh] aspect-[9/16] rounded-2xl bg-[#0b0d12] border border-white/5" aria-label="Loading the studio" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[100dvh] w-screen flex flex-col bg-[#050608] overflow-hidden select-none safe-top safe-bottom safe-left safe-right font-sans">

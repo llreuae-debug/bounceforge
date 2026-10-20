@@ -117,6 +117,17 @@ export class SoundfontSampleManager {
 
     const pi2 = 2 * Math.PI;
 
+    // Each partial has a constant frequency and decay rate, so it is advanced per sample with a
+    // phasor rotation and a decay multiplier (same waveform, ~10x cheaper than sin/exp per sample)
+    const parts = harmonics
+      .map((h) => ({ h, fk: h.num * f0 * Math.sqrt(1 + B * h.num * h.num) }))
+      .filter((p) => p.fk <= sampleRate * 0.48)
+      .map(({ h, fk }) => {
+        const w1 = (pi2 * fk) / sampleRate;
+        const w2 = (pi2 * (fk + 0.35)) / sampleRate;
+        return { amp: h.amp, c1: Math.cos(w1), s1: Math.sin(w1), c2: Math.cos(w2), s2: Math.sin(w2), dec: Math.exp(-h.decayRate / sampleRate), x1: 1, y1: 0, x2: 1, y2: 0, env: 1 };
+      });
+
     for (let i = 0; i < totalSamples; i++) {
       const t = i / sampleRate;
 
@@ -131,22 +142,22 @@ export class SoundfontSampleManager {
       let sampleL = hammer;
       let sampleR = hammer;
 
-      for (const h of harmonics) {
-        // String stiffness formula: fk = k * f0 * sqrt(1 + B * k^2)
-        const fk = h.num * f0 * Math.sqrt(1 + B * h.num * h.num);
-        if (fk > sampleRate * 0.48) continue;
-
-        // Exponential decay envelope per harmonic
-        const env = Math.exp(-h.decayRate * t);
-        // Slight natural unison detune (3 strings per piano note)
-        const tone1 = Math.sin(pi2 * fk * t);
-        const tone2 = Math.sin(pi2 * (fk + 0.35) * t);
-
-        const valL = h.amp * env * (0.6 * tone1 + 0.4 * tone2);
-        const valR = h.amp * env * (0.4 * tone1 + 0.6 * tone2);
-
-        sampleL += valL;
-        sampleR += valR;
+      // String stiffness: fk = k * f0 * sqrt(1 + B * k^2); slight unison detune (3 strings per note)
+      for (let k = 0; k < parts.length; k++) {
+        const p = parts[k];
+        const tone1 = p.y1; // sin(2π fk t)
+        const tone2 = p.y2; // sin(2π (fk + 0.35) t)
+        const a = p.amp * p.env;
+        sampleL += a * (0.6 * tone1 + 0.4 * tone2);
+        sampleR += a * (0.4 * tone1 + 0.6 * tone2);
+        // advance phasors and envelope by one sample
+        const x1 = p.x1 * p.c1 - p.y1 * p.s1;
+        p.y1 = p.y1 * p.c1 + p.x1 * p.s1;
+        p.x1 = x1;
+        const x2 = p.x2 * p.c2 - p.y2 * p.s2;
+        p.y2 = p.y2 * p.c2 + p.x2 * p.s2;
+        p.x2 = x2;
+        p.env *= p.dec;
       }
 
       // Clean overall decay envelope with smooth fade out

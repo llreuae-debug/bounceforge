@@ -456,6 +456,18 @@ export class AudioEngine {
     return Math.max(0.25, Math.min(1.0, vol));
   }
 
+  /** True once the page has had a user gesture (audio can actually play). */
+  static userHasInteracted(): boolean {
+    if (typeof navigator === 'undefined') return true;
+    const ua = (navigator as any).userActivation;
+    return ua ? !!ua.hasBeenActive : true;
+  }
+
+  /** Create the audio graph only when it can be used (after a gesture); later calls create it on demand. */
+  initIfUserActivated(): void {
+    if (this.ctx || AudioEngine.userHasInteracted()) this.init();
+  }
+
   preload(): void {
     if (!this.ctx) this.init();
     this.warmUpWhenIdle();
@@ -614,6 +626,8 @@ export class AudioEngine {
   private readonly CHORD_ARP = [1.0, 1.2599, 1.4983, 2.0, 2.5198, 2.9966];
 
   handleCollision(event: CollisionEvent): void {
+    // Before any user gesture the browser keeps audio suspended: don't build the audio graph yet
+    if (!this.ctx && !AudioEngine.userHasInteracted()) return;
     if (!this.ctx) {
       this.init();
     }
