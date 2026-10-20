@@ -12,27 +12,40 @@
 
 export type SampledInstrument = 'grandPiano' | 'piano' | 'marimba' | 'xylophone' | 'musicBox';
 
-interface SampleEntry {
-  rootFreq: number;
-  buffer: AudioBuffer;
-}
+type Family = 'piano' | 'marimba' | 'musicBox';
 
 export class SoundfontSampleManager {
-  private static pianoSamples = new WeakMap<BaseAudioContext, SampleEntry[]>();
-  private static marimbaSamples = new WeakMap<BaseAudioContext, SampleEntry[]>();
-  private static musicBoxSamples = new WeakMap<BaseAudioContext, SampleEntry[]>();
+  /** One buffer per (family, root note), generated on first use */
+  private static banks = new WeakMap<BaseAudioContext, Map<string, AudioBuffer>>();
 
   // Root note frequencies across multiple octaves (C2, C3, C4, C5, C6, C7)
   private static readonly ROOT_PITCHES = [65.41, 130.81, 261.63, 523.25, 1046.5, 2093.0];
+  private static readonly FAMILIES: Family[] = ['piano', 'marimba', 'musicBox'];
 
   /**
-   * Pre-generates and caches acoustic multisamples on the given AudioContext
+   * Pre-generates and caches every acoustic multisample on the given AudioContext (synchronous,
+   * in a fixed order: offline renders and seeded callers rely on that)
    */
   static warmUp(ctx: BaseAudioContext): void {
     if (!ctx) return;
-    this.getPianoSamples(ctx);
-    this.getMarimbaSamples(ctx);
-    this.getMusicBoxSamples(ctx);
+    for (const fam of this.FAMILIES) for (let i = 0; i < this.ROOT_PITCHES.length; i++) this.buffer(ctx, fam, i);
+  }
+
+  /** Same as warmUp, one sample per idle slice so the page never blocks */
+  static warmUpIncrementally(ctx: BaseAudioContext): void {
+    if (!ctx) return;
+    const jobs: [Family, number][] = [];
+    for (const fam of this.FAMILIES) for (let i = 0; i < this.ROOT_PITCHES.length; i++) jobs.push([fam, i]);
+    const ric = typeof window !== 'undefined' ? (window as any).requestIdleCallback : undefined;
+    const next = () => {
+      const job = jobs.shift();
+      if (!job) return;
+      this.buffer(ctx, job[0], job[1]);
+      if (ric) ric(next, { timeout: 2000 });
+      else setTimeout(next, 30);
+    };
+    if (ric) ric(next, { timeout: 2000 });
+    else setTimeout(next, 30);
   }
 
   static getSample(
@@ -40,64 +53,41 @@ export class SoundfontSampleManager {
     instrument: SampledInstrument,
     freq: number
   ): { buffer: AudioBuffer; playbackRate: number } {
-    let sampleBank: SampleEntry[];
-    if (instrument === 'marimba' || instrument === 'xylophone') {
-      sampleBank = this.getMarimbaSamples(ctx);
-    } else if (instrument === 'musicBox') {
-      sampleBank = this.getMusicBoxSamples(ctx);
-    } else {
-      sampleBank = this.getPianoSamples(ctx);
-    }
-
+    const fam: Family = instrument === 'marimba' || instrument === 'xylophone' ? 'marimba' : instrument === 'musicBox' ? 'musicBox' : 'piano';
     // Find the closest root pitch
-    let closest = sampleBank[0];
-    let minDiff = Math.abs(Math.log2(freq / closest.rootFreq));
-    for (let i = 1; i < sampleBank.length; i++) {
-      const diff = Math.abs(Math.log2(freq / sampleBank[i].rootFreq));
+    let best = 0;
+    let minDiff = Infinity;
+    for (let i = 0; i < this.ROOT_PITCHES.length; i++) {
+      const diff = Math.abs(Math.log2(freq / this.ROOT_PITCHES[i]));
       if (diff < minDiff) {
         minDiff = diff;
-        closest = sampleBank[i];
+        best = i;
       }
     }
-
-    const playbackRate = Math.max(0.25, Math.min(4.0, freq / closest.rootFreq));
-    return { buffer: closest.buffer, playbackRate };
+    const rootFreq = this.ROOT_PITCHES[best];
+    const playbackRate = Math.max(0.25, Math.min(4.0, freq / rootFreq));
+    return { buffer: this.buffer(ctx, fam, best), playbackRate };
   }
 
-  private static getPianoSamples(ctx: BaseAudioContext): SampleEntry[] {
-    let entries = this.pianoSamples.get(ctx);
-    if (!entries) {
-      entries = this.ROOT_PITCHES.map((f0) => ({
-        rootFreq: f0,
-        buffer: this.createAcousticPianoBuffer(ctx, f0),
-      }));
-      this.pianoSamples.set(ctx, entries);
+  private static buffer(ctx: BaseAudioContext, fam: Family, i: number): AudioBuffer {
+    let bank = this.banks.get(ctx);
+    if (!bank) {
+      bank = new Map();
+      this.banks.set(ctx, bank);
     }
-    return entries;
-  }
-
-  private static getMarimbaSamples(ctx: BaseAudioContext): SampleEntry[] {
-    let entries = this.marimbaSamples.get(ctx);
-    if (!entries) {
-      entries = this.ROOT_PITCHES.map((f0) => ({
-        rootFreq: f0,
-        buffer: this.createAcousticMarimbaBuffer(ctx, f0),
-      }));
-      this.marimbaSamples.set(ctx, entries);
+    const key = `${fam}:${i}`;
+    let buf = bank.get(key);
+    if (!buf) {
+      const f0 = this.ROOT_PITCHES[i];
+      buf =
+        fam === 'piano'
+          ? this.createAcousticPianoBuffer(ctx, f0)
+          : fam === 'marimba'
+            ? this.createAcousticMarimbaBuffer(ctx, f0)
+            : this.createAcousticMusicBoxBuffer(ctx, f0);
+      bank.set(key, buf);
     }
-    return entries;
-  }
-
-  private static getMusicBoxSamples(ctx: BaseAudioContext): SampleEntry[] {
-    let entries = this.musicBoxSamples.get(ctx);
-    if (!entries) {
-      entries = this.ROOT_PITCHES.map((f0) => ({
-        rootFreq: f0,
-        buffer: this.createAcousticMusicBoxBuffer(ctx, f0),
-      }));
-      this.musicBoxSamples.set(ctx, entries);
-    }
-    return entries;
+    return buf;
   }
 
   /**

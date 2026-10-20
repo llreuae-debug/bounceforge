@@ -466,10 +466,9 @@ export class AudioEngine {
     if (this.warmUpScheduled || !this.ctx) return;
     this.warmUpScheduled = true;
     const ctx = this.ctx;
-    const run = () => {
-      SoundfontSampleManager.warmUp(ctx);
-      MarbleAudioSynthesizer.preloadAllSounds(ctx);
-    };
+    // Samples are generated one per idle slice (each also builds on first use if needed sooner)
+    SoundfontSampleManager.warmUpIncrementally(ctx);
+    const run = () => MarbleAudioSynthesizer.preloadAllSounds(ctx);
     const ric = typeof window !== 'undefined' ? (window as any).requestIdleCallback : undefined;
     if (ric) ric(run, { timeout: 4000 });
     else setTimeout(run, 1500);
