@@ -85,7 +85,7 @@ export const MergeMode: SimulationMode = {
       glowColor: MERGE_TIERS[0].color,
     });
   },
-  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
+  step: (world: PhysicsWorld) => {
     const cx = world.width / 2;
     const interval = world.customState.dropInterval ?? 1.5;
 

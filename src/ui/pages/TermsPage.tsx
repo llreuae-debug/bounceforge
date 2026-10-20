@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { Header } from '../Header';
 import { Footer } from '../Footer';
-import { ShieldCheck, FileText, CheckCircle2, Play } from 'lucide-react';
+import { FileText, CheckCircle2, Play } from 'lucide-react';
 
 export const TermsPage: React.FC = () => {
   const { setRoute } = useStudioStore();
@@ -80,7 +80,7 @@ export const TermsPage: React.FC = () => {
               or email{' '}
               <a
                 href="mailto:support@bounceforge.app?subject=Terms%20of%20Service%20Inquiry"
-                className="text-[#CCFF00] hover:underline font-bold"
+                className="inline-flex items-center min-h-[44px] text-[#CCFF00] hover:underline font-bold"
               >
                 support@bounceforge.app
               </a>.

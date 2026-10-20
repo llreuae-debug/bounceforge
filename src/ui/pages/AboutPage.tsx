@@ -4,14 +4,10 @@ import { Footer } from '../Footer';
 import { useStudioStore } from '../../store/useStudioStore';
 import {
   Sparkles,
-  Zap,
   Play,
   Cpu,
-  Layers,
   Music,
-  ShieldCheck,
   Video,
-  ArrowRight,
   Eye,
   CheckCircle2,
 } from 'lucide-react';

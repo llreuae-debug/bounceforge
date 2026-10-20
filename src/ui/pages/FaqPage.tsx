@@ -6,14 +6,6 @@ import {
   HelpCircle,
   Search,
   ChevronDown,
-  Sparkles,
-  Play,
-  Film,
-  Music,
-  Zap,
-  ShieldCheck,
-  Mail,
-  ArrowRight,
 } from 'lucide-react';
 
 interface FaqItem {

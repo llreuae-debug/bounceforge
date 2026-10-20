@@ -82,7 +82,7 @@ export const ChaosToOrderMode: SimulationMode = {
     });
 
     // Spawn balls with high initial chaotic velocity
-    targets.forEach((tgt, i) => {
+    targets.forEach((tgt) => {
       world.addBall({
         x: cx + world.prng.range(-arena.radius * 0.7, arena.radius * 0.7),
         y: cy + world.prng.range(-arena.radius * 0.7, arena.radius * 0.7),

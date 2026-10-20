@@ -107,7 +107,7 @@ export const MagneticForceFieldMode: SimulationMode = {
     world.config.gravity = { x: 0, y: 80 };
   },
 
-  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
+  step: (world: PhysicsWorld, dt: number) => {
     const poles: MagneticPole[] = world.customState.poles || [];
     const arena = world.arena;
 

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { HeroMaterial, HeroMarble, WallBackground } from './types';
+import { HeroMaterial, HeroMarble } from './types';
 
 /**
  * Procedural Texture Generator (8K Ultra-Resolution)

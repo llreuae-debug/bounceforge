@@ -10,7 +10,6 @@ export interface AnimatedLogoProps {
 }
 
 export const AnimatedLogo: React.FC<AnimatedLogoProps> = ({
-  autoplay = true,
   loop = true,
   soundEnabled = false,
   width = '100%',

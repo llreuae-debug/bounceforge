@@ -4,10 +4,7 @@ import {
   SignatureMarbleConfig,
   ChannelStyleConfig,
   TunedObjectType,
-  PathStyle,
-  MarbleStyle,
 } from './types';
-import { MARBLE_MELODY_PRESETS, MarbleMelodyPresetDefinition } from './presets';
 
 export interface ReelFormatDefinition {
   id: ReelFormatId;

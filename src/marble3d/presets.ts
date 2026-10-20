@@ -1,4 +1,4 @@
-import { MarbleMelodyConfig, World10Layers, PresetMood, HeroMaterial, HeroMarble } from './types';
+import { MarbleMelodyConfig, World10Layers, PresetMood } from './types';
 
 export interface MarbleMelodyPresetDefinition {
   id: string;

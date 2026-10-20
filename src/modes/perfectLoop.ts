@@ -104,7 +104,7 @@ export const PerfectLoopMode: SimulationMode = {
       });
     }
   },
-  step: (world: PhysicsWorld, dt: number) => {
+  step: (world: PhysicsWorld) => {
     const { cx, cy, orbitR, omega, duration } = world.customState;
     if (!omega) return;
 

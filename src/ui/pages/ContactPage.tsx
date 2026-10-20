@@ -6,10 +6,8 @@ import {
   Mail,
   Send,
   MessageSquare,
-  Sparkles,
   Bug,
   HelpCircle,
-  Play,
   CheckCircle2,
 } from 'lucide-react';
 import { detectCapabilities, generateDiagnosticReport } from '../../platform/capabilities';

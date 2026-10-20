@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Play, Square, Volume2, CheckCircle2, AlertTriangle, Activity, Sparkles, Layers, Sliders } from 'lucide-react';
-import { SOUND_REGISTRY, SoundRecipe, ALL_TUNED_OBJECT_TYPES, ALL_HERO_MATERIALS } from '../../audio/soundRegistry';
+import { X, Play, Square, Volume2, CheckCircle2, AlertTriangle, Activity, Sparkles } from 'lucide-react';
+import { SOUND_REGISTRY, SoundRecipe } from '../../audio/soundRegistry';
 import { MarbleAudioSynthesizer } from '../../marble3d/audioSynthesizer';
 import { AudioEngine } from '../../audio/audioEngine';
 import { useStudioStore } from '../../store/useStudioStore';

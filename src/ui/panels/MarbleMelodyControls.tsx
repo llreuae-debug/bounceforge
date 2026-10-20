@@ -12,7 +12,7 @@ import {
 } from '../../marble3d/types';
 import { PUBLIC_DOMAIN_MELODIES, parseMidiFile } from '../../marble3d/melodyLibrary';
 import { VariationEngine } from '../../marble3d/variationEngine';
-import { MARBLE_MELODY_PRESETS, DEFAULT_MARBLE_MELODY_CONFIG } from '../../marble3d/presets';
+import { DEFAULT_MARBLE_MELODY_CONFIG } from '../../marble3d/presets';
 import { MarblePresetGallery } from '../components/MarblePresetGallery';
 import { ReelFormatPicker } from '../components/ReelFormatPicker';
 import { triggerHaptic } from '../../platform/haptics';
@@ -24,18 +24,11 @@ import {
   Shuffle,
   Layers,
   Sparkles,
-  Sliders,
   Palette,
-  Camera,
-  Sun,
-  Shield,
-  RotateCcw,
-  Check,
   Disc,
   Image as ImageIcon,
   Pipette,
   Trash2,
-  X,
 } from 'lucide-react';
 
 const WALL_COLOR_SWATCHES = [

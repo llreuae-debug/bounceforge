@@ -1,6 +1,5 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { Peg } from '../engine/types';
 
 export const PlinkoCascadeMode: SimulationMode = {
   id: 'plinko_cascade',

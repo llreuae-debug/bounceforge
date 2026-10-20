@@ -9,14 +9,11 @@ import {
   Zap,
   Check,
   Minus,
-  Lock,
   Clock,
   ShieldCheck,
-  Sparkles,
   ArrowRight,
   DollarSign,
   HelpCircle,
-  CreditCard,
 } from 'lucide-react';
 import { BillingCycle, CurrencyCode } from '../../billing/types';
 
@@ -34,7 +31,7 @@ export const PricingPage: React.FC = () => {
   } = useBillingStore();
 
   const { currentUser, openAuthModal } = useAuthStore();
-  const { setRoute, showToast } = useStudioStore();
+  const { showToast } = useStudioStore();
   const { articles } = useContentStore();
 
   // Countdown timer for limited time offer

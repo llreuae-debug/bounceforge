@@ -1,19 +1,12 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { MARBLE_MELODY_PRESETS, PASTEL_MARBLE_MUSIC_RUN_PRESETS, MarbleMelodyPresetDefinition } from '../../marble3d/presets';
-import { PresetMood, MaterialCategory } from '../../marble3d/types';
 import { triggerHaptic } from '../../platform/haptics';
 import {
   Sparkles,
   Search,
   Heart,
-  Play,
-  Check,
   Disc,
-  SlidersHorizontal,
-  Flame,
-  Volume2,
-  VolumeX,
   X,
 } from 'lucide-react';
 

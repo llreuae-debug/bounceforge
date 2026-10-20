@@ -1,5 +1,5 @@
 import { TunedObjectType, MelodyNote, HeroMaterial } from './types';
-import { SOUND_REGISTRY, getSoundRecipe } from '../audio/soundRegistry';
+import { SOUND_REGISTRY } from '../audio/soundRegistry';
 import { SoundSynthesizer } from '../audio/synth';
 
 export class MarbleAudioSynthesizer {
@@ -17,7 +17,6 @@ export class MarbleAudioSynthesizer {
       dummyGain.connect(ctx.destination);
 
       const t = ctx.currentTime;
-      const testFreq = 440;
 
       // Warm up oscillator and filter compilation
       const osc = ctx.createOscillator();

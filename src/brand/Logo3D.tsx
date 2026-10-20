@@ -13,7 +13,6 @@ export interface Logo3DProps {
 
 export const Logo3D: React.FC<Logo3DProps> = ({
   autoplay = true,
-  loop = true,
   soundEnabled = false,
   width = '100%',
   height = 420,
@@ -394,7 +393,6 @@ export const Logo3D: React.FC<Logo3DProps> = ({
         streakGroup.visible = true;
         streakGroup.scale.set(1, 1, 1);
 
-        const wmNorm = Math.min(1.0, (t - 1.3) / 0.4);
         wordmarkMesh.position.x = 1.4;
         wordmarkMat.opacity = 1.0;
 

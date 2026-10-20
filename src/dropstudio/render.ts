@@ -364,7 +364,7 @@ export function renderOverlays(ctx: Ctx2D, scene: Scene, t: number, width: numbe
   ctx.globalAlpha = 1;
   for (let h = hitIndexAt(s, t - 0.25); h < s.hitT.length && s.hitT[h] <= t; h++) {
     if (s.hitTier[h] !== 1) continue;
-    ctx.fillStyle = `rgba(255,255,255,${0.1 * Math.exp(-12 * (t - s.hitT[h]))})`;
+    ctx.fillStyle = `rgba(255,255,255,${0.045 * Math.exp(-12 * (t - s.hitT[h]))})`;
     ctx.fillRect(0, 0, W, H);
     break;
   }

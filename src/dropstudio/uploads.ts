@@ -95,8 +95,14 @@ export function midiToTrack(a: MidiAnalysis, startAt = 0, reelSeconds = REEL_SEC
   };
 }
 
+export const MAX_MIDI_BYTES = 8 * 1024 * 1024;
+export const MAX_AUDIO_BYTES = 150 * 1024 * 1024;
+export const MAX_AUDIO_SECONDS = 20 * 60;
+
 export async function analyzeMidiUpload(file: File): Promise<{ analysis: MidiAnalysis; hash: string; ms: number }> {
   const t0 = performance.now();
+  if (!file.size) throw new Error(`"${file.name}" is empty.`);
+  if (file.size > MAX_MIDI_BYTES) throw new Error(`"${file.name}" is larger than 8 MB, which is unusual for MIDI. Please choose a smaller file.`);
   const bytes = await file.arrayBuffer();
   const hash = await fileHash(bytes);
   // MIDI parsing is a few ms, but cache it anyway so re-opening a file is instant
@@ -141,13 +147,17 @@ export interface AudioUpload {
 }
 
 /** Decode (native), downmix to mono at 22.05kHz (native resampler), analyse in a worker, cache by hash. */
-export async function analyzeAudioUpload(file: File): Promise<AudioUpload> {
+export async function analyzeAudioUpload(file: File, onStage: (label: string, fraction: number) => void = () => {}): Promise<AudioUpload> {
   const t0 = performance.now();
+  if (!file.size) throw new Error(`"${file.name}" is empty.`);
+  if (file.size > MAX_AUDIO_BYTES) throw new Error(`"${file.name}" is larger than 150 MB. Please use a shorter or compressed (MP3) file.`);
+  onStage('Reading file…', 0.05);
   const bytes = await file.arrayBuffer();
   const hash = await fileHash(bytes);
   const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
   const decoder = new AC() as AudioContext;
   let buffer: AudioBuffer;
+  onStage('Decoding audio…', 0.2);
   try {
     buffer = await decoder.decodeAudioData(bytes.slice(0));
   } catch {
@@ -155,6 +165,8 @@ export async function analyzeAudioUpload(file: File): Promise<AudioUpload> {
   } finally {
     void decoder.close();
   }
+  if (buffer.duration > MAX_AUDIO_SECONDS) throw new Error(`"${file.name}" is ${Math.round(buffer.duration / 60)} minutes long. The limit is 20 minutes.`);
+  onStage('Downmixing to mono 22 kHz…', 0.45);
   const { value, fromCache } = await cached(`dropstudio:audio:${hash}`, async () => {
     const sr = 22050;
     const off = new OfflineAudioContext(1, Math.max(1, Math.ceil(buffer.duration * sr)), sr);
@@ -163,8 +175,10 @@ export async function analyzeAudioUpload(file: File): Promise<AudioUpload> {
     node.connect(off.destination);
     node.start();
     const mono = await off.startRendering();
+    onStage('Detecting beats…', 0.7);
     return analyzeInWorker(new Float32Array(mono.getChannelData(0)), sr);
   });
+  onStage(fromCache ? 'Loaded from cache' : 'Done', 1);
   return { buffer, analysis: value, hash, fromCache, ms: performance.now() - t0 };
 }
 

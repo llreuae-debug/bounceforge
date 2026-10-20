@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './Header';
+import { loadMarbleRenderer } from '../marble3d/modes/marbleMelodyMode';
+
+// Studio needs the 3D marble renderer: start loading it as soon as the Studio code loads
+void loadMarbleRenderer();
 import { ModeGallery } from './panels/ModeGallery';
 import { StudioCanvas } from './StudioCanvas';
 import { EssentialControls } from './panels/EssentialControls';
@@ -14,11 +18,7 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
   X,
-  Play,
-  Film,
-  Check,
 } from 'lucide-react';
 
 // Lazy-load heavy modals

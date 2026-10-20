@@ -1,22 +1,17 @@
 import React, { useState } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
-import { ReelFormatId, EmbossFontStyle, EmbossMode } from '../../marble3d/types';
-import { REEL_FORMATS, FORMAT_PRESETS, ReelFormatDefinition, FormatPresetDefinition } from '../../marble3d/formats';
+import { ReelFormatId, EmbossFontStyle } from '../../marble3d/types';
+import { REEL_FORMATS, FORMAT_PRESETS, FormatPresetDefinition } from '../../marble3d/formats';
 import { triggerHaptic } from '../../platform/haptics';
 import {
   Flame,
-  Music,
   Check,
   Sparkles,
-  Sliders,
   Type,
   ChevronDown,
   ChevronUp,
-  Volume2,
   Tv,
-  Layers,
   Smartphone,
-  Eye,
 } from 'lucide-react';
 import { ChannelStyleModal } from '../modals/ChannelStyleModal';
 

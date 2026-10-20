@@ -1,16 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '../Header';
 import { Footer } from '../Footer';
 import { useStudioStore } from '../../store/useStudioStore';
 import { showcaseService, ShowcaseItem } from '../../showcase/showcaseService';
 import {
   Sparkles,
-  Play,
   Heart,
   Eye,
   Music,
   Sliders,
-  ExternalLink,
   VolumeX,
 } from 'lucide-react';
 import { triggerHaptic } from '../../platform/haptics';

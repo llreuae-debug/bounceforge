@@ -94,7 +94,7 @@ export const FillRaceMode: SimulationMode = {
       });
     });
   },
-  step: (world: PhysicsWorld, dt: number) => {
+  step: (world: PhysicsWorld) => {
     const racers = world.customState?.racers;
     if (!racers || world.winner) return;
 

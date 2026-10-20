@@ -3,9 +3,9 @@ import { useStudioStore } from '../../store/useStudioStore';
 import { MidiService } from '../../audio/midiParser';
 import { AudioEngine } from '../../audio/audioEngine';
 import { NoteItem } from '../../audio/types';
-import { noteNameToMidi, midiToFreq, createNote } from '../../audio/melodies';
+import { createNote } from '../../audio/melodies';
 import { SoundSynthesizer } from '../../audio/synth';
-import { X, Play, Square, Upload, Download, Wand2, Music } from 'lucide-react';
+import { X, Play, Square, Upload, Download, Music } from 'lucide-react';
 
 const OCTAVES = [6, 5, 4, 3];
 const NOTES = ['B', 'A#', 'A', 'G#', 'G', 'F#', 'F', 'E', 'D#', 'D', 'C#', 'C'];

@@ -5,7 +5,7 @@ import { useStudioStore } from '../../store/useStudioStore';
 import { affiliateService } from '../../affiliates/affiliateService';
 import { Header } from '../Header';
 import { Footer } from '../Footer';
-import { Sparkles, ArrowRight, CheckCircle2, ShieldCheck, Play } from 'lucide-react';
+import { Sparkles, CheckCircle2, Play } from 'lucide-react';
 import { PlanId } from '../../billing/types';
 
 export const CheckoutSuccessPage: React.FC = () => {

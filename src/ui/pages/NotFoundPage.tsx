@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { Header } from '../Header';
 import { Footer } from '../Footer';
-import { Play, Home, ArrowLeft } from 'lucide-react';
+import { Play, Home } from 'lucide-react';
 
 export const NotFoundPage: React.FC = () => {
   const { setRoute } = useStudioStore();

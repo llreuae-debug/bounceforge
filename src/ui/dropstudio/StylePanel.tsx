@@ -43,7 +43,7 @@ export const StylePanel: React.FC<Props> = ({ style, onStyle, styleOpts, onStyle
         const c = document.createElement('canvas');
         c.width = TW;
         c.height = TH;
-        r3d = new DropRenderer3D(c, TW, TH, { shadows: false, antialias: true });
+        r3d = new DropRenderer3D(c, TW, TH, { shadows: false, antialias: true, maxCached: 16 });
       } catch {
         r3d = null;
       }
@@ -112,7 +112,7 @@ export const StylePanel: React.FC<Props> = ({ style, onStyle, styleOpts, onStyle
       </Panel>
       <Panel title="Balls & look">
         <div className="space-y-3">
-          <Slider label="Ball count" value={styleOpts.ballCount} min={1} max={6} step={1} onChange={(v) => set({ ballCount: v })} testId="ball-count" />
+          <Slider label="Ball count" value={styleOpts.ballCount} min={1} max={10} step={1} onChange={(v) => set({ ballCount: v })} testId="ball-count" />
           <Slider label="Ball size" value={styleOpts.size} min={0.5} max={2} step={0.05} onChange={(v) => set({ size: v })} format={(v) => `${v.toFixed(2)}×`} testId="ball-size" />
           <div>
             <div className="text-xs text-slate-400 mb-1">Material (instant, no re-timing)</div>

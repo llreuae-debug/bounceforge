@@ -1,7 +1,6 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
 import { reelLength } from '../engine/pacing';
-import { CollisionEvent } from '../engine/types';
 
 export const EliminationWheelMode: SimulationMode = {
   id: 'elimination_wheel',

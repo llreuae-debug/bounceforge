@@ -46,7 +46,7 @@ export const STYLES: StyleInfo[] = [
 
 export interface StyleOptions {
   ballCount: number;
-  /** Ball size multiplier (1 = 34px radius in the 1080x1920 world) */
+  /** Ball size multiplier (1 = 40px radius in the 1080x1920 world) */
   size: number;
   slowMo: number;
   freezeFrames: 0 | 2 | 3;
@@ -80,7 +80,7 @@ function ctxFor(imp: Impacts, o: StyleOptions, duration: number, salt: number, f
     o,
     rng: () => prng.next(),
     g: BASE_G * o.slowMo * o.slowMo,
-    R: 34 * o.size,
+    R: 40 * o.size,
     duration,
     freeze: o.freezeFrames / 60,
     from,
@@ -139,12 +139,12 @@ function zoomFocus(c: Ctx): Focus {
 function classic(sb: SceneBuilder, c: Ctx): void {
   const list = idx(c);
   if (!list.length) return;
-  const n = Math.max(1, Math.min(6, c.o.ballCount));
-  const gapX = Math.min(170, 820 / n);
+  const n = Math.max(1, Math.min(10, c.o.ballCount));
+  const gapX = Math.min(170, 860 / n);
   sb.props.push({ kind: 'floor', x: W / 2, y: FLOOR, from: c.from, to: c.to });
   for (let b = 0; b < n; b++) {
     const x = W / 2 + (b - (n - 1) / 2) * gapX;
-    const r = c.R * (n > 3 ? 0.8 : 1);
+    const r = c.R * (n > 6 ? 0.6 : n > 3 ? 0.8 : 1);
     const ball = sb.ball(r, b, c.imp.t[list[0]], x, FLOOR - r);
     let since = 0;
     list.forEach((k, j) => {
@@ -298,7 +298,7 @@ function fallThrough(
     else sb.props.push({ kind: 'wall', x: nx + side * c.R, y: ny, angle: side, t, big: tier === 1, from: c.from, to: c.to });
     // Speed after the contact: platforms absorb a lot, rings a little, walls bounce it back up a bit
     const vIn = vy + g * dt;
-    vy = kind === 'ring' ? vIn * (tier === 1 ? 0.45 : 0.82) : kind === 'platform' ? vIn * (tier === 1 ? 0.25 : 0.4) : -Math.min(260, vIn * 0.25);
+    vy = kind === 'ring' ? vIn * (tier === 1 ? 0.45 : 0.82) : kind === 'platform' ? vIn * (tier === 1 ? 0.25 : 0.4) : vIn * 0.55;
     vy = Math.min(vy, 1400);
     freezeAfter(sb, c, ball, tier, t, c.imp.t[list[j + 1]]);
     x = nx;

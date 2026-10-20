@@ -266,67 +266,6 @@ export const BUILTIN_MELODIES: Melody[] = [
       'A3', 'E4', 'G4', 'A4', 'C#5', 'E5', 'G5', 'A5'
     ].map(n => createNote(n)),
   },
-  // Viral Internet & Meme Melodies
-  {
-    id: 'coffin_dance',
-    name: 'Coffin Dance (Astronomia)',
-    composer: 'Vicetone & Tony Igy',
-    notes: [
-      'G4', 'G4', 'G4', 'G4',
-      'B4', 'B4', 'B4', 'B4',
-      'D5', 'D5', 'D5', 'D5',
-      'C5', 'B4', 'A4', 'G4',
-      'G4', 'G4', 'G4', 'G4',
-      'D5', 'C5', 'B4', 'A4',
-      'G4', 'D4', 'F4', 'G4',
-      'D5', 'C5', 'B4', 'A4',
-      'G4', 'D4', 'F4', 'G4',
-    ].map(n => createNote(n, 0.3)),
-  },
-  {
-    id: 'megalovania',
-    name: 'Megalovania',
-    composer: 'Toby Fox',
-    notes: [
-      'D4', 'D4', 'D5', 'A4', 'G#4', 'G4', 'F4', 'D4', 'F4', 'G4',
-      'C4', 'C4', 'D5', 'A4', 'G#4', 'G4', 'F4', 'D4', 'F4', 'G4',
-      'B3', 'B3', 'D5', 'A4', 'G#4', 'G4', 'F4', 'D4', 'F4', 'G4',
-      'A#3', 'A#3', 'D5', 'A4', 'G#4', 'G4', 'F4', 'D4', 'F4', 'G4',
-    ].map(n => createNote(n, 0.25)),
-  },
-  {
-    id: 'rush_e',
-    name: 'Rush E',
-    composer: 'Sheet Music Boss',
-    notes: [
-      'E4', 'E4', 'E4', 'E4', 'E4', 'E4', 'E4', 'E4',
-      'B4', 'C5', 'D5', 'E5', 'D5', 'C5', 'B4', 'A4',
-      'E4', 'E4', 'E4', 'E4', 'E4', 'E4', 'E4', 'E4',
-      'G#4', 'B4', 'E5', 'D#5', 'E5', 'F#5', 'E5', 'D#5',
-    ].map(n => createNote(n, 0.2)),
-  },
-  {
-    id: 'interstellar',
-    name: 'Interstellar Theme',
-    composer: 'Hans Zimmer',
-    notes: [
-      'A4', 'E5', 'A4', 'E5', 'A4', 'E5', 'A4', 'E5',
-      'B4', 'E5', 'B4', 'E5', 'B4', 'E5', 'B4', 'E5',
-      'C5', 'E5', 'C5', 'E5', 'C5', 'E5', 'C5', 'E5',
-      'D5', 'E5', 'D5', 'E5', 'D5', 'E5', 'D5', 'E5',
-    ].map(n => createNote(n, 0.5)),
-  },
-  {
-    id: 'bad_apple',
-    name: 'Bad Apple!!',
-    composer: 'ZUN',
-    notes: [
-      'D4', 'E4', 'F4', 'G4', 'A4', 'D5', 'C5', 'A4',
-      'D4', 'E4', 'F4', 'G4', 'F4', 'E4', 'D4', 'C4',
-      'D4', 'E4', 'F4', 'G4', 'A4', 'D5', 'C5', 'A4',
-      'F4', 'G4', 'A4', 'G4', 'F4', 'E4', 'D4',
-    ].map(n => createNote(n, 0.3)),
-  },
   // Favorite Celebrations, Soundtracks & Viral Anthems
   {
     id: 'happy_birthday',
@@ -340,72 +279,9 @@ export const BUILTIN_MELODIES: Melody[] = [
     ].map(n => createNote(n, 0.45)),
   },
   {
-    id: 'super_mario',
-    name: 'Super Mario Bros Theme',
-    composer: 'Koji Kondo',
-    notes: [
-      'E5', 'E5', 'E5', 'C5', 'E5', 'G5', 'G4',
-      'C5', 'G4', 'E4', 'A4', 'B4', 'A#4', 'A4',
-      'G4', 'E5', 'G5', 'A5', 'F5', 'G5', 'E5', 'C5', 'D5', 'B4',
-    ].map(n => createNote(n, 0.22)),
-  },
-  {
-    id: 'pirates_caribbean',
-    name: "He's a Pirate (Pirates of the Caribbean)",
-    composer: 'Klaus Badelt & Hans Zimmer',
-    notes: [
-      'D4', 'D4', 'D4', 'E4', 'F4', 'F4', 'F4', 'G4', 'E4', 'E4', 'D4', 'C4', 'C4', 'D4',
-      'D4', 'D4', 'D4', 'E4', 'F4', 'F4', 'F4', 'G4', 'E4', 'E4', 'D4', 'C4', 'D4',
-      'A4', 'C5', 'D5', 'D5', 'D5', 'E5', 'F5', 'F5', 'F5', 'G5', 'E5', 'E5', 'D5', 'C5', 'D5',
-    ].map(n => createNote(n, 0.28)),
-  },
-  {
-    id: 'hedwigs_theme',
-    name: "Hedwig's Theme (Harry Potter)",
-    composer: 'John Williams',
-    notes: [
-      'B4', 'E5', 'G5', 'F#5', 'E5', 'B5', 'A5', 'F#5',
-      'E5', 'G5', 'F#5', 'D#5', 'F5', 'B4',
-      'B4', 'E5', 'G5', 'F#5', 'E5', 'B5', 'D6', 'C#6', 'C6',
-      'G#5', 'C6', 'B5', 'A#5', 'B4', 'G5', 'E5',
-    ].map(n => createNote(n, 0.4)),
-  },
-  {
-    id: 'bad_guy',
-    name: 'Bad Guy',
-    composer: 'Billie Eilish & Finneas',
-    notes: [
-      'G4', 'G4', 'D5', 'C5', 'A#4', 'G4', 'G4', 'D5', 'C5', 'A#4',
-      'G4', 'G4', 'D5', 'C5', 'A#4', 'C5', 'A#4', 'G4', 'F4', 'G4',
-      'G4', 'G4', 'D5', 'C5', 'A#4', 'G4', 'G4', 'D5', 'C5', 'A#4',
-      'G4', 'G4', 'D5', 'C5', 'A#4', 'C5', 'D5', 'A#4', 'G4',
-    ].map(n => createNote(n, 0.28)),
-  },
-  {
-    id: 'believer',
-    name: 'Believer',
-    composer: 'Imagine Dragons',
-    notes: [
-      'A#4', 'A#4', 'A#4', 'A#4', 'A#4', 'G#4', 'F#4', 'F4', 'D#4',
-      'D#4', 'F4', 'F#4', 'F4', 'D#4', 'C#4', 'D#4',
-      'A#4', 'A#4', 'A#4', 'A#4', 'A#4', 'G#4', 'F#4', 'F4', 'D#4',
-      'D#4', 'F4', 'F#4', 'G#4', 'A#4', 'B4', 'A#4', 'G#4', 'F#4',
-    ].map(n => createNote(n, 0.3)),
-  },
-  {
-    id: 'axel_f',
-    name: 'Axel F (Crazy Frog)',
-    composer: 'Harold Faltermeyer',
-    notes: [
-      'F#4', 'A4', 'F#4', 'F#4', 'B4', 'F#4', 'E4',
-      'F#4', 'C#5', 'F#4', 'F#4', 'D5', 'C#5', 'A4',
-      'F#4', 'C#5', 'F#5', 'F#4', 'E4', 'E4', 'C#4', 'G#4', 'F#4',
-    ].map(n => createNote(n, 0.26)),
-  },
-  {
     id: 'bella_ciao',
-    name: 'Bella Ciao',
-    composer: 'Italian Folk Traditional',
+    name: 'Bella Ciao (Italian folk song)',
+    composer: 'Traditional Italian folk song',
     notes: [
       'E4', 'A4', 'B4', 'C5', 'A4',
       'E4', 'A4', 'B4', 'C5', 'A4',
@@ -449,16 +325,6 @@ export const BUILTIN_MELODIES: Melody[] = [
       'C4', 'C4', 'G4', 'G4', 'A4', 'A4', 'G4',
       'F4', 'F4', 'E4', 'E4', 'D4', 'D4', 'C4',
     ].map(n => createNote(n, 0.4)),
-  },
-  {
-    id: 'rickroll',
-    name: 'Never Gonna Give You Up',
-    composer: 'Rick Astley',
-    notes: [
-      'F4', 'G4', 'A#4', 'G4', 'D5', 'D5', 'C5',
-      'F4', 'G4', 'A#4', 'G4', 'C5', 'C5', 'A#4', 'A4', 'G4',
-      'F4', 'G4', 'A#4', 'G4', 'A#4', 'C5', 'A4', 'F4', 'F4', 'C5', 'A#4',
-    ].map(n => createNote(n, 0.32)),
   },
 ];
 

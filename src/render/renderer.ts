@@ -1,7 +1,6 @@
 import { PhysicsWorld } from '../engine/world';
 import { ThemeConfig, THEMES } from './themes';
 import { OverlaySettings, drawOverlays } from './overlays';
-import { ArcRing, Ball } from '../engine/types';
 
 export interface VisualSettings {
   themeId: string;

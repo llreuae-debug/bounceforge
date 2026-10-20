@@ -26,8 +26,6 @@ export const Header: React.FC = () => {
   const {
     currentRoute,
     setRoute,
-    projectName,
-    setProjectName,
     setExportOpen,
     isSettingsOpen,
     setSettingsOpen,

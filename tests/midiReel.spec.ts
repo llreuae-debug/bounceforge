@@ -21,6 +21,7 @@ const starts = (page: Page) => page.evaluate(() => (window as any).__starts as n
 
 async function upload(page: Page, file: string) {
   await page.goto('/midi');
+  await page.getByTestId('midi-rights').check();
   await page.getByTestId('midi-upload').setInputFiles(`tests/fixtures/${file}`);
 }
 

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
-import { ChannelStyleConfig, SignatureMarbleConfig, ReelFormatId } from '../../marble3d/types';
-import { DEFAULT_CHANNEL_STYLE, REEL_FORMATS } from '../../marble3d/formats';
+import { ChannelStyleConfig } from '../../marble3d/types';
+import { DEFAULT_CHANNEL_STYLE } from '../../marble3d/formats';
 import { triggerHaptic } from '../../platform/haptics';
-import { X, Check, Sparkles, Smartphone, Eye, Layers, Palette, Sliders, Hash } from 'lucide-react';
+import { X, Check, Sparkles, Smartphone, Eye, Palette } from 'lucide-react';
 
 interface ChannelStyleModalProps {
   isOpen: boolean;
@@ -118,14 +118,15 @@ export const ChannelStyleModal: React.FC<ChannelStyleModalProps> = ({ isOpen, on
                       <div className="text-[11px] text-slate-400">Viral 3D Marble Reels • 1.4M followers</div>
                     </div>
                   </div>
-                  <button className="px-3 py-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs rounded-full shadow-lg">
+                  {/* Part of the profile mock-up preview (not an action) */}
+                  <span aria-hidden="true" className="px-3 py-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs rounded-full shadow-lg">
                     Follow
-                  </button>
+                  </span>
                 </div>
 
                 {/* 3-Column Reel Covers Grid */}
                 <div className="grid grid-cols-3 gap-2">
-                  {channelStyle.profileCovers.map((cover, idx) => (
+                  {channelStyle.profileCovers.map((cover) => (
                     <div
                       key={cover.id}
                       className="relative aspect-[9/16] rounded-xl overflow-hidden border border-white/10 group cursor-pointer shadow-md bg-slate-900 transition-all hover:scale-[1.02]"

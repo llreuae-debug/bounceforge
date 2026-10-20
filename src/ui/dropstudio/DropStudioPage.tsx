@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bug, Pause, Play, RotateCcw, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { Bug, Pause, Play, RotateCcw, Shuffle, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { Header } from '../Header';
 import { libraryTrack } from '../../dropstudio/library/compile';
 import { findSong, type LibraryInstrument } from '../../dropstudio/library/songs';
@@ -12,6 +12,7 @@ import { analyzeAudioUpload, analyzeMidiUpload, audioToTrack, isAudioFile, isMid
 import type { MidiAnalysis } from '../../midi/types';
 import type { StudioTrack } from '../../dropstudio/track';
 import { PreviewStage, type PreviewQuality } from './PreviewStage';
+import { DropRenderer3D } from '../../dropstudio/render3d';
 import { LibraryPanel } from './LibraryPanel';
 import { StylePanel } from './StylePanel';
 import { ExportPanel } from './ExportPanel';
@@ -21,6 +22,30 @@ import { fmtTime, Panel, SafeBadge, Seg, Slider, Toggle, UserBadge } from './con
 type Tab = 'library' | 'style' | 'sync' | 'export';
 type Uploaded = { kind: 'midi'; analysis: MidiAnalysis } | { kind: 'audio'; up: AudioUpload; name: string };
 type Look = Pick<RenderOptions, 'material' | 'palette' | 'trail' | 'camera'>;
+
+const SAVE_KEY = 'dropstudio:settings:v1';
+interface Saved {
+  trackId: string;
+  style: StyleId;
+  styleOpts: StyleOptions;
+  look: Look;
+  sync: SyncSettings;
+  mix: DropMix;
+  instrument: LibraryInstrument;
+  quality: PreviewQuality;
+}
+function loadSaved(): Partial<Saved> {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    const v = raw ? (JSON.parse(raw) as Partial<Saved>) : {};
+    if (v.trackId && !findSong(v.trackId)) delete v.trackId;
+    if (v.style && !STYLES.some((s) => s.id === v.style)) delete v.style;
+    return v;
+  } catch {
+    return {};
+  }
+}
+const DEBUG = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'library', label: 'MIDI Library' },
@@ -34,11 +59,18 @@ const TABS: { id: Tab; label: string }[] = [
  * animation is generated backwards from the beat — every impact lands on its note or beat.
  */
 export const DropStudioPage: React.FC = () => {
-  const [tab, setTab] = useState<Tab>('library');
-  const [trackId, setTrackId] = useState('moonlight_sonata');
+  const [tab, setTab] = useState<Tab>(() => {
+    const path = typeof window !== 'undefined' ? window.location.pathname.replace(/\/+$/, '') : '';
+    if (/\/(drop-styles|styles)$/.test(path)) return 'style';
+    if (/\/export$/.test(path)) return 'export';
+    return 'library';
+  });
+  const saved = useMemo(loadSaved, []);
+  const [trackId, setTrackId] = useState(saved.trackId ?? 'moonlight_sonata');
   const [uploaded, setUploaded] = useState<Uploaded | null>(null);
   const [startAt, setStartAt] = useState(0);
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [analysisMs, setAnalysisMs] = useState<number | undefined>(undefined);
 
@@ -48,15 +80,16 @@ export const DropStudioPage: React.FC = () => {
     return libraryTrack(trackId);
   }, [uploaded, startAt, trackId]);
 
-  const [sync, setSync] = useState<SyncSettings>(() => defaultSyncFor(libraryTrack('moonlight_sonata')));
-  const [style, setStyle] = useState<StyleId>('classic');
-  const [styleOpts, setStyleOpts] = useState<StyleOptions>(DEFAULT_STYLE_OPTIONS);
-  const [look, setLook] = useState<Look>({ material: 'glass', palette: 'ocean', trail: true, camera: 'static' });
-  const [instrument, setInstrument] = useState<LibraryInstrument>('piano');
-  const [mix, setMix] = useState<DropMix>(DEFAULT_MIX);
+  const [sync, setSync] = useState<SyncSettings>(() => ({ ...defaultSyncFor(libraryTrack(saved.trackId ?? 'moonlight_sonata')), ...saved.sync, beatOverride: null }));
+  const [style, setStyle] = useState<StyleId>(saved.style ?? 'classic');
+  const [styleOpts, setStyleOpts] = useState<StyleOptions>({ ...DEFAULT_STYLE_OPTIONS, ...saved.styleOpts });
+  const [look, setLook] = useState<Look>({ material: 'glass', palette: 'ocean', trail: true, camera: 'static', ...saved.look });
+  const [instrument, setInstrument] = useState<LibraryInstrument>(saved.instrument ?? 'piano');
+  const [mix, setMix] = useState<DropMix>({ ...DEFAULT_MIX, ...saved.mix });
   const [syncCheck, setSyncCheck] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
-  const [quality, setQuality] = useState<PreviewQuality>('fast');
+  const [quality, setQuality] = useState<PreviewQuality>(saved.quality ?? 'fast');
+  const [loop, setLoop] = useState(true);
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(false);
 
@@ -67,8 +100,21 @@ export const DropStudioPage: React.FC = () => {
     libPlayer.dispose();
   }, [player, libPlayer]);
 
+  // Settings persist across reloads (per browser)
+  useEffect(() => {
+    try {
+      const v: Saved = { trackId, style, styleOpts, look, sync: { ...sync, beatOverride: null }, mix, instrument, quality };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(v));
+    } catch {
+      /* storage unavailable */
+    }
+  }, [trackId, style, styleOpts, look, sync, mix, instrument, quality]);
+  useEffect(() => {
+    player.loop = loop;
+  }, [player, loop]);
+
   // New song → its default sync mode and instrument (unless a preset just set them)
-  const skipReset = useRef(false);
+  const skipReset = useRef(saved.trackId !== undefined);
   useEffect(() => {
     if (skipReset.current) {
       skipReset.current = false;
@@ -90,6 +136,11 @@ export const DropStudioPage: React.FC = () => {
     const ms = performance.now() - t0;
     return { impacts, scene, events, ms, syncErr: maxSyncErrorFrames(scene, impacts.t) };
   }, [track, sync, style, styleOpts]);
+
+  // ?debug=1: expose the current scene for QA tooling (preview/export frame comparison)
+  useEffect(() => {
+    if (DEBUG) (window as any).__dropStudio = { scene: gen.scene, impacts: gen.impacts, player, DropRenderer3D };
+  }, [gen, player]);
 
   const audioSrc: PlayerSource = useMemo(
     () => ({ events: gen.events, instrument, duration: track.duration, audio: track.audio ?? null, audioOffset: track.audioOffset ?? 0 }),
@@ -132,13 +183,17 @@ export const DropStudioPage: React.FC = () => {
     try {
       if (isMidiFile(file.name)) {
         setUploadBusy('Reading MIDI…');
+        setUploadProgress(0.5);
         const { analysis, ms } = await analyzeMidiUpload(file);
         setAnalysisMs(ms);
         setStartAt(0);
         setUploaded({ kind: 'midi', analysis });
       } else if (isAudioFile(file.name)) {
-        setUploadBusy('Analysing beats…');
-        const up = await analyzeAudioUpload(file);
+        setUploadBusy('Reading file…');
+        const up = await analyzeAudioUpload(file, (label, f) => {
+          setUploadBusy(label);
+          setUploadProgress(f);
+        });
         setAnalysisMs(up.ms);
         setStartAt(0);
         setUploaded({ kind: 'audio', up, name: file.name });
@@ -150,6 +205,7 @@ export const DropStudioPage: React.FC = () => {
       setUploadError(e?.message || String(e));
     } finally {
       setUploadBusy(null);
+      setUploadProgress(0);
     }
   };
 
@@ -213,6 +269,8 @@ export const DropStudioPage: React.FC = () => {
                 }}
                 onUpload={onUpload}
                 uploadBusy={uploadBusy}
+                uploadProgress={uploadProgress}
+                analysisMs={analysisMs}
                 uploadError={uploadError}
                 startAt={startAt}
                 onStartAt={setStartAt}
@@ -303,7 +361,7 @@ export const DropStudioPage: React.FC = () => {
                 </Panel>
               </div>
             )}
-            {tab === 'export' && <ExportPanel scene={gen.scene} render={renderOpts} audio={audioSrc} mix={mix} track={track} styleName={styleInfo.name} />}
+            {tab === 'export' && <ExportPanel scene={gen.scene} render={renderOpts} audio={audioSrc} mix={mix} track={track} styleName={styleInfo.name} styleId={style} seed={styleOpts.seed} />}
           </div>
 
           {/* Preview */}
@@ -334,6 +392,24 @@ export const DropStudioPage: React.FC = () => {
                   className="rounded-xl p-2.5 border border-white/15"
                 >
                   <RotateCcw className="w-4 h-4" />
+                </button>
+                <button
+                  aria-label={loop ? 'Loop on' : 'Loop off'}
+                  aria-pressed={loop}
+                  data-testid="loop"
+                  onClick={() => setLoop(!loop)}
+                  className={`rounded-xl px-2.5 py-2 text-xs font-bold border ${loop ? 'border-cyan-400 text-cyan-300' : 'border-white/15 text-slate-400'}`}
+                >
+                  Loop
+                </button>
+                <button
+                  aria-label="Regenerate with a new seed"
+                  data-testid="regenerate"
+                  onClick={() => setStyleOpts((o) => ({ ...o, seed: Math.floor(Math.random() * 900000) + 1000 }))}
+                  className="rounded-xl p-2.5 border border-white/15"
+                  title="Regenerate (new random layout, same timing)"
+                >
+                  <Shuffle className="w-4 h-4" />
                 </button>
                 <input
                   type="range"
@@ -375,13 +451,15 @@ export const DropStudioPage: React.FC = () => {
                   <button data-testid="mute" onClick={() => setMix({ ...mix, muted: !mix.muted })} className="rounded-xl px-3 py-1.5 text-xs border border-white/15 flex items-center gap-1">
                     {mix.muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />} {mix.muted ? 'Muted' : 'Mute'}
                   </button>
+                  {DEBUG && (
                   <button data-testid="debug-toggle" onClick={() => setShowDebug(!showDebug)} className={`rounded-xl px-3 py-1.5 text-xs border flex items-center gap-1 ${showDebug ? 'border-lime-400 text-lime-300' : 'border-white/15'}`}>
                     <Bug className="w-3.5 h-3.5" /> Debug
                   </button>
+                  )}
                 </div>
               </div>
               <p className="text-[11px] text-slate-500 text-center" data-testid="gen-stats">
-                {styleInfo.name} · {gen.impacts.t.length} impacts · generated in {gen.ms.toFixed(1)} ms · max sync error {gen.syncErr.toFixed(2)} frames
+                {styleInfo.name} · seed {styleOpts.seed} · {gen.impacts.t.length} impacts · generated in {gen.ms.toFixed(1)} ms · max sync error {gen.syncErr.toFixed(2)} frames
               </p>
             </div>
           </div>

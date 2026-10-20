@@ -85,7 +85,6 @@ export function generateSocialCopy(modeName: string, hookLine: string = 'can it 
  */
 export function getBatchVariation(
   batchIndex: number,
-  modeId: string,
   usedSeeds: Set<number>
 ): { seed: number; hookText: string; themeId: string; melodyId: string } {
   // Generate high-tension unique seed

@@ -7,8 +7,6 @@ import {
   Sparkles,
   TrendingUp,
   Clock,
-  FileText,
-  ShieldCheck,
   CheckCircle2,
 } from 'lucide-react';
 import { SeoPack, formatSeoPackAsText } from '../../ai/seoEngine';

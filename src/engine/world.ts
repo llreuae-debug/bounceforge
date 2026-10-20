@@ -6,10 +6,8 @@ import {
   Peg,
   Particle,
   Shockwave,
-  CollisionEvent,
   PhysicsWorldConfig,
   SimulationStats,
-  Vector2D,
   BreakEffectType,
 } from './types';
 import { Mulberry32 } from './prng';

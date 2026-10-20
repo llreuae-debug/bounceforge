@@ -1,7 +1,7 @@
 import React from 'react';
 import { Header } from '../Header';
 import { Footer } from '../Footer';
-import { ShieldAlert, AlertCircle, CheckCircle2, Scale } from 'lucide-react';
+import { Scale } from 'lucide-react';
 
 export const DisclaimerPage: React.FC = () => {
   return (

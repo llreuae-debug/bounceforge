@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, RotateCcw, Heart, Check, ChevronDown, ChevronUp, AlertCircle, Shuffle } from 'lucide-react';
-import { AiService, AiUserSettings } from '../../ai/aiService';
+import { Sparkles, RotateCcw, Heart, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { AiService } from '../../ai/aiService';
 import { HookStyle, SupportedLanguage, fitsSafeLineLimit } from '../../ai/offlineEngine';
 import { useStudioStore } from '../../store/useStudioStore';
 

@@ -11,7 +11,6 @@ import {
   Trash2,
   CopyPlus,
   Play,
-  Sparkles,
   ArrowRight,
   Clock,
   Calendar,

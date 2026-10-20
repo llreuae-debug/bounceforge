@@ -257,9 +257,16 @@ html, body, #root {
 
 /* Touch Targets: minimum 44px tap area on touch devices */
 @media (pointer: coarse) {
-  button, a, input[type="checkbox"], input[type="radio"] {
-    min-height: 40px;
+  button, a, input[type="checkbox"], input[type="radio"], select {
+    min-height: 44px;
     touch-action: manipulation;
+  }
+  button, a {
+    min-width: 44px;
+  }
+  input[type="checkbox"], input[type="radio"] {
+    min-width: 22px;
+    min-height: 22px;
   }
 }
 

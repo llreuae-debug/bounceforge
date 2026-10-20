@@ -4,7 +4,7 @@ import { SeedFinderService } from '../../search/seedFinderService';
 import { CandidateResult } from '../../search/simulate';
 import { getTargetWindow } from '../../engine/duration';
 import { DurationPicker } from '../components/DurationPicker';
-import { X, Search, Check, Flame, Clock, Play, RotateCcw } from 'lucide-react';
+import { X, Search, Flame, Clock, Play } from 'lucide-react';
 
 export const SeedFinderModal: React.FC = () => {
   const {

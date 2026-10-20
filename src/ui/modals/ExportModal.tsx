@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { useAuthStore } from '../../auth/useAuthStore';
-import { VideoExporter, ExportProgress, checkGpu4KCapability } from '../../export/videoExporter';
+import { VideoExporter, ExportProgress } from '../../export/videoExporter';
 import {
   X,
   Download,
@@ -10,14 +10,7 @@ import {
   AlertCircle,
   Image as ImageIcon,
   CheckCircle2,
-  Zap,
-  HardDrive,
-  Share2,
   BatteryWarning,
-  PauseCircle,
-  Smartphone,
-  Copy,
-  Check,
   Layers,
   FileArchive,
   RotateCcw,
@@ -25,12 +18,11 @@ import {
 } from 'lucide-react';
 import { checkBatteryStatus, BatteryInfo } from '../../platform/battery';
 import { triggerHaptic } from '../../platform/haptics';
-import { generateSocialCopy, getBatchVariation, createBatchZip, SocialCopy } from '../../export/creatorTools';
+import { getBatchVariation, createBatchZip } from '../../export/creatorTools';
 import { BUILTIN_THEMES } from '../../render/themes';
 import { BUILTIN_MELODIES, resolveSelectedMelodyId } from '../../audio/melodies';
 import { AiService } from '../../ai/aiService';
 import { generateSeoPack, SeoPack, formatSeoPackAsText } from '../../ai/seoEngine';
-import { copyText } from '../../platform/clipboard';
 import { SeoPackViewer } from '../components/SeoPackViewer';
 import { exportHistoryService } from '../../export/exportHistoryService';
 import { AudioEngine } from '../../audio/audioEngine';
@@ -58,7 +50,6 @@ export const ExportModal: React.FC = () => {
     ballPhysics,
     wallControls,
     customBall,
-    capabilities,
     showToast,
     setWhatNextOpen,
     setTrendsAdminOpen,
@@ -99,10 +90,8 @@ export const ExportModal: React.FC = () => {
   const [exportError, setExportError] = useState<string | null>(null);
 
   const exporterRef = useRef<VideoExporter | null>(null);
-  const gpuInfo = checkGpu4KCapability();
   const hasFilePicker = typeof window !== 'undefined' && 'showSaveFilePicker' in window;
 
-  const socialCopy: SocialCopy = generateSocialCopy(currentModeId, overlays.titleText);
 
   // Detect file share capability and battery
   useEffect(() => {
@@ -136,13 +125,6 @@ export const ExportModal: React.FC = () => {
     showToast(`applied ${platform} preset (1080x1920 60fps)`);
   };
 
-  const handleCopy = async (field: 'title' | 'caption' | 'hashtags', text: string) => {
-    const ok = await copyText(text);
-    setCopiedField(field);
-    triggerHaptic(10);
-    showToast(ok ? `copied ${field} to clipboard` : `could not copy ${field} automatically`);
-    setTimeout(() => setCopiedField(null), 2000);
-  };
 
   const handleMakeAnother = () => {
     const newSeed = Math.floor(Math.random() * 900000) + 1000;
@@ -355,7 +337,7 @@ export const ExportModal: React.FC = () => {
 
     for (let i = 0; i < totalToMake; i++) {
       setBatchCurrentIndex(i + 1);
-      const variation = getBatchVariation(i, currentModeId, usedSeeds);
+      const variation = getBatchVariation(i, usedSeeds);
 
       const theme = BUILTIN_THEMES.find((t) => t.id === variation.themeId) || BUILTIN_THEMES[0];
       const melody = BUILTIN_MELODIES.find((m) => m.id === variation.melodyId) || BUILTIN_MELODIES[0];
@@ -433,20 +415,6 @@ export const ExportModal: React.FC = () => {
     exporterRef.current = null;
   };
 
-  const handleShareVideo = async () => {
-    if (!exportBlob) return;
-    try {
-      const file = new File([exportBlob], exportFilename || 'bounceforge_video.mp4', { type: 'video/mp4' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'BounceForge Viral Reel',
-          text: 'Rendered with BounceForge Studio',
-        });
-        triggerHaptic(15);
-      }
-    } catch {}
-  };
 
   const handleCancel = () => {
     if (exporterRef.current) {
@@ -468,9 +436,6 @@ export const ExportModal: React.FC = () => {
     setExportOpen(false);
   };
 
-  const canDo4K = capabilities
-    ? capabilities.supportedCodecs.h264_4k30 || capabilities.supportedCodecs.h264_4k60
-    : gpuInfo.canDo4K;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none">

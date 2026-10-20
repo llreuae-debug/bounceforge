@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Globe,
   Search,
@@ -8,10 +8,8 @@ import {
   Sparkles,
   Download,
   Upload,
-  Check,
   Languages,
   Eye,
-  Filter,
 } from 'lucide-react';
 import {
   SupportedLanguage,
@@ -20,7 +18,7 @@ import {
   ALL_NAMESPACES,
   TranslationNamespace,
 } from '../../i18n/config';
-import { useI18n, getMissingKeysReport } from '../../i18n';
+import { useI18n } from '../../i18n';
 import { EN_BUNDLE } from '../../locales';
 
 interface TranslationItem {

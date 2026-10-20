@@ -2,7 +2,7 @@ import React from 'react';
 import { useContentStore } from '../../content/contentStore';
 import { Header } from '../Header';
 import { Footer } from '../Footer';
-import { Clock, ArrowLeft, ArrowRight, Share2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Clock, ArrowLeft, Share2, Sparkles } from 'lucide-react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { copyText } from '../../platform/clipboard';
 

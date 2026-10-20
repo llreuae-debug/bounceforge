@@ -1,6 +1,5 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { CollisionEvent } from '../engine/types';
 
 export const TargetMode: SimulationMode = {
   id: 'target',

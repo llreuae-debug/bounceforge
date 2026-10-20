@@ -8,7 +8,7 @@ import { AsmrMixSettings } from '../audio/asmrEngine';
 import { ScaleName, MusicMood, BackingGenre, GenerativeMusicEngine } from '../audio/generativeMusic';
 import { AudioEngine } from '../audio/audioEngine';
 import { THEMES } from '../render/themes';
-import { getDefaults, isModeAtDefault } from '../modes/defaults';
+import { getDefaults } from '../modes/defaults';
 import { DEFAULT_TARGET_DURATION } from '../engine/duration';
 import { QualityMode, QualityTier } from '../platform/quality';
 import { DeviceCapabilities } from '../platform/capabilities';
@@ -56,6 +56,7 @@ export type StudioRoute =
   | 'faq'
   | 'terms'
   | 'privacy'
+  | 'credits'
   | 'contact'
   | 'pricing'
   | 'account'
@@ -374,6 +375,7 @@ export const useStudioStore = create<StudioState>((set, get) => {
           disclaimer: '/disclaimer',
           midi_studio: '/midi',
           drop_studio: '/drops',
+          credits: '/credits',
           '404': '/404',
         };
         const targetPath = pathMap[route] || '/';

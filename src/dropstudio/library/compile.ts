@@ -46,7 +46,6 @@ function makeClock(song: SongDef, totalBeats: number) {
 export function compileSong(song: SongDef, reelSeconds = REEL_SECONDS): StudioTrack {
   const { body, intro } = lanesOf(song);
   const introBeats = intro[0]?.length ?? 0;
-  const bodyBeats = body[0].length;
   const avgBpm = song.accel ? (song.accel[0] + song.accel[1]) / 2 : song.bpm;
   // Enough repeats to reach the reel length, rounded up to whole bars
   const beatsNeeded = Math.ceil(((reelSeconds * avgBpm) / 60 - introBeats) / song.beatsPerBar) * song.beatsPerBar + introBeats;

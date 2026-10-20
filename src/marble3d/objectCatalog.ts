@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TunedObjectType, TunedObjectInstance, DecorInstance, EmbossedHandleInstance, EmbossedWallTextInstance } from './types';
+import { TunedObjectInstance, DecorInstance, EmbossedHandleInstance, EmbossedWallTextInstance } from './types';
 import { MarbleMaterialLibrary } from './materials';
 
 export class ObjectCatalog3D {

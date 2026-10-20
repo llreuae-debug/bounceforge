@@ -96,7 +96,7 @@ export const PreviewStage: React.FC<Props> = ({ scene, opts, player, quality, sh
         onTimeRef.current(t);
         if (dbgEl.current) {
           const d = debugRef.current;
-          dbgEl.current.textContent = `${fps.toFixed(0)} fps · ${r3d.current ? 'WebGL 3D' : '2D'} ${w}×${h}\ngenerate ${d.genMs.toFixed(1)} ms · ${d.impacts} impacts\nsync error ≤ ${d.syncErrFrames.toFixed(2)} frames${d.analysisMs !== undefined ? `\nanalysis ${d.analysisMs.toFixed(0)} ms` : ''}`;
+          dbgEl.current.textContent = `${fps.toFixed(0)} fps · ${r3d.current ? 'WebGL 3D' : '2D'} ${w}×${h}\ngenerate ${d.genMs.toFixed(1)} ms · ${d.impacts} impacts\nsync error ≤ ${d.syncErrFrames.toFixed(2)} frames\nactive voices ${player.activeVoices()}${d.analysisMs !== undefined ? `\nanalysis ${d.analysisMs.toFixed(0)} ms` : ''}`;
         }
       }
     };

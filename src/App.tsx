@@ -4,22 +4,25 @@ import { useAuthStore } from './auth/useAuthStore';
 import { affiliateService } from './affiliates/affiliateService';
 import { LandingPage } from './ui/LandingPage';
 import { Header } from './ui/Header';
-import { FaqPage } from './ui/pages/FaqPage';
-import { TermsPage } from './ui/pages/TermsPage';
-import { PrivacyPage } from './ui/pages/PrivacyPage';
-import { ContactPage } from './ui/pages/ContactPage';
 import { NotFoundPage } from './ui/pages/NotFoundPage';
-import { AffiliateTermsPage } from './ui/pages/AffiliateTermsPage';
-import { RefundPolicyPage } from './ui/pages/RefundPolicyPage';
-import { CheckoutSuccessPage } from './ui/pages/CheckoutSuccessPage';
-import { CheckoutCancelPage } from './ui/pages/CheckoutCancelPage';
-import { AboutPage } from './ui/pages/AboutPage';
-import { ShowcasePage } from './ui/pages/ShowcasePage';
-import { FeedbackPage } from './ui/pages/FeedbackPage';
-import { DisclaimerPage } from './ui/pages/DisclaimerPage';
-import { BackgroundSimulator3D } from './render3d/background3d';
+import type { BackgroundSimulator3D } from './render3d/background3d';
+import { startWhenIdleAndVisible } from './ui/hooks/deferredStart';
 
 // Code-split heavy routes so Landing, FAQ, Terms load immediately without 3D simulation or Admin bundles
+// Content pages are small but add up: load them on demand too
+const FaqPage = React.lazy(() => import('./ui/pages/FaqPage').then((m) => ({ default: m.FaqPage })));
+const TermsPage = React.lazy(() => import('./ui/pages/TermsPage').then((m) => ({ default: m.TermsPage })));
+const PrivacyPage = React.lazy(() => import('./ui/pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })));
+const CreditsPage = React.lazy(() => import('./ui/pages/CreditsPage').then((m) => ({ default: m.CreditsPage })));
+const ContactPage = React.lazy(() => import('./ui/pages/ContactPage').then((m) => ({ default: m.ContactPage })));
+const AffiliateTermsPage = React.lazy(() => import('./ui/pages/AffiliateTermsPage').then((m) => ({ default: m.AffiliateTermsPage })));
+const RefundPolicyPage = React.lazy(() => import('./ui/pages/RefundPolicyPage').then((m) => ({ default: m.RefundPolicyPage })));
+const CheckoutSuccessPage = React.lazy(() => import('./ui/pages/CheckoutSuccessPage').then((m) => ({ default: m.CheckoutSuccessPage })));
+const CheckoutCancelPage = React.lazy(() => import('./ui/pages/CheckoutCancelPage').then((m) => ({ default: m.CheckoutCancelPage })));
+const AboutPage = React.lazy(() => import('./ui/pages/AboutPage').then((m) => ({ default: m.AboutPage })));
+const ShowcasePage = React.lazy(() => import('./ui/pages/ShowcasePage').then((m) => ({ default: m.ShowcasePage })));
+const FeedbackPage = React.lazy(() => import('./ui/pages/FeedbackPage').then((m) => ({ default: m.FeedbackPage })));
+const DisclaimerPage = React.lazy(() => import('./ui/pages/DisclaimerPage').then((m) => ({ default: m.DisclaimerPage })));
 const Studio = React.lazy(() => import('./ui/Studio').then((m) => ({ default: m.Studio })));
 const MyVideosPage = React.lazy(() => import('./ui/pages/MyVideosPage').then((m) => ({ default: m.MyVideosPage })));
 const PricingPage = React.lazy(() => import('./ui/pages/PricingPage').then((m) => ({ default: m.PricingPage })));
@@ -54,7 +57,11 @@ export const parsePathWithLocale = (
 
   const clean = '/' + segments.join('/');
   if (clean === '/' || clean === '') return { lang, route: 'landing' };
-  if (clean === '/studio') return { lang, route: 'studio' };
+  if (clean === '/studio' || clean === '/create') return { lang, route: 'studio' };
+  if (clean === '/help') return { lang, route: 'faq' };
+  if (clean === '/credits' || clean === '/licenses') return { lang, route: 'credits' };
+  // Drop Studio deep links open the matching tab
+  if (['/library', '/midi-library', '/drop-styles', '/styles', '/presets', '/export'].includes(clean)) return { lang, route: 'drop_studio' };
   if (clean === '/midi' || clean === '/midi-studio') return { lang, route: 'midi_studio' };
   if (clean === '/drops' || clean === '/drop-studio') return { lang, route: 'drop_studio' };
   if (clean === '/my-videos' || clean === '/videos') return { lang, route: 'my_videos' };
@@ -118,11 +125,20 @@ export const App: React.FC = () => {
   }, [initAuth, openAuthModal, setRoute]);
 
   // Initialize App-Wide Lightweight 3D Background
+  // (loaded after the page is idle so three.js stays out of the first load)
   useEffect(() => {
-    if (bgCanvasRef.current && !bgSimRef.current) {
-      bgSimRef.current = new BackgroundSimulator3D(bgCanvasRef.current);
-    }
+    const canvas = bgCanvasRef.current;
+    if (!canvas) return;
+    let disposed = false;
+    const cleanup = startWhenIdleAndVisible(canvas, () => {
+      void import('./render3d/background3d').then(({ BackgroundSimulator3D }) => {
+        if (!disposed && !bgSimRef.current) bgSimRef.current = new BackgroundSimulator3D(canvas);
+      });
+      return () => {};
+    });
     return () => {
+      disposed = true;
+      cleanup();
       if (bgSimRef.current) {
         bgSimRef.current.destroy();
         bgSimRef.current = null;
@@ -259,6 +275,7 @@ export const App: React.FC = () => {
           {currentRoute === 'faq' && <FaqPage />}
           {currentRoute === 'terms' && <TermsPage />}
           {currentRoute === 'privacy' && <PrivacyPage />}
+          {currentRoute === 'credits' && <CreditsPage />}
           {currentRoute === 'contact' && <ContactPage />}
           {currentRoute === '404' && <NotFoundPage />}
         </React.Suspense>

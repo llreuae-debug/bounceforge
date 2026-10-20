@@ -1,6 +1,5 @@
 import { PhysicsWorld } from './world';
 import { ALL_MODES, getModeById } from '../modes/registry';
-import { Mulberry32 } from './prng';
 
 export function runAcceptanceTests() {
   console.log('=== RUNNING BOUNCEFORGE ACCEPTANCE TESTS ===');

@@ -1,4 +1,4 @@
-import { AutoViralTitles, MarbleMelodyConfig, ReelFormatId } from './types';
+import { AutoViralTitles, ReelFormatId } from './types';
 import { SupportedLanguage } from '../i18n/config';
 
 // Blacklisted keywords (copyrighted cartoons, pop songs, pop stars, movie characters, protected brands)

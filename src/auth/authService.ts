@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { getSupabase, isSupabaseConfigured } from './supabaseClient';
 import { UserProfile, UserSession, AuditLogEntry } from './types';
 
 const STORAGE_KEY_SESSION = 'bounceforge_auth_session';
@@ -161,6 +161,7 @@ class AuthService {
 
   // 1. Sign in with Google
   async signInWithGoogle(): Promise<{ session: UserSession; isNewUser: boolean }> {
+    const supabase = await getSupabase();
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.auth.signInWithOAuth({
@@ -215,6 +216,7 @@ class AuthService {
     fullName: string,
     referredBy?: string
   ): Promise<{ session: UserSession; requiresVerification: boolean }> {
+    const supabase = await getSupabase();
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.auth.signUp({
@@ -284,6 +286,7 @@ class AuthService {
 
   // 3. Sign in with Email + Password
   async signInWithEmail(email: string, _pass: string): Promise<UserSession> {
+    const supabase = await getSupabase();
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -343,6 +346,7 @@ class AuthService {
 
   // 4. Magic Link (Passwordless)
   async signInWithMagicLink(email: string): Promise<void> {
+    const supabase = await getSupabase();
     if (isSupabaseConfigured && supabase) {
       await supabase.auth.signInWithOtp({
         email,
@@ -380,8 +384,8 @@ class AuthService {
 
   // Sign out
   signOut(): void {
-    if (isSupabaseConfigured && supabase) {
-      supabase.auth.signOut().catch(() => {});
+    if (isSupabaseConfigured) {
+      void getSupabase().then((supabase) => supabase?.auth.signOut().catch(() => {}));
     }
     localStorage.removeItem(STORAGE_KEY_SESSION);
   }

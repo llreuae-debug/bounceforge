@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { useAuthStore } from '../../auth/useAuthStore';
 import { BUILTIN_THEMES } from '../../render/themes';
@@ -21,7 +21,6 @@ import {
   ChevronUp,
   Activity,
   X,
-  Settings,
 } from 'lucide-react';
 import { SettingsPanel } from './SettingsPanel';
 
@@ -72,17 +71,7 @@ export const EssentialControls: React.FC<EssentialControlsProps> = ({ className,
   const activeMelodyId = modeSettings.melodyId || audioSettings.selectedMelodyId || 'toybox_run';
   const melodyList = [
     { id: 'happy_birthday', name: '🎂 Happy Birthday to You' },
-    { id: 'super_mario', name: '🍄 Super Mario Bros Theme' },
-    { id: 'pirates_caribbean', name: "⚔️ He's a Pirate (Pirates)" },
-    { id: 'hedwigs_theme', name: "⚡ Hedwig's Theme (Harry Potter)" },
-    { id: 'bad_guy', name: '🕶️ Bad Guy (Billie Eilish)' },
-    { id: 'believer', name: '⚡ Believer (Imagine Dragons)' },
-    { id: 'axel_f', name: '🐸 Axel F (Crazy Frog)' },
-    { id: 'bella_ciao', name: '🎭 Bella Ciao (Money Heist)' },
-    { id: 'coffin_dance', name: '⚰️ Coffin Dance (Astronomia)' },
-    { id: 'megalovania', name: '💀 Megalovania (Undertale)' },
-    { id: 'rickroll', name: '🕺 Never Gonna Give You Up' },
-    { id: 'interstellar', name: '🌌 Interstellar Theme' },
+    { id: 'bella_ciao', name: '🎭 Bella Ciao (Italian folk song)' },
     { id: 'toybox_run', name: 'Pastel Toybox Run (Original)' },
     { id: 'birthday_bells_orig', name: '🎉 Birthday Bells Fanfare (Original)' },
     { id: 'twinkle_star', name: 'Twinkle Twinkle Little Star' },

@@ -92,7 +92,7 @@ export const GeometricNexusMode: SimulationMode = {
     world.config.gravity = { x: 0, y: 450 };
   },
 
-  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
+  step: (world: PhysicsWorld, dt: number) => {
     const arena = world.arena;
     for (const ball of world.balls) {
       const distToCenter = Math.hypot(ball.x - arena.centerX, ball.y - arena.centerY);

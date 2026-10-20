@@ -1,6 +1,5 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { CollisionEvent } from '../engine/types';
 
 export const DestructionMode: SimulationMode = {
   id: 'destruction',
@@ -91,7 +90,7 @@ export const DestructionMode: SimulationMode = {
       restitution: 0.99,
     });
   },
-  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
+  step: (world: PhysicsWorld, dt: number) => {
     world.customState.angle += world.customState.angularVelocity * dt;
     const cx = world.customState.cx;
     const cy = world.customState.cy;

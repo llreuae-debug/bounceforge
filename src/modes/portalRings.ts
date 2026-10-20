@@ -1,6 +1,5 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { Vector2D } from '../engine/types';
 import { AsmrEngine } from '../audio/asmrEngine';
 
 export interface PortalNode {

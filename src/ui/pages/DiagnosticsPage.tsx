@@ -12,11 +12,9 @@ import {
   Cpu,
   Gauge,
   CheckCircle2,
-  XCircle,
   Copy,
   Check,
   Play,
-  RotateCcw,
   Zap,
   ShieldCheck,
   Layers,
@@ -25,7 +23,7 @@ import { triggerHaptic } from '../../platform/haptics';
 import { copyText } from '../../platform/clipboard';
 
 export const DiagnosticsPage: React.FC = () => {
-  const { setRoute, setQualityMode, qualityMode, showToast, setSoundCheckOpen, setExportSoundCheckOpen } = useStudioStore();
+  const { setRoute, showToast, setSoundCheckOpen, setExportSoundCheckOpen } = useStudioStore();
   const [caps, setCaps] = useState<DeviceCapabilities | null>(null);
   const [copied, setCopied] = useState(false);
   const [benchmarking, setBenchmarking] = useState(false);

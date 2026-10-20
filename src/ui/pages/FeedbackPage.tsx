@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   Send,
   X,
-  Sparkles,
 } from 'lucide-react';
 import { triggerHaptic } from '../../platform/haptics';
 

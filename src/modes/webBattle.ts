@@ -1,6 +1,5 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { Vector2D } from '../engine/types';
 
 interface WebThread {
   ballId: number;

@@ -1170,7 +1170,7 @@ export function generateOfflineHooks(options: HookGenerationOptions): string[] {
 /**
  * Generates offline labels for counters, end card CTAs, and contestant names
  */
-export function generateOfflineLabels(type: 'counter' | 'end_card_cta' | 'contestant_names', modeName: string): string[] {
+export function generateOfflineLabels(type: 'counter' | 'end_card_cta' | 'contestant_names'): string[] {
   if (type === 'counter') {
     return [
       'rings left to clear',

@@ -1,4 +1,4 @@
-import { Ball, ArcRing, LineSegment, Vector2D, CollisionEvent } from './types';
+import { Ball, ArcRing, LineSegment, CollisionEvent } from './types';
 
 /**
  * Normalizes an angle into [-PI, PI]

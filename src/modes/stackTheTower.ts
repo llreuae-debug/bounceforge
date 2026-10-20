@@ -1,6 +1,5 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { CollisionEvent } from '../engine/types';
 
 export const StackTheTowerMode: SimulationMode = {
   id: 'stack_the_tower',
@@ -93,7 +92,7 @@ export const StackTheTowerMode: SimulationMode = {
       glowColor: '#00f0ff',
     });
   },
-  step: (world: PhysicsWorld, dt: number) => {
+  step: (world: PhysicsWorld) => {
     const arena = world.getSafeArena();
     const cx = arena.centerX;
     const { nextDropTime, dropInterval, droppedSoFar, totalToDrop } = world.customState;

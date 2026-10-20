@@ -2,20 +2,7 @@ import React from 'react';
 import { useStudioStore } from '../store/useStudioStore';
 import { Logo } from '../brand/Logo';
 import {
-  Sparkles,
-  Zap,
   Play,
-  Download,
-  Music,
-  Compass,
-  Box,
-  Layers,
-  ArrowUpRight,
-  ShieldCheck,
-  Cpu,
-  Code2,
-  Video,
-  Radio,
   ExternalLink,
 } from 'lucide-react';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
@@ -391,6 +378,33 @@ export const Footer: React.FC = () => {
               className="hover:text-white transition-colors cursor-pointer"
             >
               Privacy
+            </button>
+            <button
+              onClick={() => {
+                setRoute('credits');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Credits &amp; Licenses
+            </button>
+            <button
+              onClick={() => {
+                setRoute('drop_studio');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Drop Studio 3D
+            </button>
+            <button
+              onClick={() => {
+                setRoute('midi_studio');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              MIDI → Reel
             </button>
             <button
               onClick={() => {

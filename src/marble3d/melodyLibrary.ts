@@ -1,5 +1,5 @@
 import * as ToneMidi from '@tonejs/midi';
-import { MelodyNote, MelodyCopyrightInfo } from './types';
+import { MelodyNote } from './types';
 
 const Midi = (ToneMidi as any).Midi || (ToneMidi as any).default || ToneMidi;
 

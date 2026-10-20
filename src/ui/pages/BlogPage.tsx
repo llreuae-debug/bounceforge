@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useContentStore } from '../../content/contentStore';
 import { Header } from '../Header';
 import { Footer } from '../Footer';
-import { ArticleCategory } from '../../content/articles';
-import { Sparkles, ArrowRight, Clock, User, Search } from 'lucide-react';
+import { Sparkles, ArrowRight, Clock, Search } from 'lucide-react';
 
 export const BlogPage: React.FC = () => {
   const { articles } = useContentStore();

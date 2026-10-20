@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { CURATED_TEMPLATES, CATEGORIES, CuratedTemplate, TemplateCategory } from '../../templates/curatedTemplates';
-import { Search, Sparkles, Flame, Clock, Play, X, Music, Shield, Gem, Smile, Moon, Swords, Sliders } from 'lucide-react';
+import { Search, Sparkles, Flame, Clock, X, Music, Gem, Smile, Moon, Swords, Sliders } from 'lucide-react';
 import { triggerHaptic } from '../../platform/haptics';
 
 export interface ModeGalleryProps {
@@ -15,13 +15,10 @@ export const ModeGallery: React.FC<ModeGalleryProps> = ({ className, onClose, on
   const {
     currentModeId,
     setMode,
-    modeSettings,
-    updateModeSetting,
     applyPreset,
     surpriseMe,
     setReelSpeed,
     setTargetDuration,
-    reelSpeed,
     setSettingsOpen,
     showToast,
   } = useStudioStore();

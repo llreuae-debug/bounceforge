@@ -1,7 +1,6 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
 import { reelLength } from '../engine/pacing';
-import { CollisionEvent } from '../engine/types';
 import { AsmrEngine } from '../audio/asmrEngine';
 
 export interface TargetSegment {

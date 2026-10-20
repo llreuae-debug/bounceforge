@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../../auth/useAuthStore';
 import { useStudioStore } from '../../store/useStudioStore';
-import { Sparkles, ArrowRight, Music, Sliders, Download, Check, X, Film, Play } from 'lucide-react';
+import { ArrowRight, Sliders, Download, X, Film } from 'lucide-react';
 import { triggerHaptic } from '../../platform/haptics';
 
 export const OnboardingModal: React.FC = () => {

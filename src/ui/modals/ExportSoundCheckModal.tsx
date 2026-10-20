@@ -8,11 +8,7 @@ import {
   Download,
   CheckCircle2,
   XCircle,
-  Activity,
-  Volume2,
   RotateCcw,
-  Sparkles,
-  Music,
   Headphones,
 } from 'lucide-react';
 import { triggerHaptic } from '../../platform/haptics';

@@ -236,7 +236,7 @@ export class AiService {
     } catch {}
 
     return {
-      options: generateOfflineLabels(type, modeName),
+      options: generateOfflineLabels(type),
       isAi: false,
     };
   }

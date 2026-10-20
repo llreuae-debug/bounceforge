@@ -121,7 +121,7 @@ export const ProceduralAIMode: SimulationMode = {
     world.customState.lastSpawn = 0;
   },
 
-  step: (world: PhysicsWorld, dt: number, settings: Record<string, any>) => {
+  step: (world: PhysicsWorld, dt: number) => {
     world.customState.lastSpawn = (world.customState.lastSpawn || 0) + dt;
     if (world.customState.lastSpawn > 1.2 && world.balls.length < 32) {
       world.customState.lastSpawn = 0;

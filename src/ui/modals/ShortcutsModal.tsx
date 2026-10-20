@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
-import { X, Command, Keyboard } from 'lucide-react';
+import { X, Keyboard } from 'lucide-react';
 
 export const ShortcutsModal: React.FC = () => {
   const { isShortcutsOpen, setShortcutsOpen } = useStudioStore();

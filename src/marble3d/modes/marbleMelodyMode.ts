@@ -4,7 +4,16 @@ import { CollisionEvent } from '../../engine/types';
 import { MARBLE_MELODY_PRESETS, PASTEL_MARBLE_MUSIC_RUN_PRESETS, DEFAULT_MARBLE_MELODY_CONFIG } from '../presets';
 import { MusicToLayoutSolver } from '../musicSolver';
 import { MarbleMelodyConfig } from '../types';
-import { MarbleMelodyRenderer } from '../MarbleMelodyRenderer';
+import type { MarbleMelodyRenderer } from '../MarbleMelodyRenderer';
+
+// The Three.js renderer is loaded on demand (keeps three.js out of the first page load)
+type RendererCtor = new () => MarbleMelodyRenderer;
+let RendererClass: RendererCtor | null = null;
+let rendererLoading: Promise<RendererCtor> | null = null;
+export function loadMarbleRenderer(): Promise<RendererCtor> {
+  if (!rendererLoading) rendererLoading = import('../MarbleMelodyRenderer').then((m) => (RendererClass = m.MarbleMelodyRenderer));
+  return rendererLoading;
+}
 
 export const MarbleMelodyMode: SimulationMode = {
   id: 'marble_melody_3d',
@@ -74,22 +83,28 @@ export const MarbleMelodyMode: SimulationMode = {
     world.customState.hitsSoFar = 0;
     world.customState.counterValue = `0/${run.objects.length}`;
 
-    // Instantiate and prepare 3D Three.js renderer
-    const renderer3D = new MarbleMelodyRenderer();
-    renderer3D.loadRun(run);
-    world.customState.renderer3D = renderer3D;
-
+    // Instantiate and prepare the 3D Three.js renderer (loaded on demand the first time)
     // Offscreen render canvas for blitting to 2D canvas context
     const offCanvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
-    if (offCanvas) {
-      offCanvas.width = world.width || 1080;
-      offCanvas.height = world.height || 1920;
-      renderer3D.attachCanvas(offCanvas);
-    }
+    const attach = (Ctor: RendererCtor) => {
+      if (world.customState.marbleMelodyRun !== run) return; // a newer setup replaced this run
+      const renderer3D = new Ctor();
+      renderer3D.loadRun(run);
+      world.customState.renderer3D = renderer3D;
+      if (offCanvas) {
+        offCanvas.width = world.width || 1080;
+        offCanvas.height = world.height || 1920;
+        renderer3D.attachCanvas(offCanvas);
+      }
+    };
+    world.customState.renderer3D = null;
+    if (RendererClass) attach(RendererClass);
+    else void loadMarbleRenderer().then(attach);
 
     world.customState.onRenderFg = (ctx: CanvasRenderingContext2D, w: PhysicsWorld) => {
       const t = w.customState.currentTime || 0;
-      if (offCanvas) {
+      const renderer3D: MarbleMelodyRenderer | null = w.customState.renderer3D;
+      if (offCanvas && renderer3D) {
         if (offCanvas.width !== w.width || offCanvas.height !== w.height) {
           offCanvas.width = w.width;
           offCanvas.height = w.height;

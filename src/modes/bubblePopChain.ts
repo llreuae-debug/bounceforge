@@ -1,6 +1,5 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { CollisionEvent } from '../engine/types';
 import { reelLength } from '../engine/pacing';
 
 export const BubblePopChainMode: SimulationMode = {

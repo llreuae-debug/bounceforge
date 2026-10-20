@@ -24,6 +24,8 @@ interface Props {
   onPick: (id: string) => void;
   onUpload: (file: File) => void;
   uploadBusy: string | null;
+  uploadProgress: number;
+  analysisMs?: number;
   uploadError: string | null;
   startAt: number;
   onStartAt: (t: number) => void;
@@ -186,6 +188,18 @@ export const LibraryPanel: React.FC<Props> = (p) => {
             }}
           />
         </label>
+        {p.uploadBusy && (
+          <div className="mt-2" data-testid="upload-progress" role="progressbar" aria-valuenow={Math.round(p.uploadProgress * 100)} aria-valuemin={0} aria-valuemax={100} aria-label={p.uploadBusy}>
+            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-amber-300 to-lime-300 transition-[width]" style={{ width: `${Math.max(5, p.uploadProgress * 100)}%` }} />
+            </div>
+          </div>
+        )}
+        {!p.uploadBusy && p.track && !p.track.copyrightSafe && p.analysisMs !== undefined && (
+          <div className="mt-2 text-[11px] text-slate-400" data-testid="analysis-time">
+            Analysed in {(p.analysisMs / 1000).toFixed(2)}s · {Math.round(p.track.bpm)} BPM · {p.track.beats.length} beats
+          </div>
+        )}
         {p.uploadError && (
           <div role="alert" className="mt-2 text-xs text-rose-300">
             {p.uploadError}

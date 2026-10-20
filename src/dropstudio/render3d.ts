@@ -100,6 +100,8 @@ export interface Renderer3DOptions {
   /** Shadow map size (preview 1024, export 2048) */
   shadowSize?: number;
   antialias?: boolean;
+  /** How many built scenes stay cached on the GPU (preview: a few, thumbnails: one per style) */
+  maxCached?: number;
 }
 
 export class DropRenderer3D {
@@ -123,6 +125,7 @@ export class DropRenderer3D {
   private look: { material: Material; palette: Palette } = { material: 'glossy', palette: 'neon' };
   private bgTex: THREE.Texture | null = null;
   private width: number;
+  private maxCached: number;
   private height: number;
   // Scratch (no allocations per frame)
   private m4 = new THREE.Matrix4();
@@ -139,6 +142,7 @@ export class DropRenderer3D {
     this.canvas = canvas;
     this.width = width;
     this.height = height;
+    this.maxCached = o.maxCached ?? 4;
     this.renderer = new THREE.WebGLRenderer({ canvas: canvas as any, antialias: o.antialias ?? true, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: true });
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(width, height, false);
@@ -146,15 +150,17 @@ export class DropRenderer3D {
     this.renderer.toneMappingExposure = 1.05;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.shadowMap.enabled = o.shadows ?? true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
 
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     this.scene3.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    // Studio reflections for the balls without washing the dark set out
+    this.scene3.environmentIntensity = 0.5;
     pmrem.dispose();
 
-    this.hemi = new THREE.HemisphereLight(0xffffff, 0x101018, 0.55);
+    this.hemi = new THREE.HemisphereLight(0xffffff, 0x101018, 0.35);
     this.scene3.add(this.hemi);
-    this.sun = new THREE.DirectionalLight(0xffffff, 2.4);
+    this.sun = new THREE.DirectionalLight(0xffffff, 2);
     this.sun.castShadow = o.shadows ?? true;
     const ss = o.shadowSize ?? 1024;
     this.sun.shadow.mapSize.set(ss, ss);
@@ -275,7 +281,7 @@ export class DropRenderer3D {
       disposables.push(x);
       return x;
     };
-    const surface = track(new THREE.MeshStandardMaterial({ color: pal.surface, roughness: 0.35, metalness: 0.25 }));
+    const surface = track(new THREE.MeshStandardMaterial({ color: new THREE.Color(pal.surface).multiplyScalar(0.55), roughness: 0.32, metalness: 0.55 }));
     const accent = track(new THREE.MeshBasicMaterial({ color: pal.accent, toneMapped: false }));
     const glass = track(
       new THREE.MeshPhysicalMaterial({ color: pal.accent, transparent: true, opacity: 0.32, roughness: 0.05, metalness: 0, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false })
@@ -426,12 +432,12 @@ export class DropRenderer3D {
       b = this.build(s);
       this.built.set(s, b);
       // Keep a handful of scenes (thumbnails + current); free GPU memory of the rest
-      if (this.built.size > 24) {
-        const [oldest, ob] = this.built.entries().next().value as [Scene, BuiltScene];
-        if (ob !== this.active) {
-          ob.dispose();
-          this.built.delete(oldest);
-        }
+      // Free GPU memory of scenes no longer shown (every regenerate makes a new scene)
+      for (const [old, ob] of this.built) {
+        if (this.built.size <= this.maxCached) break;
+        if (old === s || ob === this.active) continue;
+        ob.dispose();
+        this.built.delete(old);
       }
     }
     if (this.active !== b) {
@@ -487,7 +493,8 @@ export class DropRenderer3D {
     this.sun.position.set(cx - 700, cy + 1500, 1900);
     this.sun.target.position.set(cx, cy, 0);
     this.flashLight.color.set(pal.accent);
-    this.flashLight.intensity = flash * 9e5;
+    // Soft accent light on major drops (kept gentle: a highlight, not a frame-wide flicker)
+    this.flashLight.intensity = flash * 3.5e5;
     this.flashLight.position.set(toX(fx), toY(fy) + 120, 260);
 
     // ---- Animated props ----

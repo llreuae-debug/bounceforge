@@ -23,8 +23,8 @@ const DEFAULT_SHOWCASE_ITEMS: ShowcaseItem[] = [
     modeId: 'sequence_break',
     modeName: 'Sequence Break',
     seed: 74218,
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-spiral-of-colored-particles-41199-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=600&auto=format&fit=crop&q=80',
+    videoUrl: '/showcase/sc-1.mp4',
+    posterUrl: '/showcase/sc-1.jpg',
     views: '4.8M',
     likes: '620K',
     sound: 'Numbered Impact ASMR',
@@ -36,8 +36,8 @@ const DEFAULT_SHOWCASE_ITEMS: ShowcaseItem[] = [
     modeId: 'color_lock',
     modeName: 'Color Lock',
     seed: 39182,
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-colorful-neon-lights-in-motion-42521-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80',
+    videoUrl: '/showcase/sc-2.mp4',
+    posterUrl: '/showcase/sc-2.jpg',
     views: '3.1M',
     likes: '410K',
     sound: 'Harmonic Chord Match',
@@ -49,8 +49,8 @@ const DEFAULT_SHOWCASE_ITEMS: ShowcaseItem[] = [
     modeId: 'portal_rings',
     modeName: 'Portal Rings',
     seed: 88204,
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-animation-42523-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80',
+    videoUrl: '/showcase/sc-3.mp4',
+    posterUrl: '/showcase/sc-3.jpg',
     views: '2.5M',
     likes: '345K',
     sound: 'Glass Pop & Shard Burst',
@@ -62,8 +62,8 @@ const DEFAULT_SHOWCASE_ITEMS: ShowcaseItem[] = [
     modeId: 'accumulation',
     modeName: 'Accumulation',
     seed: 62019,
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-futuristic-circuits-and-technological-lights-42520-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1519751138087-5bf79df62d5b?w=600&auto=format&fit=crop&q=80',
+    videoUrl: '/showcase/sc-4.mp4',
+    posterUrl: '/showcase/sc-4.jpg',
     views: '1.9M',
     likes: '280K',
     sound: 'Crystal Chime & Wood Click',
@@ -75,8 +75,8 @@ const DEFAULT_SHOWCASE_ITEMS: ShowcaseItem[] = [
     modeId: 'sand_fill',
     modeName: 'Sand Fill',
     seed: 51204,
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-glowing-lines-on-a-black-background-42522-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=600&auto=format&fit=crop&q=80',
+    videoUrl: '/showcase/sc-5.mp4',
+    posterUrl: '/showcase/sc-5.jpg',
     views: '5.2M',
     likes: '710K',
     sound: 'Kalimba Dream Melodies',
@@ -88,8 +88,8 @@ const DEFAULT_SHOWCASE_ITEMS: ShowcaseItem[] = [
     modeId: 'pendulum_wave',
     modeName: 'Pendulum Wave',
     seed: 90124,
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-movement-of-colored-particles-in-the-dark-41198-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
+    videoUrl: '/showcase/sc-6.mp4',
+    posterUrl: '/showcase/sc-6.jpg',
     views: '3.7M',
     likes: '512K',
     sound: 'Acoustic Grand Piano',
@@ -108,7 +108,15 @@ export class ShowcaseService {
   async getShowcaseItems(): Promise<ShowcaseItem[]> {
     try {
       const items = await getIDB<ShowcaseItem[]>(STORAGE_KEY);
-      if (items && items.length > 0) return items;
+      if (items && items.length > 0) {
+        // Older saved copies pointed the built-in entries at hotlinked stock clips: use our own renders
+        const fixed = items.map((it) => {
+          const def = DEFAULT_SHOWCASE_ITEMS.find((d) => d.id === it.id);
+          return def && /mixkit\.co|unsplash\.com/.test(`${it.videoUrl} ${it.posterUrl}`) ? { ...it, videoUrl: def.videoUrl, posterUrl: def.posterUrl } : it;
+        });
+        if (fixed.some((it, i) => it !== items[i])) await setIDB(STORAGE_KEY, fixed);
+        return fixed;
+      }
       await setIDB(STORAGE_KEY, DEFAULT_SHOWCASE_ITEMS);
       return DEFAULT_SHOWCASE_ITEMS;
     } catch {

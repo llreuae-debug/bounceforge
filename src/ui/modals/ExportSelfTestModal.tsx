@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ExportSelfTester, TestResultRow, SelfTestProgress, TEST_PRESETS } from '../../export/exportSelfTest';
-import { X, Play, CheckCircle2, XCircle, AlertTriangle, RefreshCw, Cpu, Activity } from 'lucide-react';
+import { X, Play, CheckCircle2, XCircle, AlertTriangle, RefreshCw, Activity } from 'lucide-react';
 
 interface ExportSelfTestModalProps {
   isOpen: boolean;

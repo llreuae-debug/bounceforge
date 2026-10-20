@@ -58,6 +58,7 @@ import { DEFAULT_OVERLAYS } from '../../render/overlays';
 import type { PhysicsWorld } from '../../engine/world';
 import type { InstrumentType } from '../../audio/types';
 import { MidiTimeline, DROP_COLORS } from './MidiTimeline';
+import { SafeBadge, UserBadge } from '../dropstudio/controls';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -138,6 +139,9 @@ export const MidiStudioPage: React.FC = () => {
   const [midiBytes, setMidiBytes] = useState<Uint8Array | null>(null);
   const [fileName, setFileName] = useState('');
   const [analysis, setAnalysis] = useState<MidiAnalysis | null>(null);
+  // Uploads require the rights confirmation and are never marked copyright safe
+  const [rightsOk, setRightsOk] = useState(false);
+  const [userUpload, setUserUpload] = useState(false);
   const [projects, setProjects] = useState<MidiReelProjectMeta[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
 
@@ -256,6 +260,10 @@ export const MidiStudioPage: React.FC = () => {
 
   const onUpload = async (file: File | undefined) => {
     if (!file) return;
+    if (!rightsOk) {
+      setError('Please confirm you own this music or have the rights to use it before uploading.');
+      return;
+    }
     if (!/\.(mid|midi)$/i.test(file.name)) {
       setError('Please choose a MIDI file (.mid or .midi). Audio files like MP3 or WAV are not MIDI.');
       return;
@@ -265,9 +273,11 @@ export const MidiStudioPage: React.FC = () => {
       return;
     }
     loadBytes(new Uint8Array(await file.arrayBuffer()), file.name);
+    setUserUpload(true);
   };
 
   const onBuiltin = (id: string) => {
+    setUserUpload(false);
     const built = buildBuiltinMidi(id);
     loadBytes(built.bytes, built.fileName);
   };
@@ -533,8 +543,14 @@ export const MidiStudioPage: React.FC = () => {
         {step === 1 && (
           <div className="grid lg:grid-cols-[1fr_340px] gap-4">
             <section className="space-y-4">
+              <label className="flex items-start gap-2 text-xs text-slate-200 cursor-pointer">
+                <input type="checkbox" data-testid="midi-rights" checked={rightsOk} onChange={(e) => setRightsOk(e.target.checked)} className="mt-0.5 w-4 h-4 accent-amber-400" />
+                <span>
+                  I own this music or have the rights to use it. <span className="text-slate-500">(required to upload)</span>
+                </span>
+              </label>
               <label
-                className="block rounded-2xl border-2 border-dashed border-cyan-400/40 bg-cyan-400/[0.03] p-6 text-center cursor-pointer hover:bg-cyan-400/[0.06]"
+                className={`block rounded-2xl border-2 border-dashed p-6 text-center ${rightsOk ? 'border-cyan-400/40 bg-cyan-400/[0.03] cursor-pointer hover:bg-cyan-400/[0.06]' : 'border-white/10 opacity-60 cursor-not-allowed'}`}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
@@ -544,7 +560,7 @@ export const MidiStudioPage: React.FC = () => {
                 <Upload className="w-7 h-7 mx-auto text-cyan-300 mb-2" />
                 <div className="font-bold">Upload a MIDI file</div>
                 <div className="text-xs text-slate-400 mt-1">.mid or .midi · drag & drop or click to browse</div>
-                <input data-testid="midi-upload" type="file" accept=".mid,.midi,audio/midi,audio/x-midi" className="hidden" onChange={(e) => onUpload(e.target.files?.[0])} />
+                <input data-testid="midi-upload" type="file" disabled={!rightsOk} accept=".mid,.midi,audio/midi,audio/x-midi" className="hidden" onChange={(e) => onUpload(e.target.files?.[0])} />
               </label>
 
               <div>
@@ -561,6 +577,7 @@ export const MidiStudioPage: React.FC = () => {
                         {t.name}
                       </div>
                       <div className="text-[11px] text-slate-400">{t.description}</div>
+                      <SafeBadge />
                     </button>
                   ))}
                 </div>
@@ -604,6 +621,7 @@ export const MidiStudioPage: React.FC = () => {
                     <div className="text-xs text-slate-400">Selected</div>
                     <div className="font-bold">{analysis.name}</div>
                     <div className="text-[11px] text-slate-500">{analysis.fileName}</div>
+                    <div className="mt-1">{userUpload ? <UserBadge /> : <SafeBadge />}</div>
                   </div>
                   <dl className="grid grid-cols-2 gap-2 text-xs">
                     <Stat label="Duration" value={fmt(analysis.duration)} />

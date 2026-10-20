@@ -1,31 +1,25 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { useAuthStore } from '../../auth/useAuthStore';
 import { THEMES } from '../../render/themes';
 import { InstrumentType } from '../../audio/types';
 import { AudioEngine } from '../../audio/audioEngine';
 import { AsmrEngine, AsmrTextureType } from '../../audio/asmrEngine';
-import { getDefaults, isModeAtDefault } from '../../modes/defaults';
-import { checkGpu4KCapability } from '../../export/videoExporter';
+import { isModeAtDefault } from '../../modes/defaults';
 import { ALL_MODES, getModeById } from '../../modes/registry';
 import { presetService, SavedPreset } from '../../presets/presetService';
 import { copyText } from '../../platform/clipboard';
 import { triggerHaptic } from '../../platform/haptics';
-import { detectCapabilities, generateDiagnosticReport } from '../../platform/capabilities';
 import { MarbleMelodyControls } from './MarbleMelodyControls';
 
 import {
   Search,
-  Sliders,
   Sparkles,
   Volume2,
-  Tv,
   RotateCcw,
   Zap,
   Activity,
-  Check,
   Film,
-  Info,
   Copy,
   ChevronDown,
   ChevronUp,
@@ -36,13 +30,11 @@ import {
   Upload,
   Layers,
   Circle,
-  HelpCircle,
   Shield,
   Palette,
   Flame,
   Music,
   FileText,
-  Lock,
   Globe,
 } from 'lucide-react';
 import { useI18n } from '../../i18n';
@@ -65,8 +57,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
     applyPreset,
     resetModeToDefault,
     seed,
-    setSeed,
-    randomizeSeed,
     visuals,
     setVisuals,
     overlays,
@@ -100,11 +90,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
     duplicatePreset,
     renamePreset,
     showToast,
-    capabilities,
-    setCapabilities,
   } = useStudioStore();
 
-  const { currentUser, openAuthModal, openUpgradeModal } = useAuthStore();
+  const { currentUser, openAuthModal } = useAuthStore();
   const isGuest = !currentUser;
 
   // Search Filter State
@@ -151,7 +139,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
   const [rawImageUrl, setRawImageUrl] = useState<string | null>(null);
 
   const currentMode = useMemo(() => getModeById(currentModeId), [currentModeId]);
-  const defaults = useMemo(() => getDefaults(currentModeId), [currentModeId]);
   const isCurrentModeDefault = isModeAtDefault(currentModeId, {
     seed,
     modeSettings,
@@ -234,10 +221,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ className, onClose
   };
 
   // Search filter matching helper
-  const matchesSearch = (text: string) => {
-    if (!searchQuery.trim()) return true;
-    return text.toLowerCase().includes(searchQuery.toLowerCase());
-  };
 
   const isSectionVisible = (sectionName: string, keywords: string[]) => {
     if (!searchQuery.trim()) return true;

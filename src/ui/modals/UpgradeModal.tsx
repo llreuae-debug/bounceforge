@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuthStore } from '../../auth/useAuthStore';
 import { useBillingStore } from '../../billing/billingStore';
 import { useStudioStore } from '../../store/useStudioStore';
-import { X, Lock, Zap, Check, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { X, Lock, Check, ArrowRight } from 'lucide-react';
 
 export const UpgradeModal: React.FC = () => {
   const { isUpgradeModalOpen, closeUpgradeModal, upgradeFeaturePrompt, currentUser, openAuthModal } =

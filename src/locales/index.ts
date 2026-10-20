@@ -36,6 +36,9 @@ export const EN_BUNDLE: Record<TranslationNamespace, Record<string, any>> = {
   ai: en_ai,
 };
 
+// Lazy chunks for every non-English namespace (English is bundled eagerly above)
+const NON_EN_LOCALES = import.meta.glob(['./*/*.json', '!./en/*.json']);
+
 /**
  * Dynamically loads a localized namespace for a given language
  */
@@ -48,7 +51,9 @@ export async function loadLocaleNamespace(
   }
 
   try {
-    const mod = await import(`./${lang}/${ns}.json`);
+    const load = NON_EN_LOCALES[`./${lang}/${ns}.json`];
+    if (!load) throw new Error('missing locale file');
+    const mod: any = await load();
     return mod.default || mod;
   } catch (err) {
     console.warn(`Could not dynamically load locale [${lang}/${ns}], falling back to English:`, err);

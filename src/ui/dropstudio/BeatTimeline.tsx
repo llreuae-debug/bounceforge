@@ -182,6 +182,7 @@ export const BeatTimeline: React.FC<Props> = ({ track, beats, downbeats, impacts
             {s}s
           </button>
         ))}
+        <span data-testid="beat-count" className="font-mono text-slate-300">{list.length} beats</span>
         <button data-testid="beat-delete" disabled={selected === null} onClick={remove} className="rounded-lg px-2 py-0.5 border border-white/10 disabled:opacity-40">
           Delete beat
         </button>

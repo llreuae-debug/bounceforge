@@ -151,7 +151,7 @@ async function runAudit() {
   const batchConfigs = [];
 
   for (let i = 0; i < 10; i++) {
-    const config = getBatchVariation(i, 'countdown_escape', usedSeeds);
+    const config = getBatchVariation(i, usedSeeds);
     batchConfigs.push(config);
   }
 

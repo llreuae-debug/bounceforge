@@ -1,6 +1,6 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { CollisionEvent, Vector2D } from '../engine/types';
+import { CollisionEvent } from '../engine/types';
 
 interface SandGrain {
   x: number;

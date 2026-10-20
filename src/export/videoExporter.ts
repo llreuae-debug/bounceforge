@@ -1,6 +1,7 @@
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import { PhysicsWorld } from '../engine/world';
 import { getModeById } from '../modes/registry';
+import { loadMarbleRenderer } from '../marble3d/modes/marbleMelodyMode';
 import { WorldRenderer, VisualSettings } from '../render/renderer';
 import { OverlaySettings } from '../render/overlays';
 import { AudioSettings, NoteItem } from '../audio/types';
@@ -155,6 +156,8 @@ export class VideoExporter {
 
     // Initialize 2D Simulation with isolated state per export
     const mode = config.modeOverride ?? getModeById(modeId);
+    // The 3D marble renderer is loaded on demand: make sure it is ready before the first frame
+    await loadMarbleRenderer();
     const world = new PhysicsWorld(width, height, seed);
     world.reelSpeed = config.reelSpeed !== undefined ? config.reelSpeed : 0.5;
     world.slowMoSoundFeel = config.slowMoSoundFeel ?? false;
@@ -637,6 +640,8 @@ export class VideoExporter {
   ): Promise<ExportResult> {
     const { width, height, fps, seed, modeId, modeSettings, visuals, overlays, duration, audioSettings, customNotes } = config;
     const mode = config.modeOverride ?? getModeById(modeId);
+    // The 3D marble renderer is loaded on demand: make sure it is ready before the first frame
+    await loadMarbleRenderer();
     const renderer = new WorldRenderer();
     const dt = 1 / fps;
     const totalFrames = Math.ceil(duration * fps);

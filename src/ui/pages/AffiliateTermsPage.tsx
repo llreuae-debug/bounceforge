@@ -1,7 +1,7 @@
 import React from 'react';
 import { Header } from '../Header';
 import { Footer } from '../Footer';
-import { DollarSign, ShieldCheck } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 
 export const AffiliateTermsPage: React.FC = () => {
   return (

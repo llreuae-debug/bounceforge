@@ -56,7 +56,9 @@ function devApiPlugin() {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // Production builds drop console.log/info/debug (errors and warnings stay)
+  esbuild: mode === 'production' ? { pure: ['console.log', 'console.info', 'console.debug'] } : {},
   plugins: [
     react(),
     tailwindcss(),
@@ -71,6 +73,8 @@ export default defineConfig({
     format: 'es',
   },
   build: {
+    // The large chunks are lazy (3D engine, export/seed-finder workers), never part of the first load
+    chunkSizeWarningLimit: 1800,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -97,4 +101,4 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
   },
-});
+}));

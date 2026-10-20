@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
-import { RotateCcw, X, AlertCircle } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 
 interface RestartConfirmModalProps {
   onConfirm: () => void;

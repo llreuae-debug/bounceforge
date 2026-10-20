@@ -68,7 +68,7 @@ export const PrivacyPage: React.FC = () => {
               If you have any questions about this privacy statement, you can contact us directly at{' '}
               <a
                 href="mailto:privacy@bounceforge.app?subject=Privacy%20Question"
-                className="text-cyan-400 hover:underline font-bold"
+                className="inline-flex items-center min-h-[44px] text-cyan-400 hover:underline font-bold"
               >
                 privacy@bounceforge.app
               </a>.

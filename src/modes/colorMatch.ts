@@ -1,6 +1,5 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { CollisionEvent } from '../engine/types';
 
 const COLORS = ['#00f0ff', '#ff007f', '#ffd600', '#00ff88'];
 

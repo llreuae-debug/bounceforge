@@ -7,24 +7,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
     <title>BounceForge — Viral Ball Physics & Sound Studio</title>
     <meta name="description" content="Browser studio for creating oddly satisfying bouncing-ball physics videos with synched musical notes and 4K 9:16 vertical export." />
-    <link rel="canonical" href="https://bounceforge.app/" />
+    <link rel="canonical" href="https://bounceforge.vercel.app/" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://bounceforge.app/" />
+    <meta property="og:url" content="https://bounceforge.vercel.app/" />
     <meta property="og:title" content="BounceForge — Viral Ball Physics & Sound Studio" />
     <meta property="og:description" content="Browser studio for creating oddly satisfying bouncing-ball physics videos with synched musical notes and 4K 9:16 vertical export." />
-    <meta property="og:image" content="https://bounceforge.app/brand/social/og-image-1200x630.png" />
+    <meta property="og:image" content="https://bounceforge.vercel.app/brand/social/og-image-1200x630.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="BounceForge — Viral Ball Physics & Sound Studio" />
     <meta name="twitter:description" content="Browser studio for creating oddly satisfying bouncing-ball physics videos with synched musical notes and 4K 9:16 vertical export." />
-    <meta name="twitter:image" content="https://bounceforge.app/brand/social/og-image-1200x630.png" />
+    <meta name="twitter:image" content="https://bounceforge.vercel.app/brand/social/og-image-1200x630.png" />
     <meta name="theme-color" content="#050507" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="https://bounceforge.app/brand/svg/symbol.svg" />
+    <link rel="apple-touch-icon" href="https://bounceforge.vercel.app/brand/svg/symbol.svg" />
   </head>
   <body class="bg-[#090a0f] text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200">
-    <div id="root"></div>
+    <div id="root"><div id="boot-shell" style="min-height:100dvh;background:#07080d;color:#f1f5f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+      <div style="font-weight:800;font-size:18px;letter-spacing:-0.3px;color:#fff;margin-bottom:18px;">bounceforge</div>
+      <h1 style="font-size:clamp(36px,6vw,60px);line-height:1.08;font-weight:800;letter-spacing:-1px;margin:0;max-width:900px;">Oddly Satisfying Ball Physics. <span style="color:#22d3ee;">Rendered in 4K.</span></h1>
+      <p style="color:#94a3b8;font-size:16px;max-width:560px;line-height:1.6;margin:18px 0 0;">Every bounce plays a musical note. Export frame-perfect 9:16 videos up to 4K.</p>
+    </div></div>
+    <script>/* Show the boot headline only on the home page; other routes get a plain dark shell */ (function(){var p=location.pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?(?=\/|$)/,'');if(p!==''&&p!=='/'){var s=document.getElementById('boot-shell');if(s)s.innerHTML='';}})();</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -2,21 +2,17 @@ import React, { useState, useEffect } from 'react';
 import {
   X,
   Sparkles,
-  ArrowRight,
   RotateCcw,
   Calendar,
-  Layers,
   BarChart2,
   Download,
   Check,
   Plus,
   Play,
-  Share2,
 } from 'lucide-react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { AiService, WhatNextCard, PerformanceLogEntry } from '../../ai/aiService';
 import { BUILTIN_THEMES } from '../../render/themes';
-import { getModeById } from '../../modes/registry';
 
 interface WhatNextModalProps {
   isOpen: boolean;
@@ -31,7 +27,6 @@ export const WhatNextModal: React.FC<WhatNextModalProps> = ({ isOpen, onClose })
     setVisuals,
     setOverlays,
     overlays,
-    visuals,
     showToast,
   } = useStudioStore();
 

@@ -1,6 +1,5 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { CollisionEvent } from '../engine/types';
 import { AsmrEngine } from '../audio/asmrEngine';
 
 export const COLOR_PALETTES: Record<number, string[]> = {

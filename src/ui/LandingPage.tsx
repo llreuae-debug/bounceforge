@@ -6,27 +6,21 @@ import { WorldRenderer } from '../render/renderer';
 import {
   Sparkles,
   Play,
-  Flame,
   Music,
   Compass,
   Film,
   Zap,
-  CheckCircle2,
   ArrowRight,
-  Shield,
-  Layers,
   ChevronRight,
-  Box,
-  Headphones,
-  Download,
 } from 'lucide-react';
 import { Logo } from '../brand/Logo';
 import { Footer } from './Footer';
+import { startWhenIdleAndVisible } from './hooks/deferredStart';
 import { MultipleModesShowcase } from './components/MultipleModesShowcase';
 import { InstrumentSelectorShowcase } from './components/InstrumentSelectorShowcase';
 
 export const LandingPage: React.FC = () => {
-  const { setRoute, setMode } = useStudioStore();
+  const { setRoute } = useStudioStore();
   const heroCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Hero Looping Canvas Simulation
@@ -35,6 +29,8 @@ export const LandingPage: React.FC = () => {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    // The live hero starts once the page is loaded and idle (and only while visible)
+    return startWhenIdleAndVisible(canvas, () => {
 
     const world = new PhysicsWorld(1080, 1920, 42);
     const mode = ALL_MODES[0]; // Classic
@@ -103,6 +99,7 @@ export const LandingPage: React.FC = () => {
 
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
+    });
   }, []);
 
   return (

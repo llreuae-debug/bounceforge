@@ -1,4 +1,4 @@
-import { AudioSettings, NoteItem, SfxType, InstrumentType } from './types';
+import { AudioSettings, NoteItem, InstrumentType } from './types';
 import { BUILTIN_MELODIES, Melody, findMelodyById } from './melodies';
 import { SoundSynthesizer } from './synth';
 import { CollisionEvent } from '../engine/types';

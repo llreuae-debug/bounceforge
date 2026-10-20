@@ -11,7 +11,7 @@ import {
   EmbossedWallTextInstance,
 } from './types';
 import { PUBLIC_DOMAIN_MELODIES, generateProceduralMelody } from './melodyLibrary';
-import { REEL_FORMATS, ReelFormatService } from './formats';
+import { ReelFormatService } from './formats';
 
 // Deterministic PRNG
 class LcgRng {

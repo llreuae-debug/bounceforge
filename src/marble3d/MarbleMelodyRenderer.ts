@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { MarbleMelodyRun, MarblePathPoint, TunedObjectInstance, WallBackground } from './types';
+import { MarbleMelodyRun } from './types';
 import { ObjectCatalog3D } from './objectCatalog';
 import { MarbleMaterialLibrary } from './materials';
 
@@ -160,88 +160,6 @@ export class MarbleMelodyRenderer {
     this.initForegroundBokeh();
   }
 
-  /**
-   * Generates procedural normal and roughness texture for the 8K 3D wall
-   */
-  private generateProceduralWallMaterial(bg: WallBackground, colorHex: number): THREE.MeshStandardMaterial {
-    const canvas = document.createElement('canvas');
-    const size = 1024;
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d')!;
-
-    ctx.fillStyle = '#8080ff'; // Flat normal base
-    ctx.fillRect(0, 0, size, size);
-
-    // Generate subtle micro-texture bump noise with 8K sub-pixel precision
-    const imgData = ctx.getImageData(0, 0, size, size);
-    const data = imgData.data;
-
-    let roughness = 0.85;
-    let metalness = 0.04;
-
-    if (bg === 'matte_plaster' || bg === 'pastel_peach') {
-      roughness = 0.88;
-      for (let i = 0; i < data.length; i += 4) {
-        const noise = (Math.random() - 0.5) * 18;
-        data[i] = Math.max(0, Math.min(255, 128 + noise));
-        data[i + 1] = Math.max(0, Math.min(255, 128 + noise));
-        data[i + 2] = 255;
-      }
-    } else if (bg === 'soft_paper') {
-      roughness = 0.92;
-      for (let i = 0; i < data.length; i += 4) {
-        const fiber = Math.sin((i / 4) * 0.05) * 10 + (Math.random() - 0.5) * 8;
-        data[i] = Math.max(0, Math.min(255, 128 + fiber));
-        data[i + 1] = Math.max(0, Math.min(255, 128 + fiber));
-        data[i + 2] = 255;
-      }
-    } else if (bg === 'fine_stucco') {
-      roughness = 0.95;
-      for (let i = 0; i < data.length; i += 4) {
-        const bump = (Math.random() - 0.5) * 28;
-        data[i] = Math.max(0, Math.min(255, 128 + bump));
-        data[i + 1] = Math.max(0, Math.min(255, 128 + bump));
-        data[i + 2] = 255;
-      }
-    } else if (bg === 'satin_paint') {
-      roughness = 0.38;
-      metalness = 0.08;
-    } else if (bg === 'light_wood' || bg === 'amber_wood') {
-      roughness = 0.65;
-      for (let y = 0; y < size; y++) {
-        const grain = Math.sin(y * 0.06) * 14 + (Math.random() - 0.5) * 8;
-        for (let x = 0; x < size; x++) {
-          const idx = (y * size + x) * 4;
-          data[idx] = Math.max(0, Math.min(255, 128 + grain));
-          data[idx + 1] = 128;
-          data[idx + 2] = 255;
-        }
-      }
-    } else if (bg === 'neon_grid') {
-      roughness = 0.25;
-      metalness = 0.3;
-    }
-
-    ctx.putImageData(imgData, 0, 0);
-
-    const normalMap = new THREE.CanvasTexture(canvas);
-    normalMap.wrapS = THREE.RepeatWrapping;
-    normalMap.wrapT = THREE.RepeatWrapping;
-    normalMap.generateMipmaps = true;
-    normalMap.minFilter = THREE.LinearMipmapLinearFilter;
-    normalMap.magFilter = THREE.LinearFilter;
-    normalMap.anisotropy = 16;
-    normalMap.repeat.set(16, 400);
-
-    return new THREE.MeshStandardMaterial({
-      color: colorHex,
-      roughness,
-      metalness,
-      normalMap,
-      normalScale: new THREE.Vector2(0.4, 0.4),
-    });
-  }
 
   /**
    * Creates subtle colored light leak gradient canvas
@@ -335,7 +253,7 @@ export class MarbleMelodyRenderer {
       const initialH = canvas.clientHeight || canvas.height || 1920;
       this.renderer.setSize(initialW, initialH, false);
       this.renderer.shadowMap.enabled = true;
-      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      this.renderer.shadowMap.type = THREE.PCFShadowMap;
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 0.92;
 

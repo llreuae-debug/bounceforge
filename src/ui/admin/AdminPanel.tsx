@@ -9,7 +9,6 @@ import { affiliateService } from '../../affiliates/affiliateService';
 import { AffiliateProfile, PayoutRequest } from '../../affiliates/types';
 import { feedbackService, FeedbackItem } from '../../feedback/feedbackService';
 import { showcaseService, ShowcaseItem } from '../../showcase/showcaseService';
-import { Header } from '../Header';
 import {
   Users,
   CreditCard,
@@ -22,19 +21,14 @@ import {
   Plus,
   RefreshCw,
   Download,
-  AlertCircle,
-  CheckCircle2,
   Lock,
-  Clock,
   Sparkles,
-  Edit,
   Trash2,
   Eye,
   Key,
   X,
   MessageSquare,
   Film,
-  ExternalLink,
   Languages,
 } from 'lucide-react';
 import { PlanId } from '../../billing/types';
@@ -52,7 +46,7 @@ export const AdminPanel: React.FC = () => {
     activeProviderId,
     setActiveProvider,
   } = useBillingStore();
-  const { articles, createArticle, updateArticle, deleteArticle } = useContentStore();
+  const { articles, createArticle, deleteArticle } = useContentStore();
   const { showToast, setRoute } = useStudioStore();
 
   const [activeTab, setActiveTab] = useState<
@@ -731,7 +725,7 @@ export const AdminPanel: React.FC = () => {
                       <a
                         href={`/blog/${art.slug}`}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-cyan-400 text-xs font-bold"
                       >
                         Preview

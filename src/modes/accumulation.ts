@@ -1,6 +1,5 @@
 import { SimulationMode } from './types';
 import { PhysicsWorld } from '../engine/world';
-import { checkBallBallCollision } from '../engine/collision';
 import { AsmrEngine } from '../audio/asmrEngine';
 
 export const AccumulationMode: SimulationMode = {

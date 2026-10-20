@@ -7,7 +7,6 @@ import {
   DEFAULT_LANGUAGE,
   ALL_NAMESPACES,
   TranslationNamespace,
-  isRTL,
   getLanguageMeta,
 } from './config';
 import { EN_BUNDLE, loadLocaleNamespace } from '../locales';

@@ -19,7 +19,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   className = '',
 }) => {
   const { currentLanguage, setLanguage, isRTL } = useI18n();
-  const { currentRoute, setRoute } = useStudioStore();
+  const { currentRoute } = useStudioStore();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { UserProfile, UserSession } from './types';
+import { UserProfile } from './types';
 import { authService } from './authService';
 import { presetService } from '../presets/presetService';
 

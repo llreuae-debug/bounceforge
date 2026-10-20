@@ -16,11 +16,13 @@ interface Props {
   mix: DropMix;
   track: StudioTrack | null;
   styleName: string;
+  styleId: string;
+  seed: number;
 }
 
-export const ExportPanel: React.FC<Props> = ({ scene, render, audio, mix, track, styleName }) => {
+export const ExportPanel: React.FC<Props> = ({ scene, render, audio, mix, track, styleName, styleId, seed }) => {
   const [preset, setPreset] = useState<ExportPreset>('4k');
-  const [fps, setFps] = useState<30 | 60>(30);
+  const [fps, setFps] = useState<30 | 60>(60);
   const [progress, setProgress] = useState<ExportProgress | null>(null);
   const [result, setResult] = useState<ExportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +50,8 @@ export const ExportPanel: React.FC<Props> = ({ scene, render, audio, mix, track,
         preset,
         fps,
         name: track.title,
+        style: styleId,
+        seed,
         use3d: DropRenderer3D.supported(),
         onProgress: setProgress,
         signal: ac.signal,
@@ -123,10 +127,17 @@ export const ExportPanel: React.FC<Props> = ({ scene, render, audio, mix, track,
                   {result.verification.ok ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
                   {result.verification.ok ? 'Verified MP4' : 'Exported with warnings'}
                 </div>
-                <div data-testid="verify-dims">Video: {result.verification.width}×{result.verification.height} · {result.verification.videoCodec}</div>
+                <div data-testid="verify-dims">
+                  Video: {result.verification.width}×{result.verification.height} · {result.verification.videoCodec} ({result.verification.profile}) · {result.verification.fps.toFixed(2)} fps constant ·{' '}
+                  {(result.verification.videoKbps / 1000).toFixed(1)} Mbps · {result.verification.fastStart ? 'fast start' : 'no fast start'}
+                </div>
                 <div data-testid="verify-duration">Duration: {result.verification.duration.toFixed(2)}s</div>
-                <div data-testid="verify-audio">Audio: {result.verification.audioCodec ?? 'none'}</div>
-                <div data-testid="verify-drift">Audio/video drift: {result.verification.driftMs.toFixed(1)} ms</div>
+                <div data-testid="verify-audio">
+                  Audio: {result.verification.audioCodec ?? 'none'} · {result.verification.audioSampleRate} Hz · {result.verification.audioChannels} ch · {Math.round(result.verification.audioKbps)} kbps
+                </div>
+                <div data-testid="verify-drift">
+                  Audio/video sync: start offset {result.verification.driftMs.toFixed(1)} ms · length difference {result.verification.tailMs.toFixed(1)} ms
+                </div>
                 {result.verification.problems.map((p) => (
                   <div key={p} className="text-amber-300">
                     {p}

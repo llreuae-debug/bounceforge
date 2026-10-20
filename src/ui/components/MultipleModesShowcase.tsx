@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useStudioStore } from '../../store/useStudioStore';
 import { AudioEngine } from '../../audio/audioEngine';
-import { Play, Sparkles, ArrowRight } from 'lucide-react';
+import { startWhenIdleAndVisible } from '../hooks/deferredStart';
+import { Play, ArrowRight } from 'lucide-react';
 
 export interface GameModeItem {
   id: string;
@@ -102,6 +103,8 @@ const GameModeCanvas: React.FC<{ type: GameModeItem['visualType'] }> = ({ type }
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    // Decorative loops run only after load/idle and while on screen
+    return startWhenIdleAndVisible(canvas, () => {
 
     let animId: number;
     let t = 0;
@@ -601,13 +604,14 @@ const GameModeCanvas: React.FC<{ type: GameModeItem['visualType'] }> = ({ type }
       ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
       ctx.font = '500 11px sans-serif';
       ctx.shadowBlur = 0;
-      ctx.fillText('viralballs.com', cx, cy + arenaR * 0.48);
+      ctx.fillText('bounceforge', cx, cy + arenaR * 0.48);
 
       animId = requestAnimationFrame(render);
     };
 
     animId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animId);
+    });
   }, [type]);
 
   return (

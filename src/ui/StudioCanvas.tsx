@@ -52,8 +52,6 @@ export const StudioCanvas: React.FC = () => {
     setExportOpen,
     resetModeToDefault,
     undoLastReset,
-    toast,
-    dismissToast,
     targetDuration,
     setTargetDuration,
     reelSpeed,
