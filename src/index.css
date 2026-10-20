@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Accessibility: the two mid-grays used for secondary text are nudged lighter so they reach
+   WCAG AA contrast (≥ 4.5:1) on the app's dark backgrounds */
+@theme {
+  --color-slate-500: #70829c;
+  --color-neutral-500: #808080;
+}
+
+
 @layer base {
   :root {
     --font-sans: 'Helvetica Neue', Helvetica, -apple-system, BlinkMacSystemFont, Arial, sans-serif;

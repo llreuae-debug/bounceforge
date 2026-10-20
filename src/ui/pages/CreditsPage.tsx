@@ -50,7 +50,7 @@ export const CreditsPage: React.FC = () => {
                   <td className="p-3 font-bold text-white">{c.title}</td>
                   <td className="p-3">
                     {c.composer}
-                    {c.basis && <div className="text-[10px] text-slate-500">{c.basis}</div>}
+                    {c.basis && <div className="text-xs text-slate-500">{c.basis}</div>}
                   </td>
                   <td className="p-3">{c.composerDeathYear ?? '—'}</td>
                   <td className="p-3 space-y-1">
@@ -80,7 +80,7 @@ export const CreditsPage: React.FC = () => {
             {LIBS.map((l) => (
               <li key={l.name} className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
                 <div className="font-bold text-white">
-                  {l.name} <span className="text-[11px] text-cyan-300 font-mono">{l.license}</span>
+                  {l.name} <span className="text-xs text-cyan-300 font-mono">{l.license}</span>
                 </div>
                 <div className="text-xs text-slate-400">{l.use}</div>
               </li>

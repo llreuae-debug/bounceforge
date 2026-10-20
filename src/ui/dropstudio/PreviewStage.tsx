@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { DropRenderer3D } from '../../dropstudio/render3d';
+import type { DropRenderer3D } from '../../dropstudio/render3d';
+import { loadRenderer3D, webglSupported } from '../../dropstudio/webgl';
 import { renderFrame, renderOverlays, type RenderOptions } from '../../dropstudio/render';
 import type { Scene } from '../../dropstudio/scene';
 import type { DropPlayer } from '../../dropstudio/audio';
+import { startWhenIdleAndVisible } from '../hooks/deferredStart';
 
 export type PreviewQuality = 'fast' | 'balanced' | 'full';
 export const QUALITY_SIZE: Record<PreviewQuality, [number, number]> = {
@@ -29,7 +31,8 @@ export const PreviewStage: React.FC<Props> = ({ scene, opts, player, quality, sh
   const glRef = useRef<HTMLCanvasElement>(null);
   const ovRef = useRef<HTMLCanvasElement>(null);
   const r3d = useRef<DropRenderer3D | null>(null);
-  const use3d = useMemo(() => DropRenderer3D.supported(), []);
+  const glFailed = useRef(false);
+  const use3d = useMemo(() => webglSupported(), []);
   const sceneRef = useRef(scene);
   const optsRef = useRef(opts);
   const debugRef = useRef(debug);
@@ -44,12 +47,39 @@ export const PreviewStage: React.FC<Props> = ({ scene, opts, player, quality, sh
   useEffect(() => {
     const gl = glRef.current;
     if (!gl || !use3d) return;
-    try {
-      r3d.current = new DropRenderer3D(gl, w, h, { shadowSize: quality === 'fast' ? 1024 : 2048 });
-    } catch {
-      r3d.current = null;
-    }
+    // Build the WebGL renderer (shader compilation) once the page is idle, so the studio UI is
+    // interactive first; the stage shows black for that moment
+    let disposed = false;
+    let started = false;
+    const create = () => {
+      if (started || disposed) return;
+      started = true;
+      if (!r3d.current) {
+        loadRenderer3D()
+          .then(({ DropRenderer3D }) => {
+            if (disposed || r3d.current) return;
+            r3d.current = new DropRenderer3D(gl, w, h, { shadowSize: quality === 'fast' ? 1024 : 2048 });
+          })
+          .catch(() => {
+            r3d.current = null;
+            glFailed.current = true;
+          });
+      }
+    };
+    // Until the 3D renderer is up the stage shows the 2D renderer's picture; 3D starts a few
+    // seconds after load (or at the first interaction), keeping page load responsive
+    const stop = startWhenIdleAndVisible(gl, () => {
+      create();
+      return () => {};
+    }, 3500);
+    const early = () => create();
+    window.addEventListener('pointerdown', early, { once: true });
+    window.addEventListener('keydown', early, { once: true });
     return () => {
+      disposed = true;
+      window.removeEventListener('pointerdown', early);
+      window.removeEventListener('keydown', early);
+      stop();
       r3d.current?.dispose();
       r3d.current = null;
     };
@@ -62,6 +92,7 @@ export const PreviewStage: React.FC<Props> = ({ scene, opts, player, quality, sh
     let fps = 60;
     let lastReport = 0;
     let wasPlaying = false;
+    const lastDrawn: { t: number; s: Scene | null; o: RenderOptions | null; gl: boolean } = { t: -1, s: null, o: null, gl: false };
     const onVis = () => {
       if (document.hidden) {
         wasPlaying = player.playing;
@@ -82,6 +113,13 @@ export const PreviewStage: React.FC<Props> = ({ scene, opts, player, quality, sh
       const ov = ovRef.current;
       if (!s || !ov) return;
       const t = player.time();
+      // Paused and nothing changed: the last frame is still correct, don't redraw it
+      const same = !player.playing && t === lastDrawn.t && s === lastDrawn.s && optsRef.current === lastDrawn.o && lastDrawn.gl === !!r3d.current;
+      if (!same) {
+      lastDrawn.t = t;
+      lastDrawn.s = s;
+      lastDrawn.o = optsRef.current;
+      lastDrawn.gl = !!r3d.current;
       const ctx = ov.getContext('2d')!;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       if (r3d.current) {
@@ -89,7 +127,9 @@ export const PreviewStage: React.FC<Props> = ({ scene, opts, player, quality, sh
         ctx.clearRect(0, 0, ov.width, ov.height);
         renderOverlays(ctx, s, t, ov.width, optsRef.current);
       } else {
+        // 2D picture while the 3D renderer loads (or if WebGL is unavailable)
         renderFrame(ctx, s, t, ov.width, ov.height, optsRef.current);
+      }
       }
       if (now - lastReport > 90) {
         lastReport = now;
@@ -112,7 +152,7 @@ export const PreviewStage: React.FC<Props> = ({ scene, opts, player, quality, sh
       {use3d && <canvas ref={glRef} width={w} height={h} className="absolute inset-0 w-full h-full" data-testid="drop-canvas-3d" />}
       <canvas ref={ovRef} width={w} height={h} className="absolute inset-0 w-full h-full" data-testid="drop-canvas" />
       {showDebug && (
-        <div ref={dbgEl} data-testid="debug-overlay" className="absolute top-2 right-2 whitespace-pre text-[10px] leading-tight font-mono bg-black/70 text-lime-300 rounded-lg px-2 py-1 pointer-events-none" />
+        <div ref={dbgEl} data-testid="debug-overlay" className="absolute top-2 right-2 whitespace-pre text-xs leading-tight font-mono bg-black/70 text-lime-300 rounded-lg px-2 py-1 pointer-events-none" />
       )}
     </div>
   );

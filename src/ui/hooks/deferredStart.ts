@@ -3,7 +3,7 @@
  * the element is on screen (stopped again when scrolled away). Keeps first load fast.
  * `start` returns its own stop function. Returns a cleanup for useEffect.
  */
-export function startWhenIdleAndVisible(el: Element, start: () => () => void): () => void {
+export function startWhenIdleAndVisible(el: Element, start: () => () => void, minDelayMs = 0): () => void {
   let stop: (() => void) | null = null;
   let io: IntersectionObserver | null = null;
   let cancelled = false;
@@ -28,6 +28,12 @@ export function startWhenIdleAndVisible(el: Element, start: () => () => void): (
   };
   const afterLoad = () => {
     if (cancelled) return;
+    if (minDelayMs > 0) {
+      const d = minDelayMs;
+      minDelayMs = 0;
+      timer = window.setTimeout(afterLoad, d);
+      return;
+    }
     const ric = (window as any).requestIdleCallback as ((cb: () => void, o?: { timeout: number }) => number) | undefined;
     if (ric) idleId = ric(arm, { timeout: 2500 });
     else timer = window.setTimeout(arm, 600);

@@ -12,7 +12,6 @@ import { analyzeAudioUpload, analyzeMidiUpload, audioToTrack, isAudioFile, isMid
 import type { MidiAnalysis } from '../../midi/types';
 import type { StudioTrack } from '../../dropstudio/track';
 import { PreviewStage, type PreviewQuality } from './PreviewStage';
-import { DropRenderer3D } from '../../dropstudio/render3d';
 import { LibraryPanel } from './LibraryPanel';
 import { StylePanel } from './StylePanel';
 import { ExportPanel } from './ExportPanel';
@@ -139,7 +138,7 @@ export const DropStudioPage: React.FC = () => {
 
   // ?debug=1: expose the current scene for QA tooling (preview/export frame comparison)
   useEffect(() => {
-    if (DEBUG) (window as any).__dropStudio = { scene: gen.scene, impacts: gen.impacts, player, DropRenderer3D };
+    if (DEBUG) void import('../../dropstudio/render3d').then(({ DropRenderer3D }) => ((window as any).__dropStudio = { scene: gen.scene, impacts: gen.impacts, player, DropRenderer3D }));
   }, [gen, player]);
 
   const audioSrc: PlayerSource = useMemo(
@@ -252,7 +251,7 @@ export const DropStudioPage: React.FC = () => {
                   aria-selected={tab === t.id}
                   data-testid={`tab-${t.id}`}
                   onClick={() => setTab(t.id)}
-                  className={`rounded-xl py-2 text-[11px] sm:text-xs font-black border ${tab === t.id ? 'bg-cyan-400 text-slate-950 border-cyan-300' : 'bg-white/[0.04] border-white/10 text-slate-300'}`}
+                  className={`rounded-xl py-2 text-xs sm:text-xs font-black border ${tab === t.id ? 'bg-cyan-400 text-slate-950 border-cyan-300' : 'bg-white/[0.04] border-white/10 text-slate-300'}`}
                 >
                   {t.label}
                 </button>
@@ -298,7 +297,7 @@ export const DropStudioPage: React.FC = () => {
                       { value: 'veryslow', label: 'Very Slow', title: 'Fast runs become single slow drops' },
                     ]}
                   />
-                  {sync.mode === 'note' && !track.notes.length && <p className="mt-2 text-[11px] text-amber-200">Recordings have no notes: Note Mode follows the beats instead.</p>}
+                  {sync.mode === 'note' && !track.notes.length && <p className="mt-2 text-xs text-amber-200">Recordings have no notes: Note Mode follows the beats instead.</p>}
                 </Panel>
                 <Panel title="Drops">
                   <div className="space-y-3">
@@ -342,7 +341,7 @@ export const DropStudioPage: React.FC = () => {
                   title="Beat markers"
                   right={
                     sync.beatOverride ? (
-                      <button onClick={() => setSync({ ...sync, beatOverride: null })} className="text-[11px] rounded-lg border border-white/15 px-2 py-0.5">
+                      <button onClick={() => setSync({ ...sync, beatOverride: null })} className="text-xs rounded-lg border border-white/15 px-2 py-0.5">
                         Reset beats
                       </button>
                     ) : null
@@ -458,7 +457,7 @@ export const DropStudioPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              <p className="text-[11px] text-slate-500 text-center" data-testid="gen-stats">
+              <p className="text-xs text-slate-500 text-center" data-testid="gen-stats">
                 {styleInfo.name} · seed {styleOpts.seed} · {gen.impacts.t.length} impacts · generated in {gen.ms.toFixed(1)} ms · max sync error {gen.syncErr.toFixed(2)} frames
               </p>
             </div>

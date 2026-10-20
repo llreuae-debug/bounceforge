@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { libraryTrack } from '../../dropstudio/library/compile';
 import { computeImpacts, DEFAULT_SYNC } from '../../dropstudio/sync';
 import { buildScene, DEFAULT_STYLE_OPTIONS, STYLES, type StyleId, type StyleOptions } from '../../dropstudio/styles';
-import { DropRenderer3D } from '../../dropstudio/render3d';
+import type { DropRenderer3D } from '../../dropstudio/render3d';
+import { loadRenderer3D, webglSupported } from '../../dropstudio/webgl';
 import { renderFrame, type CameraMode, type Material, type Palette, type RenderOptions } from '../../dropstudio/render';
 import type { Scene } from '../../dropstudio/scene';
 import { Panel, Seg, Slider, Toggle } from './controls';
@@ -38,15 +39,19 @@ export const StylePanel: React.FC<Props> = ({ style, onStyle, styleOpts, onStyle
 
   useEffect(() => {
     let r3d: DropRenderer3D | null = null;
-    if (DropRenderer3D.supported()) {
-      try {
-        const c = document.createElement('canvas');
-        c.width = TW;
-        c.height = TH;
-        r3d = new DropRenderer3D(c, TW, TH, { shadows: false, antialias: true, maxCached: 16 });
-      } catch {
-        r3d = null;
-      }
+    let disposed = false;
+    if (webglSupported()) {
+      loadRenderer3D()
+        .then(({ DropRenderer3D }) => {
+          if (disposed) return;
+          const c = document.createElement('canvas');
+          c.width = TW;
+          c.height = TH;
+          r3d = new DropRenderer3D(c, TW, TH, { shadows: false, antialias: true, maxCached: 16 });
+        })
+        .catch(() => {
+          r3d = null;
+        });
     }
     let raf = 0;
     let next = 0;
@@ -78,6 +83,7 @@ export const StylePanel: React.FC<Props> = ({ style, onStyle, styleOpts, onStyle
     };
     raf = requestAnimationFrame(tick);
     return () => {
+      disposed = true;
       cancelAnimationFrame(raf);
       io.disconnect();
       r3d?.dispose();
@@ -105,7 +111,7 @@ export const StylePanel: React.FC<Props> = ({ style, onStyle, styleOpts, onStyle
               <canvas ref={(el) => {
                   cards.current[i] = el;
                 }} data-idx={i} width={TW} height={TH} className="w-full aspect-[9/16] bg-black" />
-              <span className="px-1.5 py-1 text-[10px] font-bold leading-tight bg-black/60 truncate">{s.name}</span>
+              <span className="px-1.5 py-1 text-xs font-bold leading-tight bg-black/60 truncate">{s.name}</span>
             </button>
           ))}
         </div>

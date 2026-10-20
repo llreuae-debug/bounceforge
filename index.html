@@ -29,7 +29,23 @@
       <h1 style="font-size:clamp(36px,6vw,60px);line-height:1.08;font-weight:800;letter-spacing:-1px;margin:0;max-width:900px;">Oddly Satisfying Ball Physics. <span style="color:#22d3ee;">Rendered in 4K.</span></h1>
       <p style="color:#94a3b8;font-size:16px;max-width:560px;line-height:1.6;margin:18px 0 0;">Every bounce plays a musical note. Export frame-perfect 9:16 videos up to 4K.</p>
     </div></div>
-    <script>/* Show the boot headline only on the home page; other routes get a plain dark shell */ (function(){var p=location.pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?(?=\/|$)/,'');if(p!==''&&p!=='/'){var s=document.getElementById('boot-shell');if(s)s.innerHTML='';}})();</script>
+    <script>/* Boot shell: home shows the hero headline; studio/info routes show their real page heading; others a plain dark shell */
+(function(){
+  var p=location.pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?(?=\/|$)/,'').replace(/\/+$/,'');
+  if(p===''||p==='/')return;
+  var drops=['BounceForge 3D — Drop Studio','Pick a song, pick a drop style. The animation is built backwards from the beat, so every impact lands on its note — in preview and in the export.'];
+  var map={'/drops':drops,'/drop-studio':drops,'/library':drops,'/midi-library':drops,'/drop-styles':drops,'/styles':drops,'/presets':drops,'/export':drops,
+    '/midi':['MIDI → Reel Studio','Pick the music first. The ball-drop animation is generated to match it, with every major drop landing on the beat.'],
+    '/credits':['Credits & Licenses','Every built-in song is either a public-domain composition (composer died more than 100 years ago, or a traditional tune first published more than 100 years ago) newly sequenced by the BounceForge team from the original score, or an original BounceForge melody. All instrument sounds come from BounceForge\'s own synthesizer — no samples from recordings.']};
+  map['/licenses']=map['/credits'];
+  var s=document.getElementById('boot-shell');if(!s)return;
+  var t=map[p];
+  if(!t){s.innerHTML='';return;}
+  s.style.justifyContent='flex-start';s.style.alignItems='flex-start';s.style.textAlign='left';s.style.padding='96px 24px 24px';
+  s.innerHTML='';var h=document.createElement('h1');h.textContent=t[0];h.style.cssText='font-size:24px;font-weight:900;margin:0 0 6px;color:#fff;max-width:1100px;width:100%;margin-left:auto;margin-right:auto;';
+  var q=document.createElement('p');q.textContent=t[1];q.style.cssText='font-size:14px;color:#94a3b8;max-width:1100px;width:100%;margin:0 auto;line-height:1.5;';
+  s.appendChild(h);s.appendChild(q);
+})();</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

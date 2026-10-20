@@ -86,7 +86,7 @@ export const LibraryPanel: React.FC<Props> = (p) => {
 
   return (
     <div className="space-y-4">
-      <Panel title="MIDI Library" right={<span className="text-[10px] text-slate-500">{LIBRARY_SONGS.length} built-in songs</span>}>
+      <Panel title="MIDI Library" right={<span className="text-xs text-slate-500">{LIBRARY_SONGS.length} built-in songs</span>}>
         <div className="relative mb-2">
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-500" />
           <input
@@ -138,7 +138,7 @@ export const LibraryPanel: React.FC<Props> = (p) => {
                 </button>
                 <button onClick={() => p.onPick(s.id)} data-testid={`use-${s.id}`} className="no-3d flex-1 min-w-0 flex flex-col items-start text-left">
                   <span className="text-xs font-bold truncate max-w-full">{s.title}</span>
-                  <span className="text-[10px] text-slate-400 truncate max-w-full">
+                  <span className="text-xs text-slate-400 truncate max-w-full">
                     {c?.composer} · {s.mood} · {bpm} BPM
                   </span>
                 </button>
@@ -196,7 +196,7 @@ export const LibraryPanel: React.FC<Props> = (p) => {
           </div>
         )}
         {!p.uploadBusy && p.track && !p.track.copyrightSafe && p.analysisMs !== undefined && (
-          <div className="mt-2 text-[11px] text-slate-400" data-testid="analysis-time">
+          <div className="mt-2 text-xs text-slate-400" data-testid="analysis-time">
             Analysed in {(p.analysisMs / 1000).toFixed(2)}s · {Math.round(p.track.bpm)} BPM · {p.track.beats.length} beats
           </div>
         )}

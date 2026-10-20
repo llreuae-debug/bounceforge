@@ -84,9 +84,9 @@ export const Footer: React.FC = () => {
 
           {/* Col 3: Popular Simulation Modes */}
           <div className="space-y-4">
-            <h4 className="text-xs font-mono font-extrabold text-[#CCFF00] tracking-wider uppercase">
+            <h2 className="text-xs font-mono font-extrabold text-[#CCFF00] tracking-wider uppercase">
               Popular Modes
-            </h4>
+            </h2>
             <ul className="space-y-2.5 text-xs text-neutral-400 font-medium">
               <li>
                 <button
@@ -166,9 +166,9 @@ export const Footer: React.FC = () => {
 
           {/* Col 4: Audio & Studio Tools */}
           <div className="space-y-4">
-            <h4 className="text-xs font-mono font-extrabold text-[#00F0FF] tracking-wider uppercase">
+            <h2 className="text-xs font-mono font-extrabold text-[#00F0FF] tracking-wider uppercase">
               Engine &amp; Audio
-            </h4>
+            </h2>
             <ul className="space-y-2.5 text-xs text-neutral-400 font-medium">
               <li>
                 <button
@@ -242,9 +242,9 @@ export const Footer: React.FC = () => {
 
           {/* Col 5: Video Export & Formats */}
           <div className="space-y-4">
-            <h4 className="text-xs font-mono font-extrabold text-[#FF2E93] tracking-wider uppercase">
+            <h2 className="text-xs font-mono font-extrabold text-[#FF2E93] tracking-wider uppercase">
               Export &amp; Social Presets
-            </h4>
+            </h2>
             <ul className="space-y-2.5 text-xs text-neutral-400 font-medium">
               <li>
                 <span className="text-neutral-400 flex items-center gap-1.5">

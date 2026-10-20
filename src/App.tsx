@@ -135,7 +135,7 @@ export const App: React.FC = () => {
         if (!disposed && !bgSimRef.current) bgSimRef.current = new BackgroundSimulator3D(canvas);
       });
       return () => {};
-    });
+    }, 4000); // decorative: never compete with the page's own code for bandwidth
     return () => {
       disposed = true;
       cleanup();

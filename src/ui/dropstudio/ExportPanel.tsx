@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Copy, Download, Loader2, X } from 'lucide-react';
-import { EXPORT_PRESETS, estimateExportSeconds, exportDropVideo, type ExportPreset, type ExportProgress, type ExportResult } from '../../dropstudio/exporter';
+import { EXPORT_PRESETS, estimateExportSeconds, type ExportPreset, type ExportProgress, type ExportResult } from '../../dropstudio/exportConfig';
 import type { DropMix, PlayerSource } from '../../dropstudio/audio';
 import type { RenderOptions } from '../../dropstudio/render';
 import type { Scene } from '../../dropstudio/scene';
 import type { StudioTrack } from '../../dropstudio/track';
 import { videoDescription } from '../../dropstudio/presets';
-import { DropRenderer3D } from '../../dropstudio/render3d';
+import { webglSupported } from '../../dropstudio/webgl';
 import { Panel, Seg } from './controls';
 
 interface Props {
@@ -41,6 +41,8 @@ export const ExportPanel: React.FC<Props> = ({ scene, render, audio, mix, track,
     abort.current = ac;
     setProgress({ percent: 0, etaSeconds: estimateExportSeconds(preset, fps, duration), stage: 'audio' });
     try {
+      // The encoder pipeline (WebCodecs + MP4 muxer) loads only when exporting
+      const { exportDropVideo } = await import('../../dropstudio/exporter');
       const r = await exportDropVideo({
         scene,
         // Exports always carry the BounceForge 3D watermark and never the debug overlay
@@ -52,7 +54,7 @@ export const ExportPanel: React.FC<Props> = ({ scene, render, audio, mix, track,
         name: track.title,
         style: styleId,
         seed,
-        use3d: DropRenderer3D.supported(),
+        use3d: webglSupported(),
         onProgress: setProgress,
         signal: ac.signal,
       });
@@ -77,11 +79,11 @@ export const ExportPanel: React.FC<Props> = ({ scene, render, audio, mix, track,
             options={(Object.keys(EXPORT_PRESETS) as ExportPreset[]).map((k) => ({ value: k, label: `${EXPORT_PRESETS[k].label} · ${EXPORT_PRESETS[k].width}×${EXPORT_PRESETS[k].height}` }))}
           />
           <Seg<30 | 60> testId="export-fps" label="Frame rate" value={fps} onChange={setFps} options={[{ value: 30, label: '30 fps' }, { value: 60, label: '60 fps' }]} />
-          <p className="text-[11px] text-slate-400">
+          <p className="text-xs text-slate-400">
             {duration.toFixed(0)}s · MP4 (H.264 + AAC) · BounceForge 3D watermark · estimated ~{estimateExportSeconds(preset, fps, duration)}s (refined live while exporting)
           </p>
           {track && !track.copyrightSafe && (
-            <div data-testid="copyright-reminder" className="flex gap-2 rounded-xl border border-amber-400/40 bg-amber-400/10 p-2.5 text-[11px] text-amber-100">
+            <div data-testid="copyright-reminder" className="flex gap-2 rounded-xl border border-amber-400/40 bg-amber-400/10 p-2.5 text-xs text-amber-100">
               <AlertTriangle className="w-4 h-4 shrink-0 text-amber-300" />
               Copyrighted music may get your video claimed or muted on YouTube/TikTok.
             </div>
@@ -107,7 +109,7 @@ export const ExportPanel: React.FC<Props> = ({ scene, render, audio, mix, track,
               <button data-testid="export-cancel" onClick={() => abort.current?.abort()} className="w-full rounded-xl border border-white/15 py-2 text-xs flex items-center justify-center gap-1">
                 <X className="w-3.5 h-3.5" /> Cancel
               </button>
-              <p className="text-[10px] text-slate-500">Exporting runs in the background: you can keep editing while it renders.</p>
+              <p className="text-xs text-slate-500">Exporting runs in the background: you can keep editing while it renders.</p>
             </div>
           )}
           {error && (
@@ -168,13 +170,13 @@ export const ExportPanel: React.FC<Props> = ({ scene, render, audio, mix, track,
                 setCopied(true);
                 window.setTimeout(() => setCopied(false), 1500);
               }}
-              className="rounded-lg px-2 py-1 text-[11px] border border-white/15 flex items-center gap-1"
+              className="rounded-lg px-2 py-1 text-xs border border-white/15 flex items-center gap-1"
             >
               <Copy className="w-3 h-3" /> {copied ? 'Copied' : 'Copy'}
             </button>
           }
         >
-          <textarea readOnly data-testid="description" value={description} rows={7} className="w-full rounded-xl bg-black/40 border border-white/10 p-2 text-[11px] font-mono" />
+          <textarea readOnly data-testid="description" value={description} rows={7} className="w-full rounded-xl bg-black/40 border border-white/10 p-2 text-xs font-mono" />
         </Panel>
       )}
     </div>

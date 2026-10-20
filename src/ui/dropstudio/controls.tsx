@@ -5,7 +5,7 @@ export const Panel: React.FC<{ title?: string; children: React.ReactNode; classN
   <section className={`rounded-2xl border border-white/10 bg-white/[0.03] p-4 ${className}`}>
     {title && (
       <div className="flex items-center justify-between mb-3 gap-2">
-        <h3 className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-300">{title}</h3>
+        <h2 className="text-xs font-black uppercase tracking-[0.14em] text-slate-300">{title}</h2>
         {right}
       </div>
     )}
@@ -80,20 +80,20 @@ export const Toggle: React.FC<{ label: string; checked: boolean; onChange: (v: b
   <label className="flex items-center justify-between gap-3 text-xs text-slate-300 cursor-pointer select-none">
     <span>
       {label}
-      {hint && <span className="block text-[10px] text-slate-500">{hint}</span>}
+      {hint && <span className="block text-xs text-slate-500">{hint}</span>}
     </span>
     <input type="checkbox" data-testid={testId} checked={checked} onChange={(e) => onChange(e.target.checked)} className="w-4 h-4 accent-cyan-400" />
   </label>
 );
 
 export const SafeBadge: React.FC = () => (
-  <span data-testid="badge-safe" className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 px-2 py-0.5 text-[10px] font-bold whitespace-nowrap">
+  <span data-testid="badge-safe" className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 px-2 py-0.5 text-xs font-bold whitespace-nowrap">
     <ShieldCheck className="w-3 h-3" /> Copyright Safe
   </span>
 );
 
 export const UserBadge: React.FC = () => (
-  <span data-testid="badge-user" className="inline-flex items-center gap-1 rounded-full bg-amber-400/15 border border-amber-300/40 text-amber-200 px-2 py-0.5 text-[10px] font-bold whitespace-nowrap">
+  <span data-testid="badge-user" className="inline-flex items-center gap-1 rounded-full bg-amber-400/15 border border-amber-300/40 text-amber-200 px-2 py-0.5 text-xs font-bold whitespace-nowrap">
     <AlertTriangle className="w-3 h-3" /> User Provided — your responsibility
   </span>
 );

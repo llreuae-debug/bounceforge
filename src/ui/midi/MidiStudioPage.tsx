@@ -38,7 +38,7 @@ import {
   saveMidiProject,
   type MidiReelProjectMeta,
 } from '../../midi/projectStore';
-import { verifyMp4, type Mp4Check } from '../../midi/verifyMp4';
+import type { Mp4Check } from '../../midi/verifyMp4';
 import {
   DEFAULT_MIX,
   DEFAULT_PHYSICS,
@@ -52,7 +52,8 @@ import {
   type ReelPlan,
   type SyncToggles,
 } from '../../midi/types';
-import { VideoExporter, checkGpu4KCapability, type ExportProgress } from '../../export/videoExporter';
+import type { VideoExporter, ExportProgress } from '../../export/videoExporter';
+import { checkGpu4KCapability } from '../../export/gpuCheck';
 import { WorldRenderer, type VisualSettings } from '../../render/renderer';
 import { DEFAULT_OVERLAYS } from '../../render/overlays';
 import type { PhysicsWorld } from '../../engine/world';
@@ -419,6 +420,8 @@ export const MidiStudioPage: React.FC = () => {
     setExporting(true);
     setExportResult(null);
     setError(null);
+    // Encoder + verifier load only when exporting (keeps the studio page light)
+    const [{ VideoExporter }, { verifyMp4 }] = await Promise.all([import('../../export/videoExporter'), import('../../midi/verifyMp4')]);
     const exporter = new VideoExporter();
     exporterRef.current = exporter;
     try {

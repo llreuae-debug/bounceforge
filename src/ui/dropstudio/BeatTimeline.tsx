@@ -175,7 +175,7 @@ export const BeatTimeline: React.FC<Props> = ({ track, beats, downbeats, impacts
           if (e.key === 'Delete' || e.key === 'Backspace') remove();
         }}
       />
-      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
         <span>View</span>
         {[60, 24, 12, 6].map((s) => (
           <button key={s} onClick={() => setSpan(Math.min(s, track.duration))} className={`rounded-lg px-2 py-0.5 border ${span === Math.min(s, track.duration) ? 'border-cyan-400 text-cyan-300' : 'border-white/10'}`}>
