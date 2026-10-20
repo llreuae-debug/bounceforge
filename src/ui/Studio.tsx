@@ -214,6 +214,7 @@ export const Studio: React.FC = () => {
                       setMobileSheetOpen(false);
                       setSettingsOpen(false);
                     }}
+                    aria-label="Close settings"
                     className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300"
                   >
                     <X className="w-4 h-4" />

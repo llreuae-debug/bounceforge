@@ -760,6 +760,7 @@ export const StudioCanvas: React.FC = () => {
               type="text"
               value={seedInput}
               onChange={(e) => setSeedInput(e.target.value)}
+              aria-label="Seed"
               className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs font-mono text-cyan-300 text-center outline-none focus:border-cyan-400"
             />
           </form>

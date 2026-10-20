@@ -511,6 +511,9 @@ export function drawOverlays(
  * Draws the official flat mono-white horizontal watermark:
  * "bounceforge" (no 3D), centered, bottom edge at 23% from frame bottom, width 30% of frame, 60% opacity.
  */
+// The watermark (shadowed vector logo) is drawn once per size into a cache and blitted each frame
+const watermarkCache = new Map<string, HTMLCanvasElement | OffscreenCanvas>();
+
 function drawFlatWatermark(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -518,13 +521,33 @@ function drawFlatWatermark(
   arena: ReturnType<typeof getSafeArena>,
   opacity: number = 0.85
 ): { x: number; y: number; width: number; height: number } {
-  ctx.save();
-  ctx.globalAlpha = opacity;
+  void height;
   const targetWidth = arena.layout.watermarkW; // 30% of frame width
   const targetHeight = targetWidth / 4;
   const bottomEdgeY = arena.layout.watermarkBottomY; // 77% of frame height (23% from bottom)
-  const originX = (width - targetWidth) / 2;
-  const originY = bottomEdgeY - targetHeight;
+  const left = (width - targetWidth) / 2;
+  const top = bottomEdgeY - targetHeight;
+  const pad = Math.ceil(Math.max(4, (10 * targetWidth) / 480) * 3);
+  const key = `${Math.round(targetWidth * 100)}`;
+  let cached = watermarkCache.get(key);
+  if (!cached) {
+    const cw = Math.ceil(targetWidth + pad * 2);
+    const ch = Math.ceil(targetHeight + pad * 2);
+    cached = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(cw, ch) : Object.assign(document.createElement('canvas'), { width: cw, height: ch });
+    const wctx = cached.getContext('2d') as CanvasRenderingContext2D | null;
+    if (wctx) drawWatermarkShape(wctx, pad, pad, targetWidth);
+    if (watermarkCache.size > 8) watermarkCache.clear();
+    watermarkCache.set(key, cached);
+  }
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.drawImage(cached as CanvasImageSource, left - pad, top - pad);
+  ctx.restore();
+  return { x: left, y: top, width: targetWidth, height: targetHeight };
+}
+
+function drawWatermarkShape(ctx: CanvasRenderingContext2D, originX: number, originY: number, targetWidth: number): void {
+  ctx.save();
   const s = targetWidth / 480;
 
   ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
@@ -579,8 +602,6 @@ function drawFlatWatermark(
   ctx.fillText('bounceforge', originX + 132 * s, originY + 74 * s);
 
   ctx.restore();
-
-  return { x: originX, y: originY, width: targetWidth, height: targetHeight };
 }
 
 /**

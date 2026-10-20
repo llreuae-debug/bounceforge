@@ -422,9 +422,9 @@ export class AudioEngine {
       this.delayNode.connect(this.delayReturnGain);
       this.delayReturnGain.connect(this.highPassFilter);
 
-      // Preload acoustic multisamples
-      SoundfontSampleManager.warmUp(this.ctx);
-      MarbleAudioSynthesizer.preloadAllSounds(this.ctx);
+      // Preload acoustic multisamples when the page is idle (generating them takes a moment;
+      // a note played before that generates its bank on first use)
+      this.warmUpWhenIdle();
     } catch (e) {
       console.warn('AudioContext failed to initialize:', e);
     }
@@ -458,10 +458,21 @@ export class AudioEngine {
 
   preload(): void {
     if (!this.ctx) this.init();
-    if (this.ctx) {
-      SoundfontSampleManager.warmUp(this.ctx);
-      MarbleAudioSynthesizer.preloadAllSounds(this.ctx);
-    }
+    this.warmUpWhenIdle();
+  }
+
+  private warmUpScheduled = false;
+  private warmUpWhenIdle(): void {
+    if (this.warmUpScheduled || !this.ctx) return;
+    this.warmUpScheduled = true;
+    const ctx = this.ctx;
+    const run = () => {
+      SoundfontSampleManager.warmUp(ctx);
+      MarbleAudioSynthesizer.preloadAllSounds(ctx);
+    };
+    const ric = typeof window !== 'undefined' ? (window as any).requestIdleCallback : undefined;
+    if (ric) ric(run, { timeout: 4000 });
+    else setTimeout(run, 1500);
   }
 
   resume(): void {
