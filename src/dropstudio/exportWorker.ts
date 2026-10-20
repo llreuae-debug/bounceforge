@@ -27,6 +27,8 @@ export interface ExportJob {
 
 let cancelled = false;
 const AAC_BPS = 320000;
+/** Standard AAC-LC encoder delay (2112 samples, Apple AudioToolbox / most encoders) when it can't be measured */
+const DEFAULT_AAC_PRIMING = 2112 / 48000;
 const AAC_CONFIG: AudioEncoderConfig = { codec: 'mp4a.40.2', sampleRate: 48000, numberOfChannels: 2, bitrate: AAC_BPS, bitrateMode: 'constant' };
 
 async function nativeAacSupported(): Promise<boolean> {
@@ -64,7 +66,7 @@ async function measureAacPriming(): Promise<number> {
   enc.encode(planarChunk(l, l, 0, n));
   await enc.flush();
   enc.close();
-  if (!decoderConfig) return 0;
+  if (!decoderConfig) return DEFAULT_AAC_PRIMING;
   const out: Float32Array[] = [];
   const dec = new AudioDecoder({
     output: (d) => {
@@ -75,16 +77,22 @@ async function measureAacPriming(): Promise<number> {
     },
     error: () => {},
   });
-  dec.configure(decoderConfig);
-  for (const c of chunks) dec.decode(c);
-  await dec.flush();
-  dec.close();
+  try {
+    dec.configure(decoderConfig);
+    for (const c of chunks) dec.decode(c);
+    await dec.flush();
+  } catch {
+    // Some browsers (WebKit) can't decode their own AAC here: use the standard encoder delay
+    return DEFAULT_AAC_PRIMING;
+  } finally {
+    if (dec.state !== 'closed') dec.close();
+  }
   let i = 0;
   let best = -1;
   let bestV = 0;
   for (const b of out) for (let k = 0; k < b.length; k++, i++) if (Math.abs(b[k]) > bestV) { bestV = Math.abs(b[k]); best = i; }
   const shift = best - at;
-  return shift > 0 && shift < 8192 ? shift / 48000 : 0;
+  return shift > 0 && shift < 8192 ? shift / 48000 : DEFAULT_AAC_PRIMING;
 }
 
 /**
@@ -116,14 +124,19 @@ async function encodeAacPackets(src: EncodedAudioPacketSource, left: Float32Arra
   await enc.flush();
   enc.close();
   if (err) throw err;
+  // We always encode AAC-LC 48kHz stereo, so write that AudioSpecificConfig ourselves (some
+  // browsers report a wrong one, which leaves the track undecodable): 2 (LC) | 3 (48k) | 2 (stereo)
+  const asc: EncodedAudioChunkMetadata = {
+    decoderConfig: { codec: 'mp4a.40.2', sampleRate: 48000, numberOfChannels: 2, description: new Uint8Array([0x11, 0x90]) },
+  };
   let first = true;
-  for (const { chunk, meta } of pending) {
+  for (const { chunk } of pending) {
     const p = EncodedPacket.fromEncodedChunk(chunk);
     const ts = p.timestamp - priming;
     if (ts >= duration - 1e-6) break;
     // Clip the last packet so the track ends exactly at the video's end
     const dur = Math.min(p.duration, duration - ts);
-    await src.add(p.clone({ timestamp: ts, duration: dur }), first ? meta : undefined);
+    await src.add(p.clone({ timestamp: ts, duration: dur }), first ? asc : undefined);
     first = false;
   }
 }
@@ -146,7 +159,10 @@ interface VideoPlan {
 async function pickVideo(job: ExportJob): Promise<VideoPlan> {
   for (const codec of candidates(job.width, job.fps)) {
     for (const hw of ['prefer-hardware', 'no-preference', 'prefer-software'] as const) {
-      for (const quantizer of [true, false]) {
+      // Quantizer mode is honoured by Chromium encoders; other engines accept the config but ignore
+      // the per-frame QP, so they use constant bitrate instead
+      const chromium = /Chrome|Chromium|Edg\//.test(self.navigator.userAgent);
+      for (const quantizer of chromium ? [true, false] : [false]) {
         const config: VideoEncoderConfig = {
           codec,
           width: job.width,
@@ -178,7 +194,7 @@ async function run(job: ExportJob): Promise<void> {
   const nativeAac = await nativeAacSupported();
   if (!nativeAac && !(await canEncodeAudio('aac', { numberOfChannels: 2, sampleRate: 48000, bitrate: AAC_BPS }))) registerAacEncoder();
   // Measure this browser's AAC encoder delay so the edit list can cancel it exactly
-  const priming = nativeAac ? await measureAacPriming() : 0;
+  const priming = nativeAac ? await measureAacPriming().catch(() => DEFAULT_AAC_PRIMING) : 0;
 
   const out = new OffscreenCanvas(job.width, job.height);
   const ctx = out.getContext('2d', { alpha: false }) as OffscreenCanvasRenderingContext2D;

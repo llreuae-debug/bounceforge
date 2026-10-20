@@ -374,6 +374,50 @@ export function renderOverlays(ctx: Ctx2D, scene: Scene, t: number, width: numbe
   }
   if (o.syncCheck) drawSyncCheck(ctx, t, o);
   if (o.watermark) drawWatermark(ctx);
+  drawDither(ctx, t);
+}
+
+// ---------- Dither (anti-banding) ----------
+// ±1-2 levels of fine, frame-varying grain: removes colour banding in the dark gradients and gives
+// the encoder real detail (clean CG otherwise compresses to almost nothing). Deterministic per frame.
+const DITHER_TILES: AnyCanvas[] = [];
+function ditherTile(i: number): AnyCanvas {
+  if (DITHER_TILES[i]) return DITHER_TILES[i];
+  const size = 256;
+  const c = makeCanvas(size, size);
+  const g = c.getContext('2d') as Ctx2D;
+  const img = g.createImageData(size, size);
+  let seed = 0x9e3779b9 ^ (i * 2654435761);
+  for (let p = 0; p < img.data.length; p += 4) {
+    seed ^= seed << 13;
+    seed ^= seed >>> 17;
+    seed ^= seed << 5;
+    const v = 128 + ((seed >>> 0) % 33) - 16;
+    img.data[p] = img.data[p + 1] = img.data[p + 2] = v;
+    img.data[p + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  DITHER_TILES[i] = c;
+  return c;
+}
+
+function drawDither(ctx: Ctx2D, t: number): void {
+  const frame = Math.round(t * 60);
+  const tile = ditherTile(frame % 4);
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = 0.09;
+  const pat = ctx.createPattern(tile as CanvasImageSource, 'repeat');
+  if (pat) {
+    // Shift the tile each frame so the grain is temporal, not a fixed screen pattern
+    const ox = (frame * 97) % 256;
+    const oy = (frame * 61) % 256;
+    ctx.translate(-ox, -oy);
+    ctx.fillStyle = pat;
+    ctx.fillRect(0, 0, ctx.canvas.width + 256, ctx.canvas.height + 256);
+  }
+  ctx.restore();
 }
 
 function flashAt(t: number, list: ArrayLike<number> | undefined, win: number): number {
