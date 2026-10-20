@@ -219,6 +219,7 @@ async function run(job: ExportJob): Promise<void> {
 
   const total = Math.round(job.duration * job.fps);
   let lastPost = 0;
+  const rateWindow: [number, number][] = [];
   for (let i = 0; i < total; i++) {
     if (cancelled) {
       venc.close();
@@ -244,8 +245,11 @@ async function run(job: ExportJob): Promise<void> {
     const now = performance.now();
     if (now - lastPost > 250 || i === total - 1) {
       lastPost = now;
-      const elapsed = (now - t0) / 1000;
-      const rate = (i + 1) / Math.max(0.001, elapsed);
+      // ETA from the recent frame rate (start-up and encoder warm-up would skew a running average)
+      rateWindow.push([now, i + 1]);
+      while (rateWindow.length > 2 && now - rateWindow[0][0] > 3000) rateWindow.shift();
+      const [w0t, w0f] = rateWindow[0];
+      const rate = rateWindow.length > 1 && now > w0t ? ((i + 1 - w0f) * 1000) / (now - w0t) : (i + 1) / Math.max(0.001, (now - t0) / 1000);
       self.postMessage({ type: 'progress', frame: i + 1, total, percent: ((i + 1) / total) * 92, eta: (total - i - 1) / rate + 1.5, fps: rate });
       // Yield so a cancel message can arrive
       await new Promise((r) => setTimeout(r, 0));
