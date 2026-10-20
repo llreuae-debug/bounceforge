@@ -239,12 +239,16 @@ export const App: React.FC = () => {
       <div className="relative z-10">
         <React.Suspense
           fallback={
+            (window as any).__bootShell && (window as any).__bootShell.path === window.location.pathname ? (
+              <div dangerouslySetInnerHTML={{ __html: (window as any).__bootShell.html }} />
+            ) : (
             <div className="min-h-screen bg-[#050608] flex items-center justify-center font-mono text-xs text-slate-400">
               <div className="flex items-center gap-2.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
                 <span className="uppercase tracking-widest text-[11px] font-bold">Loading BounceForge...</span>
               </div>
             </div>
+            )
           }
         >
           {currentRoute === 'studio' && <Studio />}

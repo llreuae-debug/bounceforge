@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { loadMarbleRenderer } from '../marble3d/modes/marbleMelodyMode';
 
-// Studio needs the 3D marble renderer: start loading it as soon as the Studio code loads
-void loadMarbleRenderer();
+// The 3D marble renderer is fetched once the studio is idle (marble mode also loads it on demand)
+if (typeof window !== 'undefined') {
+  const ric = (window as any).requestIdleCallback as ((cb: () => void, o?: { timeout: number }) => number) | undefined;
+  if (ric) ric(() => void loadMarbleRenderer(), { timeout: 6000 });
+  else setTimeout(() => void loadMarbleRenderer(), 3000);
+}
 import { ModeGallery } from './panels/ModeGallery';
 import { StudioCanvas } from './StudioCanvas';
 import { EssentialControls } from './panels/EssentialControls';

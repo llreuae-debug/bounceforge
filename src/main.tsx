@@ -16,6 +16,10 @@ function isBrowserSupported(): boolean {
 }
 
 const rootEl = document.getElementById('root')!;
+// Keep the static boot shell's markup so the first lazy route can show it while loading
+// (no flash back to an empty screen between the HTML shell and the real page)
+const bootShell = document.getElementById('boot-shell');
+(window as any).__bootShell = bootShell && bootShell.innerHTML.trim() ? { html: bootShell.outerHTML, path: location.pathname } : null;
 
 if (!isBrowserSupported()) {
   rootEl.innerHTML = `
