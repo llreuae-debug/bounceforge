@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { Bug, Pause, Play, RotateCcw, Shuffle, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { Header } from '../Header';
 import { libraryTrack } from '../../dropstudio/library/compile';
@@ -208,6 +208,11 @@ export const DropStudioPage: React.FC = () => {
     }
   };
 
+  const [editorReady, setEditorReady] = useState(false);
+  useEffect(() => {
+    startTransition(() => setEditorReady(true));
+  }, []);
+
   const styleInfo = STYLES.find((s) => s.id === style)!;
   const sourceDuration = uploaded?.kind === 'audio' ? uploaded.up.analysis.duration : uploaded?.kind === 'midi' ? uploaded.analysis.duration : null;
 
@@ -240,6 +245,8 @@ export const DropStudioPage: React.FC = () => {
           ))}
         </div>
 
+        {/* The studio body renders as a transition right after first paint (time-sliced) */}
+        {editorReady ? (
         <div className="grid gap-5 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)]">
           {/* Controls */}
           <div className="order-2 lg:order-1 min-w-0">
@@ -463,6 +470,9 @@ export const DropStudioPage: React.FC = () => {
             </div>
           </div>
         </div>
+        ) : (
+          <div className="min-h-[70vh]" aria-busy="true" />
+        )}
       </main>
     </div>
   );
